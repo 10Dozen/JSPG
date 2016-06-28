@@ -1,0 +1,86 @@
+body {	
+	margin: 0px;
+	padding: 0px;
+	font-family: helvetica,arial,sans-serif;
+	background-color: #ececec;
+}
+
+/* ****************
+	Landing page 
+**************** */
+#header {
+	background-color: #252525;
+	color: white;
+}
+
+#header-title {
+	font-size: 24px;	
+	padding: 2px 0px 0px 40px;
+}
+
+#header-title span {
+	background-color: #c52334;
+	padding: 0px 4px;
+	border-radius: 0px 8px 8px 8px;
+	font-weight: bold;
+}
+
+#header-status {
+	font-size: 18px;
+	background-color: #5a5a5a;
+	padding: 6px 0px 3px 40px;
+	
+}
+
+
+/* ****************
+	Form 
+**************** */
+#game-form {
+	max-width: 512px;
+}
+
+#game-form ul li {
+	padding: 3px 0px;
+	list-style-type: none;
+}
+
+.scene-description {
+	border: 1px solid #999;
+	border-radius: 10px;
+	padding: 15px 20px;
+	
+	font-size: 12px;
+	color: #ddd;
+
+	background-color: #666;
+}
+.scene-even {
+	margin-right: 40px;
+	background-color: #444;
+}
+.scene-odd {
+	margin-left: 40px;
+	
+}
+
+
+
+
+.action-btn {
+	border: 1px solid #333;
+	background-color: #eee;
+	
+	padding: 5px;
+	margin-bottom: 5px;
+	
+	color: #333;
+	font-size: 14px;
+}
+
+.action-btn:hover {
+	border: 1px solid #333;
+	background-color: #F5E99F;
+	color: #333;
+	cursor:pointer;
+}

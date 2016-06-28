@@ -1,19 +1,11 @@
-var Scenes = {
-	"InitScene": {
-		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
-		, "actions": [
-			["- Fuck You!", true, "Game.showScene(Scenes.Scene1)"]
-		]
-	}
-	,"Scene1": {
-		"desc": "- Fuck You, leather man!"
-		,"actions": [
-			["- Fight", true, ""]
-			,["Go away", ""]
-		]	
-	}
-};
-
+(function($) {
+    $.fn.goTo = function() {
+        $('html, body').animate({
+            scrollTop: $(this).offset().top + 'px'
+        }, 'fast');
+        return this; // for chaining...
+    }
+})(jQuery);
 
 
 var GamePrototype = function () {
@@ -36,6 +28,7 @@ var GamePrototype = function () {
 		
 		setTimeout(function () {
 			$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "]").css("opacity", 1);
+			$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "]").goTo();
 		}, 1000);		
 		
 		// Actions
@@ -53,7 +46,7 @@ var GamePrototype = function () {
 			$(".btn-" + (i + 1)).off();
 			$(".btn-" + (i + 1)).on("click", function () {
 				Game.hideActions();
-				if ( $(this).attr("showAnswer") ) {
+				if ( eval( $(this).attr("showAnswer") ) )  {
 					Game.showAnswer( $(this).html() );
 				};
 				

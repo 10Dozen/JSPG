@@ -1,46 +1,87 @@
 var Scenes = {
 	"InitScene": {
-		"desc": "Init Scene is here"
+		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
 		, "actions": [
-			["Next", "console.log('Text executed')"]
+			["- Fuck You!", true, "Game.showScene(Scenes.Scene1)"]
 		]
 	}
 	,"Scene1": {
-		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
+		"desc": "- Fuck You, leather man!"
 		,"actions": [
-			["- Fuck You!", ""]
+			["- Fight", true, ""]
 			,["Go away", ""]
 		]	
 	}
 };
 
 
+
 var GamePrototype = function () {
+	this.scenesCurrentId = 0;
+	this.toExecude = "";
+	this.currentScene = {};
 	
 	this.showScene = function (Scene) {	
-		$("#scenes").append( 
-			"<div class='scene-description scene-even'>" 
-			+ Scene.desc
-			+ "</div>"
-		);		
+		this.currentScene = Scene;
+		this.scenesCurrentId++;	
 		
+		this.hideActions();
+		
+		// Scene
+		$block = "<div class='scene-description scene-even' sceneId='" 
+			+ (this.scenesCurrentId-1) + "'>" 
+			+ Scene.desc
+			+ "</div>";
+		$("#scenes").append( $block	);
+		
+		setTimeout(function () {
+			$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "]").css("opacity", 1);
+		}, 1000);		
+		
+		// Actions
 		for (var i=0; i < Scene.actions.length; i++) {
-			$(".btn-" + (i + 1)).html( Scene.actions[i][0] );	
+			var answer = Scene.actions[i][0];
+			var showAnswer = Scene.actions[i][1];
+			var toExecute = Scene.actions[i][2];
+		
+			$(".btn-" + (i + 1)).html( answer );	
 			$(".btn-" + (i + 1)).css("display","block");
 			
-			$(".btn-" + (i + 1)).attr("toExecute", Scene.actions[i][1]);
+			$(".btn-" + (i + 1)).attr("toExecute", toExecute);			
+			$(".btn-" + (i + 1)).attr("showAnswer", showAnswer);
 			
 			$(".btn-" + (i + 1)).off();
 			$(".btn-" + (i + 1)).on("click", function () {
-				eval( $(this).attr("toExecute") );			
-			});
-			
-		};		
+				Game.hideActions();
+				if ( $(this).attr("showAnswer") ) {
+					Game.showAnswer( $(this).html() );
+				};
+				
+				Game.toExecute = $(this).attr("toExecute");
+				setTimeout( function () { eval( Game.toExecute ); }, 1000 );	
+			});		
+		};
+		setTimeout(function () {
+			$(".action-btn").css("opacity", 1);
+		}, 1500);	
+		
+	};
+	
+	this.showAnswer = function (Answer) {
+		$("#scenes").append( 
+			"<div class='scene-description scene-odd'>" 
+			+ Answer
+			+ "</div>"
+		);
+		setTimeout(function () {
+			$(".scene-odd").css("opacity", 1);
+		}, 500);
 	};
 	
 	
 	this.hideActions = function () {
 		$(".action-btn").css("display","none");
+		$(".action-btn").css("opacity", 0);
 	};
 	
 	this.hideActions();

@@ -22,6 +22,7 @@ var GamePrototype = function () {
 	this.showScene = function (Scene) {	
 		this.currentScene = Scene;
 		this.scenesCurrentId++;	
+		this.lastActionsHeight = 20;
 		
 		this.hideActions();
 		
@@ -42,6 +43,8 @@ var GamePrototype = function () {
 			var answer = Scene.actions[i][0];
 			var showAnswer = Scene.actions[i][1];
 			var toExecute = Scene.actions[i][2];
+			
+			$(".action-btn-holder").css("display","none");
 		
 			$(".btn-" + (i + 1)).html( answer );	
 			$(".btn-" + (i + 1)).css("display","block");
@@ -58,7 +61,9 @@ var GamePrototype = function () {
 				
 				Game.toExecute = $(this).attr("toExecute");
 				setTimeout( function () { eval( Game.toExecute ); }, 1000 );	
-			});		
+			});
+			
+			$(".actions").css("min-height", $(".actions").height() + "px");
 		};
 		setTimeout(function () {
 			$(".action-btn").css("opacity", 1);
@@ -79,7 +84,10 @@ var GamePrototype = function () {
 	
 	
 	this.hideActions = function () {
+		$(".actions").css("min-height", $(".actions").height() + "px");
+		
 		$(".action-btn").css("display","none");
+		$(".action-btn-holder").css("display","block");
 		$(".action-btn").css("opacity", 0);
 	};
 	

@@ -22,7 +22,8 @@ var GamePrototype = function () {
 	
 	this.showScene = function (Scene) {	
 		this.currentScene = Scene;
-		this.sceneDesc = this.currentScene.desc;	
+		this.sceneDesc = Scene.desc;
+		this.sceneActions = Scene.actions;
 		this.scenesCurrentId++;	
 		
 		this.hideActions();		
@@ -42,24 +43,34 @@ var GamePrototype = function () {
 		}, 1000);		
 		
 		// Set Actions
-		for (var i=0; i < Scene.actions.length; i++) {
-			var answer = Scene.actions[i][0];
-			var showAnswer = Scene.actions[i][1];
-			var toExecute = Scene.actions[i][2];
+		for (var i=0; i < this.sceneActions.length; i++) {
+			var $btn = ".btn-" + (i + 1);
+			var shortAnswer, fullAnswer;
+			if ( (this.sceneActions[i][0]).constructor === Array ) {
+				shortAnswer = this.sceneActions[i][0][0];
+				fullAnswer = this.sceneActions[i][0][1];
+			} else {
+				shortAnswer = this.sceneActions[i][0];
+				fullAnswer = this.sceneActions[i][0];
+			};
+			
+			var showAnswer = this.sceneActions[i][1];
+			var toExecute = this.sceneActions[i][2];
 			
 			$(".action-btn-holder").css("display","none");
 		
-			$(".btn-" + (i + 1)).html( answer );	
-			$(".btn-" + (i + 1)).css("display","block");
+			$( $btn ).html( shortAnswer );	
+			$( $btn ).css("display","block");
 			
-			$(".btn-" + (i + 1)).attr("toExecute", toExecute);			
-			$(".btn-" + (i + 1)).attr("showAnswer", showAnswer);
+			$( $btn ).attr("toExecute", toExecute);	
+			$( $btn ).attr("showDesc", fullAnswer);
+			$( $btn ).attr("showAnswer", showAnswer);
 			
-			$(".btn-" + (i + 1)).off();
-			$(".btn-" + (i + 1)).on("click", function () {
+			$( $btn ).off();
+			$( $btn ).on("click", function () {
 				Game.hideActions();
 				if ( eval( $(this).attr("showAnswer") ) )  {
-					Game.showAnswer( $(this).html() );
+					Game.showAnswer( $(this).attr("showDesc") );
 				};
 				
 				Game.toExecute = $(this).attr("toExecute");

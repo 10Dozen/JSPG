@@ -97,6 +97,9 @@ body {
 	cursor:pointer;
 }
 
+.actions {
+	min-height: 32px;
+}
 
 img {
 	max-width: 390px;

@@ -99,6 +99,6 @@ body {
 
 
 img {
-	width: 390px;
+	max-width: 390px;
 }
 

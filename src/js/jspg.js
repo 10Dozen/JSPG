@@ -13,6 +13,12 @@ var GamePrototype = function () {
 	this.toExecude = "";
 	this.currentScene = {};
 	
+	
+	this.goTo = function (SceneName) {
+		eval( "Game.showScene(Scenes." + SceneName + ")" )
+		
+	};
+	
 	this.showScene = function (Scene) {	
 		this.currentScene = Scene;
 		this.scenesCurrentId++;	

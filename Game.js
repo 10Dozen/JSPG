@@ -9,9 +9,9 @@
  *					, @CodeToExecute(string/jscode)
  *				]
  *			]
- *			, "exec": {
- *				"pre": 		@CodeToExecuteBeforeTheScene(string/jscode)
- *				, "post":	@CodeToExecuteAFterTheScene(string/jscode)
+ *			, (Optional) "exec": {
+ *				(Optional)  "pre": 		@CodeToExecuteBeforeTheScene(string/jscode)
+ *				, (Optional)  "post":		@CodeToExecuteAFterTheScene(string/jscode)
  *			}
  *		}
  *

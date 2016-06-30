@@ -33,8 +33,8 @@ var GamePrototype = function () {
 		
 		if (this.sceneDesc.constructor !== Array) {			
 			this.sceneDesc = [this.sceneDesc];
-		}
-		
+		}	
+
 		this.execPreScene();
 		
 		// Scene
@@ -121,10 +121,18 @@ var GamePrototype = function () {
 	};
 	
 	this.execPreScene = function () {
-		eval( this.currentScene.exec.pre );
+		if (this.currentScene.hasOwnProperty("exec")){
+			if (this.currentScene.exec.hasOwnProperty("pre")){
+				eval( this.currentScene.exec.pre );
+			}
+		}		
 	};
 	this.execPostScene = function () {
-		eval( this.currentScene.exec.post );
+		if (this.currentScene.hasOwnProperty("exec")){
+			if (this.currentScene.exec.hasOwnProperty("post")){
+				eval( this.currentScene.exec.post );
+			}
+		}		
 	};
 	
 	this.showActions = function () {		
@@ -152,6 +160,4 @@ $( document ).ready(function() {
 	Game = new GamePrototype();
 
 	Game.showScene(Scenes.InitScene);
-
-
 });

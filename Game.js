@@ -1,6 +1,6 @@
 /*
  *		"SceneName": {
- *			"desc": @SceneDescritpion(string)
+ *			"desc": @SceneDescritpion(string) or [@SceneDescription1(string), @SceneDescription2(string)]
  *			,"actions": [
  *				[ 
  *					@ActionDisplayName(string) 

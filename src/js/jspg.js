@@ -8,6 +8,64 @@
 })(jQuery);
 
 
+var ActionHandler = function () {
+	this.actions			= [];
+	this.actionsId 			= 0;
+	
+	this.findActionById = function (id) {
+		var actionItem = this.actions.find(function (element) {
+			var r;
+			if (element.id == this) {
+				r = element;
+			}
+			
+			return r;		
+		}, id);
+		
+		return actionItem;
+	};
+	
+	this.clearActionList = function () {
+		this.actions = [];
+		this.actionsId = 0;
+	};
+	
+	this.addAction = function (name, desc, exec, type, portrait) {
+		this.actions.push( new Action(this.actionsId, name, desc, exec, type, portrait) );	
+		this.actionsId++;
+	};
+	
+	this.showActionButtons = function () {		
+		setTimeout(function () {
+			$(".action-btn").css("position","");
+			$(".action-btn").css("left","0px");
+			
+			$(".action-btn").css("opacity", 1);
+			Game.execPostScene();
+		}, 1500);		
+	};
+	this.hideActionButtons = function () {
+		$(".actions").css("min-height", $(".actions").height() + "px");
+		
+		$(".action-btn").css("display","none");
+		$(".action-btn-holder").css("display","block");
+		$(".action-btn").css("opacity", 0);
+	};
+};
+
+var Action = function (id, name, desc, exec, type, portrait) {
+	this.id = id;
+	this.name = name;
+	this.desc = desc;
+	this.exec = exec;
+	this.type = type;
+	this.portrait = portrait;
+	
+	this.execute = function () {
+		eval( this.exec );
+	};
+};
+
 var GamePrototype = function () {
 	this.scenesCurrentId = 0;
 	this.scenesCurrentFrame = 0;
@@ -208,24 +266,11 @@ var GamePrototype = function () {
 		}		
 	};
 	
-	this.showActions = function () {		
-		setTimeout(function () {
-			$(".action-btn").css("position","");
-			$(".action-btn").css("left","0px");
-			
-			$(".action-btn").css("opacity", 1);
-			Game.execPostScene();
-		}, 1500);		
-	};
-	this.hideActions = function () {
-		$(".actions").css("min-height", $(".actions").height() + "px");
-		
-		$(".action-btn").css("display","none");
-		$(".action-btn-holder").css("display","block");
-		$(".action-btn").css("opacity", 0);
-	};
 	
-	this.hideActions();
+	
+	this.AH = new ActionHandler();
+	
+	this.AH.hideActionButtons();
 	
 };
 

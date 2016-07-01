@@ -45,32 +45,6 @@ body {
 	list-style-type: none;
 }
 
-.scene-description {
-	border: 1px solid #999;
-	border-radius: 10px;
-	padding: 15px 20px;
-	
-	font-size: 12px;
-	color: #ddd;
-
-	background-color: #666;
-	opacity: 0;
-	
-	
-}
-.scene-even {
-	margin-right: 40px;
-	background-color: #444;
-	
-	transition-property: opacity;
-	transition-duration: 1s;
-}
-.scene-odd {
-	margin: 5px 0px 5px 40px;
-	
-	transition-property: opacity;
-	transition-duration: 0.3s;
-}
 
 
 
@@ -105,3 +79,66 @@ img {
 	max-width: 390px;
 }
 
+
+
+/* ******************
+	Scene Types
+   ****************** */ 
+.scene-description {
+	border: 1px solid #999;
+	border-radius: 10px;
+	padding: 15px 20px;
+	
+	font-size: 12px;
+	color: #ddd;
+
+	
+	opacity: 0;	
+}
+
+.scene-even {
+	margin-right: 40px;
+	background-color: #444;
+	
+	transition-property: opacity;
+	transition-duration: 1s;
+}
+.scene-odd {
+	margin: 5px 0px 5px 40px;
+	background-color: #666;	
+	
+	transition-property: opacity;
+	transition-duration: 0.3s;
+}
+
+.scene-title {
+	border-top: 1px solid #777;
+	border-bottom: 1px solid #777;
+	border-left-width: 0px;
+	border-right-width: 0px;	
+	border-radius: 0px;
+	
+	color: #777;
+	font-size: 24px;
+	text-align: center;
+	
+	margin-top: 15px;
+	margin-bottom: 15px;
+	opacity: 1;
+}
+
+.scene-subtitle {
+	border-top: 1px solid #777;
+	border-bottom: 1px solid #777;
+	border-left-width: 0px;
+	border-right-width: 0px;	
+	border-radius: 0px;
+	
+	color: #777;
+	font-size: 14px;
+	text-align: center;
+	
+	margin-top: 10px;
+	margin-bottom: 10px;
+	opacity: 1;
+}

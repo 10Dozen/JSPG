@@ -12,7 +12,7 @@ var ActionHandler = function () {
 	this.actions			= [];
 	this.actionsId 			= 0;
 	
-	this.findActionById = function (id) {
+	this.getActionById = function (id) {
 		var actionItem = this.actions.find(function (element) {
 			var r;
 			if (element.id == this) {
@@ -30,8 +30,40 @@ var ActionHandler = function () {
 		this.actionsId = 0;
 	};
 	
-	this.addAction = function (name, desc, exec, type, portrait) {
-		this.actions.push( new Action(this.actionsId, name, desc, exec, type, portrait) );	
+	this.addAction = function (sceneActionConfig) {
+		var name, desc, exec, type, $portrait;		
+		
+		if ( sceneActionConfig.hasOwnProperty("name") ) {	
+			name = sceneActionConfig.name;
+		} else {
+			throw new Error("|ActionHandler| Action: Name is note defined");
+		}
+	
+		if ( sceneActionConfig.hasOwnProperty("desc") ) {	
+			desc = sceneActionConfig.desc;
+		} else {
+			desc = sceneActionConfig.name;
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("exec") ) {	
+			exec = sceneActionConfig.exec;
+		} else {
+			exec = "";
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("type") ) {	
+			type = sceneActionConfig.type;
+		} else {
+			type = "scene";
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("portrait") ) {	
+			$portrait = "<img src='" + sceneActionConfig.portrait + "'>";
+		} else {
+			$portrait = "";
+		}	
+	
+		this.actions.push( new Action(this.actionsId, name, desc, exec, type, $portrait) );	
 		this.actionsId++;
 	};
 	

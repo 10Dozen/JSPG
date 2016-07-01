@@ -15,6 +15,7 @@ var GamePrototype = function () {
 	
 	this.toExecude = "";
 	this.currentScene = {};	
+	this.sceneType = "";
 	this.sceneDesc = "";
 	this.sceneActions = [];
 	
@@ -24,26 +25,58 @@ var GamePrototype = function () {
 	};
 	
 	this.showScene = function (Scene) {	
-		this.currentScene = Scene;		
+		this.currentScene = Scene;
 		this.sceneDesc = Scene.desc;
-		this.sceneActions = Scene.actions;
+		
+		this.sceneActions = [];		
 		this.scenesCurrentId++;	
 		
 		this.hideActions();
+		this.execPreScene();
 		
 		if (this.sceneDesc.constructor !== Array) {			
 			this.sceneDesc = [this.sceneDesc];
-		}	
-
-		this.execPreScene();
+		}
+		
+		this.sceneType;
+		if (this.currentScene.hasOwnProperty("type")) {			
+			switch (this.currentScene.type.toLowerCase()) {
+				case "title": 
+					this.sceneType = "scene-title";
+					break;
+				case "subtitle": 
+					this.sceneType = "scene-subtitle";
+					break;
+				case "dialog":
+					this.sceneType = "scene-even portrait portrait-left";
+					break;
+				default:
+					this.sceneType = "scene-even";			
+			}		
+		} else {
+			this.currentScene.type = "scene-even";
+		}
+		
+		if (this.currentScene.hasOwnProperty("actions")) {
+			this.sceneActions = this.currentScene.actions;
+		}
 		
 		// Scene
 		this.scenesCurrentFrame = 0;
 		this.scenesMaxFrame = this.sceneDesc.length;
 		for (var i=0; i < this.sceneDesc.length; i++) {
-			$block = "<div class='scene-description scene-even'"
+			var portrait = "";
+			if ( 
+				(this.currentScene.hasOwnProperty("portrait")) 
+				&& (this.currentScene.type).toLowerCase() == "dialog" 
+			) {
+				portrait = "<img src='" + this.currentScene.portrait + "'/>";				
+			}
+			
+			$block = "<div class='scene-description " + this.sceneType + "'"
 			+ " sceneId='" 	+ (this.scenesCurrentId-1) + "'"
 			+ " sceneFrame='" + i + "'>" 
+			+ portrait
 			+ this.sceneDesc[i] + "</div>";
 			
 			$("#scenes").append( $block	);
@@ -64,23 +97,53 @@ var GamePrototype = function () {
 		
 		// Set Actions
 		for (var i=0; i < this.sceneActions.length; i++) {
-			var $btn = ".btn-" + (i + 1);
+			var $btn = ".btn-" + (i + 1);			
+			var shortAnswer, fullAnswer, type, toExecute;
+			var showAnswer;
 			
-			var shortAnswer, fullAnswer;
-			if ( (this.sceneActions[i][0]).constructor === Array ) {
-				shortAnswer = this.sceneActions[i][0][0];
-				fullAnswer = this.sceneActions[i][0][1];
+			// this.sceneActions[i].hasOwnProperty("name")
+			// this.sceneActions[i].hasOwnProperty("desc")
+			// this.sceneActions[i].hasOwnProperty("type")
+			// this.sceneActions[i].hasOwnProperty("exec")
+			
+			nameAnswer =  this.sceneActions[i].name;
+			if ( this.sceneActions[i].hasOwnProperty("desc") ) {				
+				fullAnswer = this.sceneActions[i].desc;
 			} else {
-				shortAnswer = this.sceneActions[i][0];
-				fullAnswer = this.sceneActions[i][0];
-			};
+				fullAnswer = this.sceneActions[i].name;
+			}
 			
-			var showAnswer = this.sceneActions[i][1];
-			var toExecute = this.sceneActions[i][2];
+			showAnswer = true;
+			if ( this.sceneActions[i].hasOwnProperty("type") ) {
+				switch ( this.sceneActions[i].type ) {
+					case "hidden": 
+						type = "hidden";
+						showAnswer = false;
+						break;
+					case "dialog":
+						type = "dialog";
+						break;					
+					default:
+						type = "scene";
+						this.sceneActions[i].type = "scene";
+				}
+			} else {
+				this.sceneActions[i].type = "scene";			
+			}
+			
+			toExecute = "";
+			if ( this.sceneActions[i].hasOwnProperty("exec") ) {
+				toExecute = this.sceneActions[i].exec;
+			}
+			
+			portrait = "";
+			if ( this.sceneActions[i].hasOwnProperty("portrait") ) {
+				toExecute = this.sceneActions[i].portrait;
+			}
 			
 			$(".action-btn-holder").css("display","none");
 		
-			$( $btn ).html( shortAnswer );	
+			$( $btn ).html( nameAnswer );	
 			$( $btn ).css("display","block");
 			
 			$( $btn ).css("position","absolute");
@@ -89,14 +152,16 @@ var GamePrototype = function () {
 			$( $btn ).attr("toExecute", toExecute);	
 			$( $btn ).attr("showDesc", fullAnswer);
 			$( $btn ).attr("showAnswer", showAnswer);
+			$( $btn ).attr("type", type);
+			$( $btn ).attr("portrait", portrait);	
 			
 			$( $btn ).off();
 			$( $btn ).on("click", function () {
 				Game.hideActions();
 				if ( eval( $(this).attr("showAnswer") ) )  {
-					Game.showAnswer( $(this).attr("showDesc") );
+					Game.showAnswer( $(this).attr("type"), $(this).attr("showDesc"), $(this).attr("portrait") );
 				};
-				
+					
 				Game.toExecute = $(this).attr("toExecute");
 				setTimeout( function () { eval( Game.toExecute ); }, 1000 );	
 			});
@@ -109,9 +174,17 @@ var GamePrototype = function () {
 		
 	};
 	
-	this.showAnswer = function (Answer) {
+	this.showAnswer = function (Type, Answer, Portrait) {
+		var typeClass = "scene-odd";
+		if (Type == "dialog") {
+			Portrait = "<img src='" + Portrait + "'/>";
+			typeClass = "scene-odd portrait portrait-right";
+		}
+	
+	
 		$("#scenes").append( 
-			"<div class='scene-description scene-odd'>" 
+			"<div class='scene-description" + typeClass + "'>" 
+			+ Portrait
 			+ Answer
 			+ "</div>"
 		);

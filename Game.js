@@ -1,6 +1,6 @@
 /*
  *		"SceneName": {
- *			"desc": @SceneDescritpion(string)
+ *			"desc": @SceneDescritpion(string) or [@SceneDescription1(string), @SceneDescription2(string)]
  *			,"actions": [
  *				[ 
  *					@ActionDisplayName(string) 
@@ -9,9 +9,9 @@
  *					, @CodeToExecute(string/jscode)
  *				]
  *			]
- *			, "exec": {
- *				"pre": 		@CodeToExecuteBeforeTheScene(string/jscode)
- *				, "post":	@CodeToExecuteAFterTheScene(string/jscode)
+ *			, (Optional) "exec": {
+ *				(Optional)  "pre": 		@CodeToExecuteBeforeTheScene(string/jscode)
+ *				, (Optional)  "post":		@CodeToExecuteAFterTheScene(string/jscode)
  *			}
  *		}
  *
@@ -21,44 +21,36 @@
 
 var Scenes = {
 	"InitScene": {
-		"type": "Title"
-		, "desc": "The JSPG Title"
-		, "exec": { "post": "Game.goTo('Scene_Dialog')" }
-	}	
-	, "Scene_Dialog": {
-		"type": "Dialog"
-		, "desc": [
-			"- Whoa!"
-			, "- Whatta yo doing?"	
-		]
-		, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
-		, "exec": { "post": "Game.goTo('Scene1')" }
-	
-	}
-	, "Scene1": {
 		"desc": "<img src='imgs/018.jpg'/>- You chose a wrong door, leather man. Leather club is two blocks down!"
 		, "actions": [
-			{ 
-				"name": "- Fuck You!" /* display name, if aDesc not defined -- used as aDesc" */
-				, "desc": "You look in the face of the whitsnow and say:<br />- Fuck you!" /* optional */
-				, "type": "scene" /* scene, hidden, dialog */
-				, "exec": "" /* code to execute on action clicked */
-				
-			}
+			[ 
+				[
+					"- Fuck You!"
+					, "You look in the face of the whitsnow and say:<br />- Fuck you!"
+				]
+				, true
+				, "Game.showScene(Scenes.Scene1)"
+			]
 		]
 		, "exec": {
-			"pre": "console.log('Pre-init Exec');';"
+			"pre": "console.log('Pre-init Exec'); Game.sceneDesc = 'No more heroes!';"
 			, "post": "console.log('Post-init Exec')"
 		}
 	}	
+	,"Scene1": {
+		"desc": "- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!"
+		,"actions": [
+			["- Fight", true, "Game.showScene(Scenes.Scene1)"]
+			,["Go away", ""]
+			,["Go away", ""]
+			,["Go away", ""]
+			
+		]
+		, "exec": {
+			"pre": ""
+			, "post": ""
+		}
+	}
 	
-	, "Scene2": {
-		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
-		, "exec": {"post": "Game.goTo('Scene3')" }
-	}	
-	, "Scene3": {
-		"desc": "THE END"
-		, "actions": []
-		, "type": "subtitle"
-	}	
+	
 };

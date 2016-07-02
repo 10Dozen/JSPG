@@ -9,8 +9,10 @@
 
 
 var ActionHandler = function () {
+	
 	this.actions			= [];
 	this.actionsId 			= 0;
+	this.toExecute			= "";
 	
 	this.getActionById = function (id) {
 		var actionItem = this.actions.find(function (element) {
@@ -63,8 +65,12 @@ var ActionHandler = function () {
 			$portrait = "";
 		}	
 	
-		this.actions.push( new Action(this.actionsId, name, desc, exec, type, $portrait) );	
+		var action = new Action(this.actionsId, name, desc, exec, type, $portrait);
+		
+		this.actions.push( action );	
 		this.actionsId++;
+		
+		return action;
 	};
 	
 	this.showActionButtons = function () {		
@@ -94,7 +100,33 @@ var Action = function (id, name, desc, exec, type, portrait) {
 	this.portrait = portrait;
 	
 	this.execute = function () {
-		eval( this.exec );
+		Game.AH.toExecute = this.exec;
+		setTimeout(function () {
+			eval( Game.AH.toExecute );			
+		}, 500);
+		
+	};
+	
+	this.showAnswer = function () {
+		if (this.type.toLowerCase() == "hidden") { 
+			return;
+		}
+		
+		var answerClass = "scene-odd";
+		if (this.type.toLowerCase() == "dialog") {
+			answerClass = "scene-odd portrait portrait-right";			
+		}
+		
+		$("#scenes").append( 
+			"<div class='scene-description " + answerClass + "'>" 
+			+ this.portrait
+			+ this.desc
+			+ "</div>"
+		);
+		
+		setTimeout(function () {
+			$(".scene-odd").css("opacity", 1);
+		}, 500);
 	};
 };
 
@@ -103,7 +135,7 @@ var GamePrototype = function () {
 	this.scenesCurrentFrame = 0;
 	this.scenesMaxFrame = 0;
 	
-	this.toExecude = "";
+	
 	this.currentScene = {};	
 	this.sceneType = "";
 	this.sceneDesc = "";
@@ -118,10 +150,10 @@ var GamePrototype = function () {
 		this.currentScene = Scene;
 		this.sceneDesc = Scene.desc;
 		
-		this.sceneActions = [];		
-		this.scenesCurrentId++;	
+		this.sceneActions = [];
+		this.scenesCurrentId++;
 		
-		this.hideActions();
+		this.AH.hideActionButtons();
 		this.execPreScene();
 		
 		if (this.sceneDesc.constructor !== Array) {			
@@ -180,108 +212,37 @@ var GamePrototype = function () {
 				
 				// Show Actions
 				if (Game.scenesCurrentFrame >= Game.scenesMaxFrame) {
-					Game.showActions()					
+					Game.AH.showActionButtons()					
 				}
 			}, 500 + 2000*i);
 		}
 		
 		// Set Actions
 		for (var i=0; i < this.sceneActions.length; i++) {
-			var $btn = ".btn-" + (i + 1);			
-			var shortAnswer, fullAnswer, type, toExecute;
-			var showAnswer;
+			this.AH.clearActionList();			
+			var action = this.AH.addAction( this.sceneActions[i] );
 			
-			// this.sceneActions[i].hasOwnProperty("name")
-			// this.sceneActions[i].hasOwnProperty("desc")
-			// this.sceneActions[i].hasOwnProperty("type")
-			// this.sceneActions[i].hasOwnProperty("exec")
+			var $btn = ".btn-" + (i + 1);		
+			$( $btn ).html( action.name );
+			$( $btn ).attr( "actionid", action.id );
 			
-			nameAnswer =  this.sceneActions[i].name;
-			if ( this.sceneActions[i].hasOwnProperty("desc") ) {				
-				fullAnswer = this.sceneActions[i].desc;
-			} else {
-				fullAnswer = this.sceneActions[i].name;
-			}
-			
-			showAnswer = true;
-			if ( this.sceneActions[i].hasOwnProperty("type") ) {
-				switch ( this.sceneActions[i].type ) {
-					case "hidden": 
-						type = "hidden";
-						showAnswer = false;
-						break;
-					case "dialog":
-						type = "dialog";
-						break;					
-					default:
-						type = "scene";
-						this.sceneActions[i].type = "scene";
-				}
-			} else {
-				this.sceneActions[i].type = "scene";			
-			}
-			
-			toExecute = "";
-			if ( this.sceneActions[i].hasOwnProperty("exec") ) {
-				toExecute = this.sceneActions[i].exec;
-			}
-			
-			portrait = "";
-			if ( this.sceneActions[i].hasOwnProperty("portrait") ) {
-				toExecute = this.sceneActions[i].portrait;
-			}
-			
-			$(".action-btn-holder").css("display","none");
-		
-			$( $btn ).html( nameAnswer );	
-			$( $btn ).css("display","block");
-			
+			$( $btn ).css("display","block");			
 			$( $btn ).css("position","absolute");
 			$( $btn ).css("left","-200px");
 			
-			$( $btn ).attr("toExecute", toExecute);	
-			$( $btn ).attr("showDesc", fullAnswer);
-			$( $btn ).attr("showAnswer", showAnswer);
-			$( $btn ).attr("type", type);
-			$( $btn ).attr("portrait", portrait);	
-			
 			$( $btn ).off();
 			$( $btn ).on("click", function () {
-				Game.hideActions();
-				if ( eval( $(this).attr("showAnswer") ) )  {
-					Game.showAnswer( $(this).attr("type"), $(this).attr("showDesc"), $(this).attr("portrait") );
-				};
-					
-				Game.toExecute = $(this).attr("toExecute");
-				setTimeout( function () { eval( Game.toExecute ); }, 1000 );	
+				Game.AH.hideActionButtons();
+				var action = Game.AH.getActionById( $(this).attr("actionid") );
+				
+				action.showAnswer();
+				action.execute();				
 			});
 			
 			$(".actions").css("min-height", $(".actions").height() + "px");
-		};
-		
-		
-			
-		
+		};		
 	};
 	
-	this.showAnswer = function (Type, Answer, Portrait) {
-		var typeClass = "scene-odd";
-		if (Type == "dialog") {
-			Portrait = "<img src='" + Portrait + "'/>";
-			typeClass = "scene-odd portrait portrait-right";
-		}
-	
-	
-		$("#scenes").append( 
-			"<div class='scene-description" + typeClass + "'>" 
-			+ Portrait
-			+ Answer
-			+ "</div>"
-		);
-		setTimeout(function () {
-			$(".scene-odd").css("opacity", 1);
-		}, 500);
-	};
 	
 	this.execPreScene = function () {
 		if (this.currentScene.hasOwnProperty("exec")){
@@ -300,8 +261,7 @@ var GamePrototype = function () {
 	
 	
 	
-	this.AH = new ActionHandler();
-	
+	this.AH = new ActionHandler();	
 	this.AH.hideActionButtons();
 	
 };

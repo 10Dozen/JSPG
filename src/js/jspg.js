@@ -120,6 +120,9 @@ var ActionHandler = function () {
 		$(".action-btn").css("display","none");
 		$(".action-btn-holder").css("display","block");
 		$(".action-btn").css("opacity", 0);
+		
+		$(".action-btn").off();
+		$(".action-btn").remove();
 	};
 };
 

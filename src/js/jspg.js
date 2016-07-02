@@ -176,6 +176,7 @@ var GamePrototype = function () {
 					this.sceneType = "scene-even";			
 			}		
 		} else {
+			this.sceneType = "scene-even";
 			this.currentScene.type = "scene-even";
 		}
 		

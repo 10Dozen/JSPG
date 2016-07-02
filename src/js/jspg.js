@@ -73,6 +73,38 @@ var ActionHandler = function () {
 		return action;
 	};
 	
+	this.setSceneActions = function () {
+		this.clearActionList();
+		
+		for (var i=0; i < Game.sceneActions.length; i++) {
+			var action = this.addAction( Game.sceneActions[i] )
+			
+			var btn = ".btn-" + i;
+			console.log(btn);
+			$(".actions").append( "<div class='action-btn btn-" + i + "'></div>" );
+			
+			$( btn ).html( action.name );
+			$( btn ).attr( "actionid", action.id );
+			
+			$( btn ).css("display","block");			
+			$( btn ).css("position","absolute");
+			$( btn ).css("left","-200px");
+			
+			
+			
+			$( btn ).off();
+			$( btn ).on("click", function () {
+				Game.AH.hideActionButtons();
+				var action = Game.AH.getActionById( $(this).attr("actionid") );
+				
+				action.showAnswer();
+				action.execute();				
+			});
+		}
+		
+		$(".actions").css("min-height", $(".actions").height() + "px");	
+	};
+	
 	this.showActionButtons = function () {		
 		setTimeout(function () {
 			$(".action-btn").css("position","");
@@ -219,29 +251,7 @@ var GamePrototype = function () {
 		}
 		
 		// Set Actions
-		for (var i=0; i < this.sceneActions.length; i++) {
-			this.AH.clearActionList();			
-			var action = this.AH.addAction( this.sceneActions[i] );
-			
-			var $btn = ".btn-" + (i + 1);		
-			$( $btn ).html( action.name );
-			$( $btn ).attr( "actionid", action.id );
-			
-			$( $btn ).css("display","block");			
-			$( $btn ).css("position","absolute");
-			$( $btn ).css("left","-200px");
-			
-			$( $btn ).off();
-			$( $btn ).on("click", function () {
-				Game.AH.hideActionButtons();
-				var action = Game.AH.getActionById( $(this).attr("actionid") );
-				
-				action.showAnswer();
-				action.execute();				
-			});
-			
-			$(".actions").css("min-height", $(".actions").height() + "px");
-		};		
+		this.AH.setSceneActions();
 	};
 	
 	

@@ -1,139 +1,313 @@
-var ActionsProperties = {
-	"SceneActions": {
-		"AllParameters": {
-			"name": "ActionName1"
-			, "desc": "You look in the face of the whitsnow and say:<br />- Fuck you!"
-			, "type": "scene" 
-			, "exec": "console.log('Action Exec')"			
-		}
-		, "OnlyMandatoryParameters": {
-			"name": "ActionName1-Mandotary"	
+(function($) {
+    $.fn.scrollTo = function() {
+        $('html, body').animate({
+            scrollTop: $(this).offset().top + 'px'
+        }, 'fast');
+        return this; // for chaining...
+    }
+})(jQuery);
+
+
+var ActionHandler = function () {
+	this.actions			= [];
+	this.actionsId 			= 0;
+	
+	this.getActionById = function (id) {
+		var actionItem = this.actions.find(function (element) {
+			var r;
+			if (element.id == this) {
+				r = element;
+			}
+			
+			return r;		
+		}, id);
+		
+		return actionItem;
+	};
+	
+	this.clearActionList = function () {
+		this.actions = [];
+		this.actionsId = 0;
+	};
+	
+	this.addAction = function (sceneActionConfig) {
+		var name, desc, exec, type, $portrait;		
+		
+		if ( sceneActionConfig.hasOwnProperty("name") ) {	
+			name = sceneActionConfig.name;
+		} else {
+			throw new Error("|ActionHandler| Action: Name is note defined");
 		}
 	
-	}
+		if ( sceneActionConfig.hasOwnProperty("desc") ) {	
+			desc = sceneActionConfig.desc;
+		} else {
+			desc = sceneActionConfig.name;
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("exec") ) {	
+			exec = sceneActionConfig.exec;
+		} else {
+			exec = "";
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("type") ) {	
+			type = sceneActionConfig.type;
+		} else {
+			type = "scene";
+		}
+		
+		if ( sceneActionConfig.hasOwnProperty("portrait") ) {	
+			$portrait = "<img src='" + sceneActionConfig.portrait + "'/>";
+		} else {
+			$portrait = "";
+		}	
+	
+		this.actions.push( new Action(this.actionsId, name, desc, exec, type, $portrait) );	
+		this.actionsId++;
+	};
+	
+	this.showActionButtons = function () {		
+		setTimeout(function () {
+			$(".action-btn").css("position","");
+			$(".action-btn").css("left","0px");
+			
+			$(".action-btn").css("opacity", 1);
+			Game.execPostScene();
+		}, 1500);		
+	};
+	this.hideActionButtons = function () {
+		$(".actions").css("min-height", $(".actions").height() + "px");
+		
+		$(".action-btn").css("display","none");
+		$(".action-btn-holder").css("display","block");
+		$(".action-btn").css("opacity", 0);
+	};
 };
 
-
-describe("Action Handler", function() {
-
-	describe("Add new Scene action - All Parameters", function () {
-		it ("Create simple scene action (Game.AH.addAction)", function () {
-			var initActionId = Game.AH.actionsId;
-			var initActionCount = Game.AH.actions.length;
-		
-			Game.AH.addAction( ActionsProperties.SceneActions.AllParameters );
-			
-			var afterActionId = Game.AH.actionsId;
-			var afterActionCount = Game.AH.actions.length;
-			
-			assert(
-				( afterActionId > initActionId )
-				, "Action creation failed: ActionId not updated"
-			);		
-			assert( 
-				afterActionCount > initActionCount
-				, "Action creation failed: Action Object not created"
-			);	
-		});
-		
-		
-		it ("Find action by id (Game.AH.getActionById)", function () {			
-			assert(
-				Game.AH.getActionById( Game.AH.actionsId - 1) != null
-				, "Failed to find Action"			
-			);
-		});
-		
-		it ("Check simple action parameters mapped", function () {
-			var id = Game.AH.actionsId - 1;
-			var initActionData = ActionsProperties.SceneActions.AllParameters;
-			
-			assert(
-				Game.AH.getActionById(id).name == initActionData.name
-				, "Name is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).desc == initActionData.desc
-				, "Desc is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).exec == initActionData.exec
-				, "Exec is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).type == initActionData.type
-				, "Type is not mapped correctly"
-			);
-			
-		});		
-		
-		it ("Check clear action (Game.AH.clearActionList)", function () {
-			var initActionId = Game.AH.actionsId;
-			var initActionCount = Game.AH.actions.length;
-		
-			Game.AH.clearActionList();
-			
-			var afterActionId = Game.AH.actionsId;
-			var afterActionCount = Game.AH.actions.length;
-			
-			assert(
-				afterActionId < initActionId 
-				, "Action clear failed: ActionId not restored"
-			);		
-			assert( 
-				afterActionCount < initActionCount
-				, "Action clear failed: Action Object not cleatred"
-			);	
-		});
-		
-		
-		
-		
-	});
+var Action = function (id, name, desc, exec, type, portrait) {
+	this.id = id;
+	this.name = name;
+	this.desc = desc;
+	this.exec = exec;
+	this.type = type;
+	this.portrait = portrait;
 	
-	describe("Add new Scene action - Mandotary Parameters", function () {
-		it ("Create scene action (optional parametes miss)", function () {
-			var initActionId = Game.AH.actionsId;
-			var initActionCount = Game.AH.actions.length;
+	this.execute = function () {
+		eval( this.exec );
+	};
+};
+
+var GamePrototype = function () {
+	this.scenesCurrentId = 0;
+	this.scenesCurrentFrame = 0;
+	this.scenesMaxFrame = 0;
+	
+	this.toExecude = "";
+	this.currentScene = {};	
+	this.sceneType = "";
+	this.sceneDesc = "";
+	this.sceneActions = [];
+	
+	this.goTo = function (SceneName) {
+		eval( "Game.showScene(Scenes." + SceneName + ")" )
 		
-			Game.AH.addAction( ActionsProperties.SceneActions.OnlyMandatoryParameters );
+	};
+	
+	this.showScene = function (Scene) {	
+		this.currentScene = Scene;
+		this.sceneDesc = Scene.desc;
+		
+		this.sceneActions = [];		
+		this.scenesCurrentId++;	
+		
+		this.hideActions();
+		this.execPreScene();
+		
+		if (this.sceneDesc.constructor !== Array) {			
+			this.sceneDesc = [this.sceneDesc];
+		}
+		
+		this.sceneType;
+		if (this.currentScene.hasOwnProperty("type")) {			
+			switch (this.currentScene.type.toLowerCase()) {
+				case "title": 
+					this.sceneType = "scene-title";
+					break;
+				case "subtitle": 
+					this.sceneType = "scene-subtitle";
+					break;
+				case "dialog":
+					this.sceneType = "scene-even portrait portrait-left";
+					break;
+				default:
+					this.sceneType = "scene-even";			
+			}		
+		} else {
+			this.currentScene.type = "scene-even";
+		}
+		
+		if (this.currentScene.hasOwnProperty("actions")) {
+			this.sceneActions = this.currentScene.actions;
+		}
+		
+		// Scene
+		this.scenesCurrentFrame = 0;
+		this.scenesMaxFrame = this.sceneDesc.length;
+		for (var i=0; i < this.sceneDesc.length; i++) {
+			var portrait = "";
+			if ( 
+				(this.currentScene.hasOwnProperty("portrait")) 
+				&& (this.currentScene.type).toLowerCase() == "dialog" 
+			) {
+				portrait = "<img src='" + this.currentScene.portrait + "'/>";				
+			}
 			
-			var afterActionId = Game.AH.actionsId;
-			var afterActionCount = Game.AH.actions.length;
-		
-		
-			assert(
-				( afterActionId > initActionId )
-				, "Action creation failed: ActionId not updated"
-			);		
-			assert( 
-				afterActionCount > initActionCount
-				, "Action creation failed: Action Object not created"
-			);	
-		
-		});
-		
-		it ("Check simple action parameters mapped", function () {
-			var id = Game.AH.actionsId - 1;
-			var initActionData = ActionsProperties.SceneActions.OnlyMandatoryParameters ;
+			$block = "<div class='scene-description " + this.sceneType + "'"
+			+ " sceneId='" 	+ (this.scenesCurrentId-1) + "'"
+			+ " sceneFrame='" + i + "'>" 
+			+ portrait
+			+ this.sceneDesc[i] + "</div>";
 			
-			assert(
-				Game.AH.getActionById(id).name == initActionData.name
-				, "Name is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).desc == initActionData.name
-				, "Desc is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).exec == ""
-				, "Exec is not mapped correctly"
-			);
-			assert(
-				Game.AH.getActionById(id).type == "scene"
-				, "Type is not mapped correctly"
-			);
+			$("#scenes").append( $block	);
 			
-		});		
-	});
+			// Show Scene
+			setTimeout(function () {
+				$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "][sceneFrame=" + Game.scenesCurrentFrame + "]").css("opacity", 1);
+				$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "][sceneFrame=" + Game.scenesCurrentFrame + "]").scrollTo();
+				
+				Game.scenesCurrentFrame++;
+				
+				// Show Actions
+				if (Game.scenesCurrentFrame >= Game.scenesMaxFrame) {
+					Game.showActions()					
+				}
+			}, 500 + 2000*i);
+		}
+		
+		// Set Actions
+		for (var i=0; i < this.sceneActions.length; i++) {
+			var $btn = ".btn-" + (i + 1);			
+			var shortAnswer, fullAnswer, type, toExecute;
+			var showAnswer;
+			
+			// this.sceneActions[i].hasOwnProperty("name")
+			// this.sceneActions[i].hasOwnProperty("desc")
+			// this.sceneActions[i].hasOwnProperty("type")
+			// this.sceneActions[i].hasOwnProperty("exec")
+			
+			nameAnswer =  this.sceneActions[i].name;
+			if ( this.sceneActions[i].hasOwnProperty("desc") ) {				
+				fullAnswer = this.sceneActions[i].desc;
+			} else {
+				fullAnswer = this.sceneActions[i].name;
+			}
+			
+			showAnswer = true;
+			if ( this.sceneActions[i].hasOwnProperty("type") ) {
+				switch ( this.sceneActions[i].type ) {
+					case "hidden": 
+						type = "hidden";
+						showAnswer = false;
+						break;
+					case "dialog":
+						type = "dialog";
+						break;					
+					default:
+						type = "scene";
+						this.sceneActions[i].type = "scene";
+				}
+			} else {
+				this.sceneActions[i].type = "scene";			
+			}
+			
+			toExecute = "";
+			if ( this.sceneActions[i].hasOwnProperty("exec") ) {
+				toExecute = this.sceneActions[i].exec;
+			}
+			
+			portrait = "";
+			if ( this.sceneActions[i].hasOwnProperty("portrait") ) {
+				toExecute = this.sceneActions[i].portrait;
+			}
+			
+			$(".action-btn-holder").css("display","none");
+		
+			$( $btn ).html( nameAnswer );	
+			$( $btn ).css("display","block");
+			
+			$( $btn ).css("position","absolute");
+			$( $btn ).css("left","-200px");
+			
+			$( $btn ).attr("toExecute", toExecute);	
+			$( $btn ).attr("showDesc", fullAnswer);
+			$( $btn ).attr("showAnswer", showAnswer);
+			$( $btn ).attr("type", type);
+			$( $btn ).attr("portrait", portrait);	
+			
+			$( $btn ).off();
+			$( $btn ).on("click", function () {
+				Game.hideActions();
+				if ( eval( $(this).attr("showAnswer") ) )  {
+					Game.showAnswer( $(this).attr("type"), $(this).attr("showDesc"), $(this).attr("portrait") );
+				};
+					
+				Game.toExecute = $(this).attr("toExecute");
+				setTimeout( function () { eval( Game.toExecute ); }, 1000 );	
+			});
+			
+			$(".actions").css("min-height", $(".actions").height() + "px");
+		};
+		
+		
+			
+		
+	};
+	
+	this.showAnswer = function (Type, Answer, Portrait) {
+		var typeClass = "scene-odd";
+		if (Type == "dialog") {
+			Portrait = "<img src='" + Portrait + "'/>";
+			typeClass = "scene-odd portrait portrait-right";
+		}
+	
+	
+		$("#scenes").append( 
+			"<div class='scene-description" + typeClass + "'>" 
+			+ Portrait
+			+ Answer
+			+ "</div>"
+		);
+		setTimeout(function () {
+			$(".scene-odd").css("opacity", 1);
+		}, 500);
+	};
+	
+	this.execPreScene = function () {
+		if (this.currentScene.hasOwnProperty("exec")){
+			if (this.currentScene.exec.hasOwnProperty("pre")){
+				eval( this.currentScene.exec.pre );
+			}
+		}		
+	};
+	this.execPostScene = function () {
+		if (this.currentScene.hasOwnProperty("exec")){
+			if (this.currentScene.exec.hasOwnProperty("post")){
+				eval( this.currentScene.exec.post );
+			}
+		}		
+	};
+	
+	
+	
+	this.AH = new ActionHandler();
+	
+	this.AH.hideActionButtons();
+	
+};
+
+$( document ).ready(function() {
+	Game = new GamePrototype();
+
+	Game.showScene(Scenes.InitScene);
 });

@@ -58,7 +58,7 @@ var ActionHandler = function () {
 		}
 		
 		if ( sceneActionConfig.hasOwnProperty("portrait") ) {	
-			$portrait = "<img src='" + sceneActionConfig.portrait + "'>";
+			$portrait = "<img src='" + sceneActionConfig.portrait + "'/>";
 		} else {
 			$portrait = "";
 		}	

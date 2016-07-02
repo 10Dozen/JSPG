@@ -36,18 +36,25 @@ var Scenes = {
 	
 	}
 	, "Scene1": {
-		"desc": "<img src='imgs/018.jpg'/>- You chose a wrong door, leather man. Leather club is two blocks down!"
+		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
 		, "actions": [
 			{ 
 				"name": "- Fuck You!" /* display name, if aDesc not defined -- used as aDesc" */
-				, "desc": "You look in the face of the whitsnow and say:<br />- Fuck you!" /* optional */
-				, "type": "scene" /* scene, hidden, dialog */
-				, "exec": "" /* code to execute on action clicked */
-				
+				, "desc": "- Fuck you!" /* optional */
+				, "type": "dialog" /* scene, hidden, dialog */
+				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
+				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
+			}
+			,{ 
+				"name": "- Hello!" /* display name, if aDesc not defined -- used as aDesc" */
+				, "desc": "-Hell... FUCK YOU!" /* optional */
+				, "type": "dialog" /* scene, hidden, dialog */
+				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
+				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
 			}
 		]
 		, "exec": {
-			"pre": "console.log('Pre-init Exec');';"
+			"pre": "console.log('Pre-init Exec');"
 			, "post": "console.log('Post-init Exec')"
 		}
 	}	

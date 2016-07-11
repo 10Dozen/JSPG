@@ -21,36 +21,51 @@
 
 var Scenes = {
 	"InitScene": {
-		"desc": "<img src='imgs/018.jpg'/>- You chose a wrong door, leather man. Leather club is two blocks down!"
+		"type": "Title"
+		, "desc": "The JSPG Title"
+		, "exec": { "post": "Game.goTo('Scene_Dialog')" }
+	}	
+	, "Scene_Dialog": {
+		"type": "Dialog"
+		, "desc": [
+			"- Whoa!"
+			, "- Whatta yo doing?"	
+		]
+		, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
+		, "exec": { "post": "Game.goTo('Scene1')" }
+	
+	}
+	, "Scene1": {
+		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
 		, "actions": [
-			[ 
-				[
-					"- Fuck You!"
-					, "You look in the face of the whitsnow and say:<br />- Fuck you!"
-				]
-				, true
-				, "Game.showScene(Scenes.Scene1)"
-			]
+			{ 
+				"name": "- Fuck You!" /* display name, if aDesc not defined -- used as aDesc" */
+				, "desc": "- Fuck you!" /* optional */
+				, "type": "dialog" /* scene, hidden, dialog */
+				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
+				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
+			}
+			,{ 
+				"name": "- Hello!" /* display name, if aDesc not defined -- used as aDesc" */
+				, "desc": "-Hell... FUCK YOU!" /* optional */
+				, "type": "dialog" /* scene, hidden, dialog */
+				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
+				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
+			}
 		]
 		, "exec": {
-			"pre": "console.log('Pre-init Exec'); Game.sceneDesc = 'No more heroes!';"
+			"pre": "console.log('Pre-init Exec');"
 			, "post": "console.log('Post-init Exec')"
 		}
 	}	
-	,"Scene1": {
-		"desc": "- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!- Fuck You, leather man!"
-		,"actions": [
-			["- Fight", true, "Game.showScene(Scenes.Scene1)"]
-			,["Go away", ""]
-			,["Go away", ""]
-			,["Go away", ""]
-			
-		]
-		, "exec": {
-			"pre": ""
-			, "post": ""
-		}
-	}
 	
-	
+	, "Scene2": {
+		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
+		, "exec": {"post": "Game.goTo('Scene3')" }
+	}	
+	, "Scene3": {
+		"desc": "THE END"
+		, "actions": []
+		, "type": "subtitle"
+	}	
 };

@@ -124,7 +124,9 @@ img {
 	
 	margin-top: 15px;
 	margin-bottom: 15px;
-	opacity: 1;
+	opacity: 0;
+	transition-property: opacity;
+	transition-duration: 0.3s;
 }
 
 .scene-subtitle {
@@ -141,4 +143,26 @@ img {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	opacity: 1;
+	transition-property: opacity;
+	transition-duration: 0.3s;
+}
+
+.portrait {
+	height: 128px;	
+}
+
+.portrait-left img {
+	width: 128px;
+	display: block;
+	float: left;
+	padding: 0px 5px 0px 0px;
+	
+}
+
+.portrait-right img {
+	width: 128px;
+	display: block;
+	float: right;
+	padding: 0px 5px 0px 0px;
+	
 }

@@ -114,7 +114,7 @@ var ActionHandler = function () {
 			
 			$(".action-btn").css("opacity", 1);
 			Game.execPostScene();
-		}, Game.debug.timeouts.showActionButtons);		
+		}, Game.timeouts.showActionButtons);		
 	};
 	this.hideActionButtons = function () {
 		$(".actions").css("min-height", $(".actions").height() + "px");
@@ -140,7 +140,7 @@ var Action = function (id, name, desc, exec, type, portrait) {
 		Game.AH.toExecute = this.exec;
 		setTimeout(function () {
 			eval( Game.AH.toExecute );			
-		}, Game.debug.timeouts.actionExecute);
+		}, Game.timeouts.actionExecute);
 		
 	};
 	
@@ -163,7 +163,7 @@ var Action = function (id, name, desc, exec, type, portrait) {
 		
 		setTimeout(function () {
 			$(".scene-odd").css("opacity", 1);
-		}, Game.debug.timeouts.showAnswer);
+		}, Game.timeouts.showAnswer);
 	};
 };
 
@@ -176,16 +176,8 @@ var GamePrototype = function () {
 	this.sceneType = "";
 	this.sceneDesc = "";
 	this.sceneActions = [];
-	/*
-	Game.debug.timeouts.showActionButtons
-	Game.debug.timeouts.showAnswer
-	Game.debug.timeouts.actionExecute
-	Game.debug.timeouts.showSceneBase
-	Game.debug.timeouts.showSceneStep
 	
-	*/
-	this.debug = {
-		"timeouts": {
+	this.timeouts = {
 			"showActionButtons": 1500
 			, "showAnswer": 500
 			, "actionExecute": 500
@@ -268,7 +260,7 @@ var GamePrototype = function () {
 				if (Game.scenesCurrentFrame >= Game.scenesMaxFrame) {
 					Game.AH.showActionButtons()					
 				}
-			}, Game.debug.timeouts.showSceneBase + Game.debug.timeouts.showSceneStep*i);
+			}, Game.timeouts.showSceneBase + Game.timeouts.showSceneStep*i);
 		}
 		
 		// Set Actions

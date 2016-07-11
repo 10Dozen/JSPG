@@ -8,6 +8,8 @@
 })(jQuery);
 
 
+
+
 var ActionHandler = function () {
 	
 	this.actions			= [];
@@ -112,7 +114,7 @@ var ActionHandler = function () {
 			
 			$(".action-btn").css("opacity", 1);
 			Game.execPostScene();
-		}, 1500);		
+		}, Game.debug.timeouts.showActionButtons);		
 	};
 	this.hideActionButtons = function () {
 		$(".actions").css("min-height", $(".actions").height() + "px");
@@ -138,7 +140,7 @@ var Action = function (id, name, desc, exec, type, portrait) {
 		Game.AH.toExecute = this.exec;
 		setTimeout(function () {
 			eval( Game.AH.toExecute );			
-		}, 500);
+		}, Game.debug.timeouts.actionExecute);
 		
 	};
 	
@@ -161,20 +163,36 @@ var Action = function (id, name, desc, exec, type, portrait) {
 		
 		setTimeout(function () {
 			$(".scene-odd").css("opacity", 1);
-		}, 500);
+		}, Game.debug.timeouts.showAnswer);
 	};
 };
 
 var GamePrototype = function () {
 	this.scenesCurrentId = 0;
 	this.scenesCurrentFrame = 0;
-	this.scenesMaxFrame = 0;
-	
+	this.scenesMaxFrame = 0;	
 	
 	this.currentScene = {};	
 	this.sceneType = "";
 	this.sceneDesc = "";
 	this.sceneActions = [];
+	/*
+	Game.debug.timeouts.showActionButtons
+	Game.debug.timeouts.showAnswer
+	Game.debug.timeouts.actionExecute
+	Game.debug.timeouts.showSceneBase
+	Game.debug.timeouts.showSceneStep
+	
+	*/
+	this.debug = {
+		"timeouts": {
+			"showActionButtons": 1500
+			, "showAnswer": 500
+			, "actionExecute": 500
+			, "showSceneBase": 500
+			, "showSceneStep": 2000
+		}
+	};
 	
 	this.goTo = function (SceneName) {
 		eval( "Game.showScene(Scenes." + SceneName + ")" )
@@ -250,7 +268,7 @@ var GamePrototype = function () {
 				if (Game.scenesCurrentFrame >= Game.scenesMaxFrame) {
 					Game.AH.showActionButtons()					
 				}
-			}, 500 + 2000*i);
+			}, Game.debug.timeouts.showSceneBase + Game.debug.timeouts.showSceneStep*i);
 		}
 		
 		// Set Actions

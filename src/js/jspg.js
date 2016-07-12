@@ -178,12 +178,11 @@ var GamePrototype = function () {
 	this.sceneActions = [];
 	
 	this.timeouts = {
-			"showActionButtons": 1500
-			, "showAnswer": 500
-			, "actionExecute": 500
-			, "showSceneBase": 500
-			, "showSceneStep": 2000
-		}
+		"showActionButtons": 1500
+		, "showAnswer": 500
+		, "actionExecute": 500
+		, "showSceneBase": 500
+		, "showSceneStep": 2000
 	};
 	
 	this.goTo = function (SceneName) {

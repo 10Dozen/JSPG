@@ -13,15 +13,6 @@ var Scene = function (id) {
 		return (this.actions.filter(function (action) { return action.id == this; }, id).map(function(action) { return action; }))[0];
 	}
 
-	this.resortActions = function () {
-		this.actions.sort(function (a,b) {return (a.order - b.order)});
-
-		var orderNo = 1;
-		for (var i = 0; i < this.actions.length; i++) {
-			this.actions[i].order = orderNo++;
-		}
-	};
-
 	this.set = function (scene) {
     	this.name = scene.name;
     	this.type = scene.type;
@@ -32,7 +23,12 @@ var Scene = function (id) {
         this.execPre = scene.execPre;
         this.execPost = scene.execPost;
 
-        this.actions = scene.actions;
+        this.actions = [];
+        for (var i = 0; i < scene.actions.length; i++) {
+        	var clonedAction = new Action();
+        	clonedAction.set( scene.actions[i] );
+        	this.actions.push(clonedAction);
+        }
     };
 };
 
@@ -40,17 +36,24 @@ var Action = function (id) {
     this.order = -1;
     this.id = id;
     this.name = "ActionName";
-    this.type = "Dialog";
-    this.portraitURL = "URL";
-    this.blobs = ["text","text2"];
-    this.exec = "execgo";
-    this.goTo = "Scene_1";
+    this.type = "Simple";
+    this.portraitURL = "";
+    this.blobs = ["",""];
+    this.exec = "";
+    this.goTo = "";
 
-    this.save = function() {
-        this.order = $("#action-order").val();
-        this.name = $("#action-name").val();
-        this.exec = $("#action-exec").val();
-    };
+	this.set = function (action) {
+		this.order = action.order;
+		this.id = action.id;
+        this.name = action.name;
+        this.type = action.type;
+        this.portraitURL = action.portraitURL;
+        this.blobs = [];
+        for (var i = 0; i < action.blobs.length; i++) { this.blobs.push( action.blobs[i] ); }
+        this.exec = action.exec;
+        this.goTo = action.goTo;
+	};
+
 };
 
 var EditorItem = function () {
@@ -128,6 +131,14 @@ var EditorItem = function () {
         this.initEvents();
     };
 
+	this.setSceneEditedMark = function () {
+		var idRef = "div[sceneId=" + this.selectedSceneId + "]";
+
+		$(".scene-list-btn-wrapper").find(idRef).html(
+			($(".scene-list-btn-wrapper").find(idRef).html()).replace("*","") + "*"
+		)
+	};
+
 	this.showExecEdit = function () {
 		Editor.Splash.show();
 		Editor.ExecEdit.show();
@@ -188,12 +199,18 @@ var EditorItem = function () {
         this.ExecEdit.hide();
 
 		$( "#sortable" ).sortable({
-			stop: function () { Editor.SceneViewer.resortActionList() }
+			stop: function () {
+				Editor.SceneViewer.resortActionList();
+				Editor.setSceneEditedMark();
+            }
 		});
 		$( "#sortable" ).disableSelection();
 		$( ".scene-list-btn-wrapper" ).sortable({
-             stop: function () { Editor.drawScenesList(false) }
-         });
+			stop: function () {
+             	Editor.drawScenesList(false);
+				Editor.setSceneEditedMark();
+			}
+		});
     };
 
     this.init();
@@ -201,7 +218,7 @@ var EditorItem = function () {
 
 var SceneViewer = function () {
 	this.scene;
-	this.temporaryScene;
+	this.temporaryScene = new Scene();
 
 	this.reset = function () {
 		$("#scene-name").val("");
@@ -217,11 +234,12 @@ var SceneViewer = function () {
 		};
 
 		this.setExecCode();
+
+		$(".action-wrapper").find(".action-item").remove();
 	};
 
 	this.load = function (scene) {
 		this.scene = scene;
-		this.temporaryScene = new Scene;
 		this.temporaryScene.set(scene);
 
 		this.reset();
@@ -232,6 +250,11 @@ var SceneViewer = function () {
 		$( $(".desc-wrapper").find("textarea")[0] ).val(scene.blobs[0]);
 		for (var i = 1; i < scene.blobs.length; i++) {
 			this.addBlob(scene.blobs[i]);
+		}
+
+		this.temporaryScene.actions.sort(function (a,b) { return (a.order - b.order); });
+		for (var i = 0; i < this.temporaryScene.actions.length; i++) {
+			this.addAction(false, this.temporaryScene.actions[i]);
 		}
 	};
 
@@ -269,11 +292,16 @@ var SceneViewer = function () {
         $(".exec-code-summary").html("<span>Pre</span> " + pre + "  <span>Post</span> " + post);
     };
 
-	this.addAction = function () {
-        this.temporaryScene.actions.push(new Action(++Editor.actionCounter));
+	this.addAction = function (isNew, action) {
+		if (isNew) {
+        	action = new Action(++Editor.actionCounter);
+        	this.temporaryScene.actions.push(action);
+        };
+
         $(".action-wrapper").append(
-            "<div class='action-item' actionId='" + Editor.actionCounter + "'><div class='btn-short inline btn-edit-action'>✎</div>\r\n<div class='btn-short inline'>✖</div>\r\n<div class='info-text inline'><span>1</span> Do fire <span>Simple</span> GameMain.setState(3); console.log(1); </div></div>"
+           	"<div class='action-item' actionId='" + action.id + "'><div class='btn-short inline btn-edit-action'>✎</div>\r\n<div class='btn-short inline'>✖</div>\r\n<div class='info-text inline'></div></div>"
         );
+
         this.resortActionList();
 
         this.initEvents();
@@ -288,7 +316,9 @@ var SceneViewer = function () {
 			var action = this.temporaryScene.getActionById(id);
 			action.order = (i+1);
 
-			var html = "<span>" + (i+1) + "</span> " + action.name + " <span>" + action.type + "</span> " + action.exec;
+			var html = "<span>" + (i+1) + "</span> " + action.name +
+				" <span>" + action.type + "</span> " + action.exec +
+				" <span>-> " + action.goTo + " </span>";
 			$( displayedList[i] ).find(".info-text").html(html);
 		}
 
@@ -318,21 +348,30 @@ var SceneViewer = function () {
 
 	this.initEvents = function () {
         this.removeEvents();
-
+		$("input").on("change", function () {
+			Editor.setSceneEditedMark();
+		});
+		$("textarea").on("change", function () {
+        	Editor.setSceneEditedMark();
+        });
         $("#scene-type").find("div").on('click', function () {
         	Editor.SceneViewer.setType( $(this).attr("value") );
+        	Editor.setSceneEditedMark();
         });
         $("#btn-add-blob").on("click", function () {
         	Editor.SceneViewer.addBlob("");
+        	Editor.setSceneEditedMark();
         });
         $(".btn-remove-blob").on("click", function () {
             $(this).parent().remove();
+            Editor.setSceneEditedMark();
         });
         $(".btn-edit-exec").on("click", function () {
             Editor.showExecEdit();
         });
         $(".btn-add-action").on("click", function () {
-			Editor.SceneViewer.addAction();
+			Editor.SceneViewer.addAction(true);
+			Editor.setSceneEditedMark();
         });
         $(".btn-edit-action").on("click", function () {
             Editor.showActionEdit( parseInt($(this).parent().attr("actionId")) );
@@ -439,7 +478,7 @@ var ActionEdit = function () {
         this.reset();
         this.composeGoTo();
 
-		this.action = Editor.SceneViewer.temporaryScene.actions[id];
+		this.action = Editor.SceneViewer.temporaryScene.getActionById(id);
 		$('.action-order').html(this.action.order);
 		$('.action-name').val(this.action.name);
 		this.setType(this.action.type);

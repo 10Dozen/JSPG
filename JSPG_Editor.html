@@ -12,11 +12,12 @@
 	<body>
 		<div class="header">
 			<div class="header-title">
-				<span>JSPG</span> Editor
+				<span>JSPG</span> Editor - <span id="project-title">New Project*</span>
 			</div>
 			<div class="header-status">
-				<button class="header-btn btn-save-project">Save</button>
-				<button class="header-btn btn-open-project">Open</button>
+				<button class="header-btn btn-half btn-save-project">Save</button>
+				<button class="header-btn btn-half btn-open-project">Open</button>
+				<div class="inline"> | </div>
 				<button class="header-btn btn-add-scene">Add Scene</button>
 				<button class="header-btn btn-save-scene">Save Scene</button>
 				<button class="header-btn btn-delete-scene">Delete Scene</button>
@@ -105,6 +106,18 @@
 			</div>
 		</div>
 
+		<!--	Project Popup		-->
+		<!--
+		<div class="project-popup">
+			<div class="xpopup-header"><span style="padding: 2px 20px">Project Properties</span></div>
+			<div class="project-popup-wrapper">
+				<div class="inline">Name</div>
+				<div class="inline"><input class="action-name"/></div>
+			</div>
+			<hr />
+			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline btn-project-properties-save'>✓ OK</div><div class='btn inline btn-project-properties-cancel'>CANCEL</div></span>
+		</div>
+		-->
 
 		<!--	Exec Popup		-->
 		<div class="exec-popup">

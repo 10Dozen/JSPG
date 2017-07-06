@@ -161,6 +161,10 @@ var EditorItem = function () {
 
 	};
 
+	this.showProjectTitle = function (text) {
+		$("#project-title").html(text);
+	};
+
     this.initEvents = function () {
         this.removeEvents();
 
@@ -318,7 +322,7 @@ var SceneViewer = function () {
 
 			var html = "<span>" + (i+1) + "</span> " + action.name +
 				" <span>" + action.type + "</span> " + action.exec +
-				" <span>-> " + action.goTo + " </span>";
+				" <span>-> " + Editor.getSceneById(action.goTo).name + " </span>";
 			$( displayedList[i] ).find(".info-text").html(html);
 		}
 
@@ -454,7 +458,7 @@ var ActionEdit = function () {
 	this.composeGoTo = function () {
 		var html = "";
 		for (var i = 0; i < Editor.scenes.length; i++) {
-			html = html + "<option>" + Editor.scenes[i].name + "</option>";
+			html = html + "<option value=" + Editor.scenes[i].id + ">" + Editor.scenes[i].name + "</option>";
 		}
 
 		$("#action-goto").html(html);

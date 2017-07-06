@@ -61,6 +61,7 @@ var EditorItem = function () {
 	this.Splash = new Splash();
 	this.ExecEdit = new ExecEdit();
 	this.ActionEdit = new ActionEdit();
+	this.ProjectData;
 
     this.scenes = [];
     this.selectedSceneId = 0;
@@ -159,6 +160,26 @@ var EditorItem = function () {
 		Editor.Splash.hide();
         Editor.ActionEdit.hide();
 
+	};
+
+	// Project
+	this.saveProject = function () {
+
+	};
+
+	this.openProject = function (event) {
+		var reader = new FileReader();
+
+		reader.onload = function() {
+        		try {
+                	ProjectData = this.result;
+                	console.log("Parsed!");
+        		} catch (e) {
+        			console.log("Error occured during parsing!");
+        		}
+        	};
+
+        	reader.readAsText(uploader.files[0]);
 	};
 
 	this.showProjectTitle = function (text) {

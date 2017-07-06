@@ -63,6 +63,10 @@ ul {
 	width: 50px;
 }
 
+#uploader {
+	display: none;
+}
+
 /* ****************
  *
  * Scene List

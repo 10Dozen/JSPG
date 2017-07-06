@@ -17,7 +17,7 @@
  *
  *
  */
-
+var ProjectName = "The Dusin's Game";
 
 var Scenes = {
 	"InitScene": {

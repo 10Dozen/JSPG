@@ -139,6 +139,10 @@ ul {
 	background-color: rgb(177, 230, 89);
 }
 
+.action-item {
+	cursor: pointer;
+}
+
 .info-text {
     font-size: 12px;
     background-color: rgb(177, 230, 89);

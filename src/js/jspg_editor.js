@@ -1,4 +1,57 @@
+var Scene = function (id) {
+    this.id = id;
+    this.name = "UnnamedScene_" + id;
+    this.type = "Scene";   // Scene, Dialog, Title, Subtitle
+    this.portraitURL = "";
+    this.blobs = [""];
+    this.execPre = "";
+    this.execPost = "";
+    this.actions = [];
+    this.order = id;
 
+	this.getActionById = function (id) {
+		return (this.actions.filter(function (action) { return action.id == this; }, id).map(function(action) { return action; }))[0];
+	}
+
+	this.resortActions = function () {
+		this.actions.sort(function (a,b) {return (a.order - b.order)});
+
+		var orderNo = 1;
+		for (var i = 0; i < this.actions.length; i++) {
+			this.actions[i].order = orderNo++;
+		}
+	};
+
+	this.set = function (scene) {
+    	this.name = scene.name;
+    	this.type = scene.type;
+    	this.portraitURL = scene.portraitURL;
+        this.blobs = [];
+        for (var i = 0; i < scene.blobs.length; i++) { this.blobs.push(scene.blobs[i]);  };
+
+        this.execPre = scene.execPre;
+        this.execPost = scene.execPost;
+
+        this.actions = scene.actions;
+    };
+};
+
+var Action = function (id) {
+    this.order = -1;
+    this.id = id;
+    this.name = "ActionName";
+    this.type = "Dialog";
+    this.portraitURL = "URL";
+    this.blobs = ["text","text2"];
+    this.exec = "execgo";
+    this.goTo = "Scene_1";
+
+    this.save = function() {
+        this.order = $("#action-order").val();
+        this.name = $("#action-name").val();
+        this.exec = $("#action-exec").val();
+    };
+};
 
 var EditorItem = function () {
 	this.SceneViewer = new SceneViewer();
@@ -30,7 +83,7 @@ var EditorItem = function () {
 
         this.SceneViewer.load( this.getOpenedScene() );
 
-        this.drawScenesList();
+        this.drawScenesList(true);
     };
 
     this.saveScene = function () {};
@@ -49,11 +102,27 @@ var EditorItem = function () {
     	}
     };
 
-    this.drawScenesList = function () {
-        var list = "";
-        for (var i = 0; i < this.scenes.length; i++) {
-            var classname = (this.scenes[i].id == this.selectedSceneId) ? "scene-list-btn-selected" : "scene-list-btn";
-            list = list + "<div class='" + classname + "' sceneId='" + this.scenes[i].id + "'>" + this.scenes[i].name + "</div>";
+    this.drawScenesList = function (isOnOpen) {
+    	// Resorting
+    	var ordering = [];
+    	if (!isOnOpen) {
+			var items = $(".scene-list-btn-wrapper div");
+			for (var i = 0; i < items.length; i++) {
+				var id = parseInt( $(items[i]).attr("sceneId") );
+				var scene = this.getSceneById(id);
+				scene.order = i;
+				ordering.push(scene);
+			}
+		} else {
+			this.scenes.sort(function (a,b) { return a.order - b.order });
+			ordering = this.scenes;
+		};
+
+		// Drawing
+		var list = "";
+        for (var i = 0; i < ordering.length; i++) {
+            var classname = (ordering[i].id == this.selectedSceneId) ? "scene-list-btn-selected" : "scene-list-btn";
+            list = list + "<div class='" + classname + "' sceneId='" + ordering[i].id + "'>" + ordering[i].name + "</div>";
         };
         $(".scene-list-btn-wrapper").html(list);
         this.initEvents();
@@ -75,17 +144,17 @@ var EditorItem = function () {
 	};
 
 	this.hideActionEdit = function () {
+		Editor.SceneViewer.resortActionList();
 		Editor.Splash.hide();
         Editor.ActionEdit.hide();
+
 	};
 
     this.initEvents = function () {
         this.removeEvents();
 
         $('.scene-list-btn').on('click', function () {
-			console.log('Scene selected')
 			var id = parseInt( $(this).attr('sceneId') );
-			console.log(id);
 			Editor.openScene(id);
 		});
 		$('.btn-add-scene').on("click", function () {
@@ -94,12 +163,12 @@ var EditorItem = function () {
 		$('.btn-save-scene').on('click', function () {
             console.log("Scene Saved!");
             Editor.SceneViewer.saveScene();
-            Editor.drawScenesList();
+            Editor.drawScenesList(false);
 		});
 		$('.btn-delete-scene').on('click', function () {
             console.log("Scene Deleted!");
             Editor.deleteScene();
-            Editor.drawScenesList();
+            Editor.drawScenesList(false);
 		});
     };
 
@@ -117,6 +186,14 @@ var EditorItem = function () {
         this.Splash.hide();
         this.ActionEdit.hide();
         this.ExecEdit.hide();
+
+		$( "#sortable" ).sortable({
+			stop: function () { Editor.SceneViewer.resortActionList() }
+		});
+		$( "#sortable" ).disableSelection();
+		$( ".scene-list-btn-wrapper" ).sortable({
+             stop: function () { Editor.drawScenesList(false) }
+         });
     };
 
     this.init();
@@ -197,7 +274,7 @@ var SceneViewer = function () {
         $(".action-wrapper").append(
             "<div class='action-item' actionId='" + Editor.actionCounter + "'><div class='btn-short inline btn-edit-action'>✎</div>\r\n<div class='btn-short inline'>✖</div>\r\n<div class='info-text inline'><span>1</span> Do fire <span>Simple</span> GameMain.setState(3); console.log(1); </div></div>"
         );
-        this.temporaryScene.resortActions();
+        this.resortActionList();
 
         this.initEvents();
     };
@@ -243,14 +320,12 @@ var SceneViewer = function () {
         this.removeEvents();
 
         $("#scene-type").find("div").on('click', function () {
-        	console.log("Scene type changed!");
         	Editor.SceneViewer.setType( $(this).attr("value") );
         });
         $("#btn-add-blob").on("click", function () {
         	Editor.SceneViewer.addBlob("");
         });
         $(".btn-remove-blob").on("click", function () {
-        	CX = this;
             $(this).parent().remove();
         });
         $(".btn-edit-exec").on("click", function () {
@@ -270,60 +345,6 @@ var SceneViewer = function () {
 	};
 
 	this.init();
-};
-
-var Scene = function (id) {
-    this.id = id;
-    this.name = "UnnamedScene_" + id;
-    this.type = "Scene";   // Scene, Dialog, Title, Subtitle
-    this.portraitURL = "";
-    this.blobs = [""];
-    this.execPre = "";
-    this.execPost = "";
-    this.actions = [];
-
-	this.getActionById = function (id) {
-		return (this.actions.filter(function (action) { return action.id == this; }, id).map(function(action) { return action; }))[0];
-	}
-
-	this.resortActions = function () {
-		this.actions.sort(function (a,b) {return (a.order - b.order)});
-
-		var orderNo = 1;
-		for (var i = 0; i < this.actions.length; i++) {
-			this.actions[i].order = orderNo++;
-		}
-	};
-
-	this.set = function (scene) {
-    	this.name = scene.name;
-    	this.type = scene.type;
-    	this.portraitURL = scene.portraitURL;
-        this.blobs = [];
-        for (var i = 0; i < scene.blobs.length; i++) { this.blobs.push(scene.blobs[i]);  };
-
-        this.execPre = scene.execPre;
-        this.execPost = scene.execPost;
-
-        this.actions = scene.actions;
-    };
-};
-
-var Action = function (id) {
-    this.order = -1;
-    this.id = id;
-    this.name = "ActionName";
-    this.type = "Dialog";
-    this.portraitURL = "URL";
-    this.blobs = ["text","text2"];
-    this.exec = "execgo";
-    this.goTo = "Scene_1";
-
-    this.save = function() {
-        this.order = $("#action-order").val();
-        this.name = $("#action-name").val();
-        this.exec = $("#action-exec").val();
-    };
 };
 
 var ExecEdit = function () {
@@ -358,8 +379,6 @@ var ActionEdit = function () {
 	this.action;
 
 	this.setType = function (type) {
-    	this.action.type = type;
-
     	$("#action-type").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
     	$("#action-type").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
 
@@ -378,11 +397,50 @@ var ActionEdit = function () {
         this.initEvents();
     };
 
+	this.save = function () {
+		this.action.name = $('.action-name').val();
+		this.action.type = $("#action-type").find(".type-switch-on").attr("value");
+		this.action.portraitURL = $('.action-portrait').val();
+
+		this.action.blobs = [];
+		var blobItems = $(".action-desc-wrapper").find("textarea");
+		for (var i = 0; i < blobItems.length; i++) {
+        	this.action.blobs.push( $(blobItems[i]).val() );
+        }
+
+        this.action.exec = $(".action-exec").val();
+        this.action.goTo = $("#action-goto").val();
+	};
+
+	this.composeGoTo = function () {
+		var html = "";
+		for (var i = 0; i < Editor.scenes.length; i++) {
+			html = html + "<option>" + Editor.scenes[i].name + "</option>";
+		}
+
+		$("#action-goto").html(html);
+	};
+
+	this.reset = function () {
+		$('.action-name').val("");
+        this.setType("Simple");
+        $('.action-portrait').val("");
+        $( $(".action-desc-wrapper").find("textarea")[0] ).val("");
+        var blobs = $(".action-desc-wrapper").find(".col-full");
+        for (var i = 1; i <blobs.length; i++) {
+        	$(blobs[i]).remove();
+        }
+        $(".action-exec").val("");
+        $("#action-goto").val("");
+	};
+
     this.show = function (id) {
         $('.action-popup').css('display', 'block');
+        this.reset();
+        this.composeGoTo();
 
 		this.action = Editor.SceneViewer.temporaryScene.actions[id];
-		$('.action-order').val(this.action.order);
+		$('.action-order').html(this.action.order);
 		$('.action-name').val(this.action.name);
 		this.setType(this.action.type);
 		$('.action-portrait').val(this.action.portraitURL);
@@ -392,6 +450,7 @@ var ActionEdit = function () {
 			this.addBlob(this.action.blobs[i]);
 		}
 		$(".action-exec").val(this.action.exec);
+
 		$("#action-goto").val(this.action.goTo);
 	};
 
@@ -399,12 +458,32 @@ var ActionEdit = function () {
         $('.action-popup').css('display', 'none');
     };
 
+	this.removeEvents = function () {
+		$('.btn-action-cancel').off();
+    	$('.btn-action-save').off();
+    	$('#action-type').find("div").off();
+    	$('.btn-action-add-blob').off();
+    	$('.btn-action-remove-blob').off();
+	};
+
     this.initEvents = function () {
+    	this.removeEvents();
+
 		$('.btn-action-cancel').on("click", function () {
 			Editor.hideActionEdit();
 		});
 		$('.btn-action-save').on("click", function () {
+			Editor.ActionEdit.save();
 			Editor.hideActionEdit();
+		});
+		$('#action-type').find("div").on("click", function () {
+			Editor.ActionEdit.setType($(this).attr("value"));
+		});
+		$('.btn-action-add-blob').on("click", function () {
+			Editor.ActionEdit.addBlob("");
+		});
+		$('.btn-action-remove-blob').on("click", function () {
+			$(this).parent().remove();
 		});
     }
 
@@ -428,8 +507,4 @@ var Editor;
 $(document).ready(function () {
     Editor = new EditorItem();
 
-    $( function() {
-    	$( "#sortable" ).sortable();
-    	$( "#sortable" ).disableSelection();
-    } );
 });

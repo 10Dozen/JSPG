@@ -61,7 +61,7 @@ var EditorItem = function () {
 	this.Splash = new Splash();
 	this.ExecEdit = new ExecEdit();
 	this.ActionEdit = new ActionEdit();
-	this.ProjectData;
+	this.ProjectData = "";
 
     this.scenes = [];
     this.selectedSceneId = 0;
@@ -167,19 +167,38 @@ var EditorItem = function () {
 
 	};
 
-	this.openProject = function (event) {
+	this.openProjectFile = function (event) {
 		var reader = new FileReader();
 
 		reader.onload = function() {
         		try {
-                	ProjectData = this.result;
+                	Editor.openProject(this.result);
                 	console.log("Parsed!");
         		} catch (e) {
-        			console.log("Error occured during parsing!");
+        			console.log("Failed to open project file!");
         		}
         	};
 
         	reader.readAsText(uploader.files[0]);
+	};
+
+	this.openProject = function (codeString) {
+		// Read file data
+		var name = ( codeString.match(/var Projectname\s*=\s*"(.*)";/i) )[1];
+
+		this.ProjectName = (typeof name[1] == "undefined") ? "New Project*" : name;
+		this.ProjectData = JSON.parse( codeString.match( new RegExp("^var Scenes =((.)+(\n(.)+)+);","im") )[1] );
+
+		this.showProjectTitle(this.ProjectName);
+
+		// Read and create scenes
+		var keys = Object.keys(this.ProjectData);
+		for (var i = 0; i < keys.length; i++) {
+			var sceneData = this.ProjectData[keys[i]];
+
+		}
+
+
 	};
 
 	this.showProjectTitle = function (text) {

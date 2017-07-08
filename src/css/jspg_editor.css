@@ -67,6 +67,10 @@ ul {
 	display: none;
 }
 
+#project-title {
+    cursor: pointer;
+}
+
 /* ****************
  *
  * Scene List

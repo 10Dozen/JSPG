@@ -30,6 +30,15 @@ var Scene = function (id) {
         	this.actions.push(clonedAction);
         }
     };
+
+    this.setProperties = function (name, type, portraitURL, desc, execPre, execPost) {
+        this.name = name;
+        this.type = type;
+        this.portraitURL = portraitURL;
+        this.blobs = desc
+        this.execPre = execPre;
+        this.execPost = execPost;
+    }
 };
 
 var Action = function (id) {
@@ -40,7 +49,7 @@ var Action = function (id) {
     this.portraitURL = "";
     this.blobs = ["",""];
     this.exec = "";
-    this.goTo = "";
+    this.goTo = -1;
 
 	this.set = function (action) {
 		this.order = action.order;
@@ -61,6 +70,9 @@ var EditorItem = function () {
 	this.Splash = new Splash();
 	this.ExecEdit = new ExecEdit();
 	this.ActionEdit = new ActionEdit();
+	this.ProjectEdit = new ProjectEdit();
+
+	this.ProjectName = "New Project*";
 	this.ProjectData = "";
 
     this.scenes = [];
@@ -78,8 +90,11 @@ var EditorItem = function () {
     };
 
     this.addScene = function () {
-        this.scenes.push( new Scene(++this.sceneCounter) );
+        var scene = new Scene(++this.sceneCounter);
+        this.scenes.push(scene);
 		this.openScene( this.sceneCounter );
+
+		return scene;
     };
 
     this.openScene = function (id) {
@@ -89,8 +104,6 @@ var EditorItem = function () {
 
         this.drawScenesList(true);
     };
-
-    this.saveScene = function () {};
 
     this.deleteScene = function () {
     	var index = (Editor.scenes).indexOf( Editor.getOpenedScene() );
@@ -162,42 +175,122 @@ var EditorItem = function () {
 
 	};
 
-	// Project
-	this.saveProject = function () {
+	this.showProjectEdit = function () {
+	    this.ProjectEdit.show();
+    	this.Splash.show();
+	};
 
+	this.hideProjectEdit = function () {
+	    this.ProjectEdit.hide();
+	    this.Splash.hide();
+	};
+
+	// Project
+	this.reset = function () {
+        this.scenes = [];
+        this.selectedSceneId = 0;
+        this.sceneCounter = -1;
+        this.actionCounter = -1;
+        this.addScene();
 	};
 
 	this.openProjectFile = function (event) {
 		var reader = new FileReader();
-
 		reader.onload = function() {
-        		try {
-                	Editor.openProject(this.result);
-                	console.log("Parsed!");
-        		} catch (e) {
-        			console.log("Failed to open project file!");
-        		}
-        	};
+            try {
+                Editor.openProject(this.result);
+                console.log("Parsed!");
+            } catch (e) {
+                console.log("Failed to open project file!");
+            }
+        };
 
-        	reader.readAsText(uploader.files[0]);
+        reader.readAsText(uploader.files[0]);
 	};
 
 	this.openProject = function (codeString) {
-		// Read file data
+        this.reset();
 		var name = ( codeString.match(/var Projectname\s*=\s*"(.*)";/i) )[1];
 
 		this.ProjectName = (typeof name[1] == "undefined") ? "New Project*" : name;
-		this.ProjectData = JSON.parse( codeString.match( new RegExp("^var Scenes =((.)+(\n(.)+)+);","im") )[1] );
+		this.ProjectData = JSON.parse(
+		    (codeString.match( new RegExp("^var Scenes =((.)+(\n(.)+)+);","im") )[1]).replace(/\/\*(.)+\*\//gi, "")
+        );
 
 		this.showProjectTitle(this.ProjectName);
 
-		// Read and create scenes
 		var keys = Object.keys(this.ProjectData);
 		for (var i = 0; i < keys.length; i++) {
 			var sceneData = this.ProjectData[keys[i]];
+			var scene = this.addScene();
 
+			var type = (typeof sceneData.type == "undefined") ? "Scene" : sceneData.type;
+			var portrait = (typeof sceneData.portrait == "undefined") ? [""] : sceneData.portrait;
+
+			var desc = [];
+			if (sceneData.hasOwnProperty("desc")) {
+			    desc = (typeof sceneData.desc == "string") ? [sceneData.desc] : sceneData.desc;
+			} else {
+			    desc = [""];
+			}
+
+			var execPre, execPost = "";
+			if (typeof sceneData.exec == "undefined") {
+                execPre = "";
+                execPost = "";
+			} else {
+			    execPre = (typeof sceneData.exec.pre == "undefined") ? "" : sceneData.exec.pre;
+                execPost = (typeof sceneData.exec.post == "undefined") ? "" : sceneData.exec.post;
+			}
+
+            scene.setProperties( keys[i], type, portrait, desc, execPre, execPost );
+
+            scene.actions = [];
+            if (!sceneData.hasOwnProperty("actions")) { sceneData.actions = []; }
+            for (var j = 0; j < sceneData.actions.length; j++) {
+                var actionData = sceneData.actions[j];
+                var name = actionData.name;
+                var type = (actionData.hasOwnProperty("type")) ? actionData.type : "Simple";
+
+                var exec;
+                var goTo = -1;
+                if (actionData.hasOwnProperty("exec")) {
+                    var execGoToMatches = (actionData.exec).match(/(\n)*Game.goTo\(((.)*)\)(\n)*/i);
+                    if (typeof execGoToMatches[2] != "undefined") {
+                        goTo = 1 + keys.indexOf( execGoToMatches[2].split("'").join("").split('"').join("") );
+                        exec = (actionData.exec).replace(/(\n)*Game.goTo\(((.)*)\)[;]*(\n)*/i, "");
+                    }
+                } else {
+                    exec = "";
+                }
+
+                var portrait = (actionData.hasOwnProperty("portrait")) ? actionData.portrait : "";
+                var desc = [];
+                if (actionData.hasOwnProperty("desc")) {
+                    desc = (typeof actionData.desc != "string") ? actionData.desc : [actionData.desc];
+                } else {
+                    desc = [""];
+                }
+
+
+                var action = new Action( ++this.actionCounter );
+                scene.actions.push(action);
+
+                action.name = name;
+                action.type = type;
+                action.blobs = desc;
+                action.portraitURL = portrait;
+                action.exec = exec;
+                action.goTo = goTo;
+
+            }
 		}
 
+        this.openScene(0);
+		this.deleteScene();
+	};
+
+	this.saveProject = function () {
 
 	};
 
@@ -225,6 +318,9 @@ var EditorItem = function () {
             Editor.deleteScene();
             Editor.drawScenesList(false);
 		});
+		$('#project-title').on("click", function () {
+		    Editor.showProjectEdit();
+		});
     };
 
     this.removeEvents = function () {
@@ -232,6 +328,7 @@ var EditorItem = function () {
         $('.btn-add-scene').off();
         $('.btn-delete-scene').off();
         $('.btn-save-scene').off();
+        $('#project-title').off();
     };
 
     this.init = function () {
@@ -241,6 +338,7 @@ var EditorItem = function () {
         this.Splash.hide();
         this.ActionEdit.hide();
         this.ExecEdit.hide();
+        this.ProjectEdit.hide();
 
 		$( "#sortable" ).sortable({
 			stop: function () {
@@ -360,12 +458,13 @@ var SceneViewer = function () {
 			var action = this.temporaryScene.getActionById(id);
 			action.order = (i+1);
 
+			var goToSceneName = (typeof Editor.getSceneById(action.goTo) == "undefined") ? "" : Editor.getSceneById(action.goTo).name;
+
 			var html = "<span>" + (i+1) + "</span> " + action.name +
 				" <span>" + action.type + "</span> " + action.exec +
-				" <span>-> " + Editor.getSceneById(action.goTo).name + " </span>";
+				" <span>-> " + goToSceneName + " </span>";
 			$( displayedList[i] ).find(".info-text").html(html);
 		}
-
 	};
 
     this.saveScene = function () {
@@ -571,6 +670,30 @@ var ActionEdit = function () {
     }
 
     this.initEvents();
+}
+
+var ProjectEdit = function () {
+    this.show = function () {
+        $('.project-name').val( Editor.ProjectName );
+        $('.project-popup').css("display","block");
+    };
+
+    this.hide = function () {
+        $('.project-popup').css("display","none");
+    };
+
+    this.save = function () {
+        Editor.ProjectName = $('.project-name').val();
+        Editor.showProjectTitle( Editor.ProjectName );
+        Editor.hideProjectEdit();
+    };
+
+    this.init = function () {
+        $('.btn-project-properties-save').on("click", function () { Editor.ProjectEdit.save(); });
+        $('.btn-project-properties-cancel').on("click", function () { Editor.hideProjectEdit(); });
+    };
+
+    this.init();
 }
 
 var Splash = function () {

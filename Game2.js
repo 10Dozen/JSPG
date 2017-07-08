@@ -17,7 +17,7 @@
  *
  *
  */
-var ProjectName="The Dusin Game";
+var ProjectName="The Dusin Game 2";
 
 var Scenes = {
 	"InitScene": {
@@ -41,14 +41,14 @@ var Scenes = {
 			{ 
 				"name": "- Fuck You!"
 				, "desc": "- Fuck you!"
-				, "type": "dialog"
+				, "type": "Dialog"
 				, "exec": "Game.goTo('Scene2')"
 				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
 			}
 			,{ 
 				"name": "- Hello!"
 				, "desc": "-Hell... FUCK YOU!"
-				, "type": "dialog"
+				, "type": "Dialog"
 				, "exec": "Game.goTo('Scene2')"
 				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
 			}

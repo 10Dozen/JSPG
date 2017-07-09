@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="us">
+	<head>
+		<meta charset="utf-8">
+		<title>JSPG Editor</title>
+		
+		<link rel="stylesheet" href="src/css/jspg_editor.css">
+		<script src="src/js/jquery.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+		<script src="src/js/jspg_editor.js"></script>
+	</head>
+	<body>
+		<div class="header">
+			<div class="header-title">
+				<span>JSPG</span> Editor - <span id="project-title">New Project*</span>
+			</div>
+			<div class="header-status">
+				<span style="font-family: sans-serif; font-size: 10px;">PROJECT</span>
+				<button class="header-btn btn-half btn-save-project">Save</button>
+				<label class="header-btn btn-half btn-open-project" for="uploader">Open</label>
+				<input type='file' name='uploader' id="uploader" accept='.js' onchange='Editor.openProjectFile(event)'>
+				<div class="inline"> | </div>
+				<span style="font-family: sans-serif; font-size: 10px;">SCENE</span>
+				<button class="header-btn btn-add-scene">Add</button>
+				<button class="header-btn btn-save-scene">Save</button>
+				<button class="header-btn btn-delete-scene">Delete</button>
+			</div>
+		</div>
+
+		<!-- 	Splash Screen 	-->
+		<div class='splash'></div>
+
+		<!--	Scene List		-->
+		<div class="scene-list-wrapper">
+			<div class="scene-list-title">Scenes</div>
+			<div class="scene-list-btn-wrapper"></div>
+		</div>
+
+		<!--	Scene Edit		-->
+		<div id="main-wrapper">
+			<div class="scene-form">
+				<ul>
+					<li>
+						<div class="col-left">Scene Name</div>
+						<div class="col-right"><input class="input-max" id="scene-name" /></div>
+					</li>
+					<li>
+						<div class="col-left">Type</div>
+						<div class="col-right" id="scene-type">
+							<div class="type-switch-on" value="Scene">Scene</div>
+							<div class="type-switch-off" value="Dialog">Dialog</div>
+							<div class="type-switch-off" value="Title">Title</div>
+							<div class="type-switch-off" value="Subtitle">Subtitle</div>
+						</div>
+					</li>
+					<li class="scene-portrait-list-item">
+						<div class="col-left">Portrait URL</div>
+						<div class="col-right"><input class="input-max" id="scene-portrait"/></div>
+					</li>
+					<hr />
+
+
+					<li>
+						<div class="col-full"><b>Scene Descripition Blobs</b></div>
+					</li>
+					<li>
+						<div class="desc-wrapper">
+							<div class="col-full"><textarea class="textarea-max"></textarea></div>
+							<!--
+							<div class="col-full">
+								<textarea class="textarea-max"></textarea>
+								<div class="btn-short inline-right btn-remove-blob">✖</div>
+							</div>
+							-->
+						</div>
+
+						<div class="btn" id="btn-add-blob">Add Blob</div>
+					</li>
+					<hr />
+
+
+					<li>
+						<div class="col-full"><b>Scene Code Exec</b></div>
+						<div class="exec-wrapper">
+							<div class="btn inline btn-edit-exec">Edit</div>
+							<div class="info-text inline exec-code-summary"><span>Pre</span> n/a <span>Post</span> n/a </div>
+						</div>
+
+					</li>
+					<hr />
+
+
+					<li>
+						<div class="col-full"><b>Actions</b></div>
+						<div class="action-wrapper" id="sortable">
+							<!--
+							<div class="action-item" actionId="0">
+								<div class="btn-short inline btn-edit-action">✎</div>
+								<div class="btn-short inline btn-delete-action">✖</div>
+								<div class="info-text inline"><span>1</span> Do fire <span>Simple</span> GameMain.setState(3); console.log(1); </div>
+							</div>
+							-->
+						</div>
+						<br />
+						<div class="btn-short btn-add-action">New Action</div>
+
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<!--	Project Popup		-->
+		<div class="project-popup">
+			<div class="xpopup-header"><span style="padding: 2px 20px">Project Properties</span></div>
+			<div class="project-popup-wrapper">
+				<div class="inline">Name</div>
+				<div class="inline"><input class="project-name"/></div>
+			</div>
+			<hr />
+			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline btn-project-properties-save'>✓ OK</div><div class='btn inline btn-project-properties-cancel'>CANCEL</div></span>
+		</div>
+
+		<!--	Exec Popup		-->
+		<div class="exec-popup">
+			<div class="xpopup-header"><span style="padding: 2px 20px">Scene Code Exec</span></div>
+			<div class="exec-popup-wrapper">
+				<div class="col-left">Pre-scene</div>
+				<br />
+				<div>
+					<textarea class="textarea-max" id="textarea-exec-pre-scene"></textarea>
+				</div>
+
+				<div class="col-left">Post-scene</div>
+				<br />
+				<div>
+					<textarea class="textarea-max"  id="textarea-exec-post-scene"></textarea>
+				</div>
+			</div>
+			<hr />
+			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline btn-exec-save'>✓ OK</div><div class='btn inline btn-exec-cancel'>CANCEL</div></span>
+		</div>
+
+		<!--	Action Popup		-->
+		<div class="action-popup">
+			<div class="xpopup-header"><span style="padding: 2px 20px">Edit Action #<span class="action-order">1</span></span></div>
+			<div class="action-popup-wrapper">
+				<div class="col-left">Name</div>
+				<div class="col-right"><input class="input-max action-name"/></div>
+				<br />
+
+				<div class="col-left">Type</div>
+				<div class="col-right" id="action-type">
+					<div class="type-switch-on" value="Simple">Simple</div>
+					<div class="type-switch-off" value="Dialog">Dialog</div>
+					<div class="type-switch-off" value="Hidden">Hidden</div>
+				</div>
+				<br />
+
+				<div class="action-portrait-line-item">
+					<div class="col-left">Portrait</div>
+					<div class="col-right"><input class="input-max action-portrait" /></div>
+				</div>
+				<br /><hr />
+
+				<div>
+					<div><b>Description Blobs</b></div>
+					<div class="action-desc-wrapper">
+						<div class="col-full"><textarea class="textarea-max"></textarea></div>
+						<!--
+						<div class="col-full">
+							<textarea class="textarea-max"></textarea>
+							<div class="btn-short inline-right">✖</div>
+						</div>
+						-->
+					</div>
+
+					<div class="btn btn-action-add-blob">Add Blob</div>
+				</div>
+				<br />
+				<hr />
+
+				<div><b>Exec</b></div>
+				<textarea class="textarea-max action-exec"></textarea>
+				<br/>
+				<div class="col-left">Go To</div>
+				<select class='input-select' id="action-goto">
+					<option>Scene_0</option>
+					<option>Scene_1</option>
+					<option>Scene_2</option>
+					<option>Scene_3</option>
+				</select>
+			</div>
+			<hr />
+			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline btn-action-save'>✓ OK</div><div class='btn inline btn-action-cancel'>CANCEL</div></span>
+		</div>
+
+
+
+
+
+		<!--
+		<div class="scene-list-wrapper">
+			<div class="scene-list-title">Scenes</div>
+			<div class="scene-list-btn-wrapper">
+				<div class="scene-list-btn">Scene_0</div>
+				<div class="scene-list-btn">Scene_1</div>
+				<div class="scene-list-btn">Scene_2</div>
+				<div class="scene-list-btn">Scene_3</div>
+
+			</div>
+		</div>
+		
+
+
+		
+		<div id="main-wrapper">
+			<div class="scene-form">
+					<ul>
+						<li>
+							<div class="col-left">Scene Name</div>
+							<div class="col-right"><input class="input-max" /></div>
+						</li>
+						<li>
+							<div class="col-left">Type</div>
+							<div class="col-right">
+								<div class="type-switch-on">Scene</div>
+								<div class="type-switch-off">Dialog</div>
+								<div class="type-switch-off">Title</div>
+								<div class="type-switch-off">Sub-title</div>
+							</div>
+						</li>
+						<li>
+							<div class="col-left">Portrait URL</div>
+							<div class="col-right"><input class="input-max" /></div>
+						</li>
+						<hr />
+
+
+						<li>
+							<div class="col-full"><b>Scene Descripition Blobs</b></div>
+						</li>
+						<li>
+							<div class="desc-wrapper">
+								<div class="col-full"><textarea class="textarea-max"></textarea></div>
+								<div class="col-full">
+									<textarea class="textarea-max"></textarea>
+									<div class="btn-short inline-right">✖</div>
+								</div>
+							</div>
+
+							<div class="btn">Add Blob</div>
+						</li>
+						<hr />
+
+
+						<li>
+							<div class="col-full"><b>Scene Code Exec</b></div>
+							<div class="exec-wrapper">
+								<div class="btn inline">Edit</div>
+								<div class="info-text inline"><span>Pre</span> GameMain.setState(3); console.log(1); <span>Post</span> alert(1);</div>
+							</div>
+
+						</li>
+						<hr />
+
+
+						<li>
+							<div class="col-full"><b>Actions</b></div>
+							<div class="action-wrapper">
+								<div class="action-item">
+									<div class="btn-short inline">✎</div>
+									<div class="btn-short inline">✖</div>
+									<div class="info-text inline"><span>1</span> Do fire <span>Simple</span> GameMain.setState(3); console.log(1); </div>
+								</div>
+							</div>
+							<br />
+							<div class="btn-short">New Action</div>
+
+						</li>
+					</ul>
+			</div>
+		</div>
+		-->
+
+
+		<!--
+
+		-->
+
+		<!--
+		<div class="action-popup">
+			<div class="xpopup-header"><span style="padding: 2px 20px">Edit Action #1</span></div>
+			<div class="action-popup-wrapper">
+				<div class="col-left">Order</div>
+				<div class="col-right"><input class="input-short"/></div>
+				<br />
+
+				<div class="col-left">Name</div>
+				<div class="col-right"><input class="input-max" /></div>
+				<br />
+
+				<div class="col-left">Type</div>
+				<div class="col-right">
+					<div class="type-switch-on">Simple</div>
+					<div class="type-switch-off">Dialog</div>
+					<div class="type-switch-off">Hidden</div>
+				</div>
+				<br />
+
+				<div class="col-left">Portrait</div>
+				<div class="col-right"><input class="input-max" /></div>
+				<br /><hr />
+
+				<div class="action-desc-wrapper">
+					<div><b>Description Blobs</b></div>
+					<div class="desc-wrapper">
+						<div class="col-full"><textarea class="textarea-max"></textarea></div>
+						<div class="col-full">
+							<textarea class="textarea-max"></textarea>
+							<div class="btn-short inline-right">✖</div>
+						</div>
+					</div>
+
+					<div class="btn">Add Blob</div>
+				</div>
+				<br />
+				<hr />
+
+				<div><b>Exec</b></div>
+				<textarea class="textarea-max"></textarea>
+				<br/>
+				<div class="col-left">Go To</div>
+				<select class='input-select'>
+					<option>Scene_0</option>
+					<option>Scene_1</option>
+					<option>Scene_2</option>
+					<option>Scene_3</option>
+				</select>
+			</div>
+			<hr />
+			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline group-save'>✓ OK</div><div class='btn inline group-cancel'>CANCEL</div></span>
+		</div>
+
+		-->
+		
+	</body>
+</html>

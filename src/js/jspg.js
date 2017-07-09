@@ -8,8 +8,6 @@
 })(jQuery);
 
 
-
-
 var ActionHandler = function () {
 	
 	this.actions			= [];
@@ -266,7 +264,6 @@ var GamePrototype = function () {
 		this.AH.setSceneActions();
 	};
 	
-	
 	this.execPreScene = function () {
 		if (this.currentScene.hasOwnProperty("exec")){
 			if (this.currentScene.exec.hasOwnProperty("pre")){
@@ -282,8 +279,6 @@ var GamePrototype = function () {
 		}		
 	};
 	
-	
-	
 	this.AH = new ActionHandler();	
 	this.AH.hideActionButtons();
 	
@@ -292,5 +287,5 @@ var GamePrototype = function () {
 $( document ).ready(function() {
 	Game = new GamePrototype();
 
-	Game.showScene(Scenes.InitScene);
+	Game.goTo( Object.keys(Scenes)[0] );
 });

@@ -1,3 +1,5 @@
 # JSPG
-##### Version: 0.11
+##### Version: 0.12
 Eeeee
+
++ GUI Editor 

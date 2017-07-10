@@ -231,12 +231,12 @@ var EditorItem = function () {
 	this.openProjectFile = function (event) {
 		var reader = new FileReader();
 		reader.onload = function() {
-            try {
+           // try {
                 Editor.openProject(this.result);
                 console.log("Parsed!");
-            } catch (e) {
-                console.log("Failed to open project file!");
-            }
+            // } catch (e) {
+                // console.log("Failed to open project file!");
+            // }
         };
 
         reader.readAsText(uploader.files[0]);
@@ -247,7 +247,9 @@ var EditorItem = function () {
 		var name = ( codeString.match(/var Projectname\s*=\s*"(.*)";/i) )[1];
 
 		this.ProjectName = (typeof name[1] == "undefined") ? "New Project*" : name;
-		this.ProjectData = JSON.parse((codeString.match( new RegExp("^var Scenes =((.)+(\n(.)+)+);","im") )[1]).replace(/\/\*(.)+\*\//gi, ""));
+	
+		codeString = codeString.match( /^var Scenes =(((.)+(\n)+)+)/im )[1];
+		this.ProjectData = JSON.parse( (codeString.substring(0, codeString.length -2) ).replace(/\/\*(.)+\*\//gi, "") );
 
 		this.showProjectTitle(this.ProjectName);
 

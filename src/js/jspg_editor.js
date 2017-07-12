@@ -17,7 +17,16 @@ var Scene = function (id) {
     	this.type = scene.type;
     	this.portraitURL = scene.portraitURL;
         this.blobs = [];
-        for (var i = 0; i < scene.blobs.length; i++) { this.blobs.push(scene.blobs[i]);  };
+        for (var i = 0; i < scene.blobs.length; i++) {
+			var sceneText = scene.blobs[i];
+			var ppImg = sceneText.match(/#img(.+)/i);
+			if (ppImg != null) {
+				var replacement = "<img src='" + ppImg[1].substring(1, ppImg[1].length - 1) + "' />";			
+				var sceneText = sceneText.replace(/#img(.+)/i, replacement);
+			}
+			
+			this.blobs.push(sceneText);
+		};
 
         this.exec = scene.exec;
         this.actions = [];
@@ -231,12 +240,12 @@ var EditorItem = function () {
 	this.openProjectFile = function (event) {
 		var reader = new FileReader();
 		reader.onload = function() {
-           // try {
+            try {
                 Editor.openProject(this.result);
                 console.log("Parsed!");
-            // } catch (e) {
-                // console.log("Failed to open project file!");
-            // }
+            } catch (e) {
+                console.log("Failed to open project file!");
+            }
         };
 
         reader.readAsText(uploader.files[0]);
@@ -247,9 +256,7 @@ var EditorItem = function () {
 		var name = ( codeString.match(/var Projectname\s*=\s*"(.*)";/i) )[1];
 
 		this.ProjectName = (typeof name[1] == "undefined") ? "New Project*" : name;
-	
-		codeString = codeString.match( /^var Scenes =(((.)+(\n)+)+)/im )[1];
-		this.ProjectData = JSON.parse( (codeString.substring(0, codeString.length -2) ).replace(/\/\*(.)+\*\//gi, "") );
+		this.ProjectData = JSON.parse((codeString.match( new RegExp("^var Scenes =((.)+(\n(.)+)+);","im") )[1]).replace(/\/\*(.)+\*\//gi, ""));
 
 		this.showProjectTitle(this.ProjectName);
 

@@ -1,6 +1,6 @@
 var Scene = function (id) {
 	this.id = id;
-	this.name = "UnnamedScene_" + id;
+	this.name = "Scene_" + id;
 	this.type = "Scene";   // Scene, Dialog, Title, Subtitle
 	this.portraitURL = "";
 	this.blobs = [""];

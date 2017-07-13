@@ -777,6 +777,7 @@ var TextPreprocessor = function () {
 			}
 		}
 
+		text = this.escapeLinebreaks(text);
 		return text;
 	};
 
@@ -791,6 +792,11 @@ var TextPreprocessor = function () {
 		while ( text.indexOf("{0}") > -1 ) { text = text.replace("{0}", replacement); };
 		return text;
 	};
+	
+	this.escapeLinebreaks = function (text) {
+		while (text.indexOf("\n") > -1) { text = text.replace("\n","<br />"); };
+		return text;
+	}
 };
 
 var Editor;

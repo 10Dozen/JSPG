@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="238cff76-107a-4993-b4dc-badc066a5b4a" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/Game.js" afterPath="$PROJECT_DIR$/Game.js" />
+      <change beforePath="$PROJECT_DIR$/src/css/jspg.css" afterPath="$PROJECT_DIR$/src/css/jspg.css" />
       <change beforePath="$PROJECT_DIR$/src/js/jspg.js" afterPath="$PROJECT_DIR$/src/js/jspg.js" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -35,25 +37,36 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Game.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Game.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Game.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="34" column="5" lean-forward="true" selection-start-line="34" selection-start-column="5" selection-end-line="34" selection-end-column="5" />
+            <state relative-caret-position="578">
+              <caret line="97" column="12" lean-forward="false" selection-start-line="97" selection-start-column="12" selection-end-line="97" selection-end-column="12" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="jspg.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="jspg.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/js/jspg.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="283">
-              <caret line="230" column="35" lean-forward="true" selection-start-line="230" selection-start-column="35" selection-end-line="230" selection-end-column="35" />
+            <state relative-caret-position="323">
+              <caret line="314" column="6" lean-forward="true" selection-start-line="314" selection-start-column="6" selection-end-line="314" selection-end-column="6" />
               <folding>
-                <element signature="e#0#8291#0" expanded="false" />
-                <element signature="e#0#8291#0" expanded="false" />
+                <element signature="e#0#8287#0" expanded="false" />
+                <element signature="e#0#8287#0" expanded="false" />
+                <element signature="e#0#8287#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="jspg.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/css/jspg.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="510">
+              <caret line="159" column="0" lean-forward="true" selection-start-line="159" selection-start-column="0" selection-end-line="159" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -72,11 +85,12 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/js/jspg.js" />
+        <option value="$PROJECT_DIR$/src/css/jspg.css" />
         <option value="$PROJECT_DIR$/Game.js" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
+  <component name="ProjectFrameBounds">
     <option name="x" value="291" />
     <option name="y" value="75" />
     <option name="width" value="1412" />
@@ -116,6 +130,12 @@
               <item name="JSPG" type="b2602c69:ProjectViewProjectNode" />
               <item name="JSPG" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSPG" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSPG" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="css" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="JSPG" type="b2602c69:ProjectViewProjectNode" />
@@ -241,7 +261,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="291" y="75" width="1412" height="912" extended-state="1" />
+    <frame x="291" y="75" width="1412" height="912" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -287,11 +307,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Game.js">
+    <entry file="file://$PROJECT_DIR$/src/css/jspg.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="34" column="5" lean-forward="true" selection-start-line="34" selection-start-column="5" selection-end-line="34" selection-end-column="5" />
+        <state relative-caret-position="510">
+          <caret line="159" column="0" lean-forward="true" selection-start-line="159" selection-start-column="0" selection-end-line="159" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/js/jspg.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="314" column="6" lean-forward="true" selection-start-line="314" selection-start-column="6" selection-end-line="314" selection-end-column="6" />
+          <folding>
+            <element signature="e#0#8287#0" expanded="false" />
+            <element signature="e#0#8287#0" expanded="false" />
+            <element signature="e#0#8287#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -303,14 +335,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/js/jspg.js">
+    <entry file="file://$PROJECT_DIR$/Game.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="283">
-          <caret line="230" column="35" lean-forward="true" selection-start-line="230" selection-start-column="35" selection-end-line="230" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#8291#0" expanded="false" />
-            <element signature="e#0#8291#0" expanded="false" />
-          </folding>
+        <state relative-caret-position="578">
+          <caret line="97" column="12" lean-forward="false" selection-start-line="97" selection-start-column="12" selection-end-line="97" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
     </entry>

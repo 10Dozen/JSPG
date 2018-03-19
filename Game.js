@@ -22,6 +22,9 @@ var Characters = {
 	"Main": {
 		"pic": "https://a.ppy.sh/7015713?1448466217.png"
 	}
+	, "NPC1": {
+		"pic": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
+	}
 };
 var ProjectName = "The Dusin's Game";
 
@@ -59,19 +62,10 @@ var Scenes = {
 		, "exec": { "post": "Game.goTo('Scene1')" }
 	}
 
-
-	, "Scene_Dialog2": {
-		"type": "Dialog"
-		, "desc": [
-			"- Whoa!"
-			, "- Whatta yo doing?"	
-		]
-		, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
-		, "exec": { "post": "Game.goTo('Scene1')" }
-	
-	}
 	, "Scene1": {
-		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
+		"nodes": [
+			{"type": "DialogLeft", "text": "- You chose a wrong door, leather man. Leather club is two blocks down!", "portrait": Characters.NPC1.pic}
+		]
 		, "actions": [
 			{ 
 				"name": "- Fuck You!" /* display name, if aDesc not defined -- used as aDesc" */
@@ -92,15 +86,16 @@ var Scenes = {
 			"pre": "console.log('Pre-init Exec');"
 			, "post": "console.log('Post-init Exec')"
 		}
-	}	
-	
+	}
 	, "Scene2": {
-		"desc": "- You chose a wrong door, leather man. Leather club is two blocks down!"
+		"nodes": [
+        	{"type": "DialogLeft", "text": "- Negative. Fuck. You!", "portrait": Characters.NPC1.pic}
+        ]
 		, "exec": {"post": "Game.goTo('Scene3')" }
 	}	
 	, "Scene3": {
-		"desc": "THE END"
-		, "actions": []
-		, "type": "subtitle"
+		"nodes": [
+			{"type": "subtitle", "text": "THE END"}
+        ]
 	}
 };

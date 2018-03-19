@@ -321,8 +321,6 @@ var GamePrototype = function () {
 		}		
 	};
 	
-	
-	
 	this.AH = new ActionHandler();	
 	this.AH.hideActionButtons();
 	

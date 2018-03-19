@@ -17,15 +17,50 @@
  *
  *
  */
+
+var Characters = {
+	"Main": {
+		"pic": "https://a.ppy.sh/7015713?1448466217.png"
+	}
+};
 var ProjectName = "The Dusin's Game";
 
 var Scenes = {
 	"InitScene": {
-		"type": "Title"
-		, "desc": "The JSPG Title"
+		"nodes": [
+			{ "type": "Title", "text": "The JSPG Title" }
+			, { "type": "Subtitle", "text": "The Sub-Title" }
+		]
 		, "exec": { "post": "Game.goTo('Scene_Dialog')" }
-	}	
+	}
 	, "Scene_Dialog": {
+		"nodes": [
+			{
+				"text": "- Whoa!"
+				, "type": "DialogLeft"
+				, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
+			}
+			, {
+				"text": "- Whatta yo doing?!"
+				, "type": "DialogLeft"
+				, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
+			}
+			, {
+				"text": "- Ha-Ha!!"
+				, "type": "DialogRight"
+				, "portrait": Characters.Main.pic
+			}
+			, {
+				"text": "- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!"
+				, "type": "DialogLeft"
+				, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
+			}
+		]
+		, "exec": { "post": "Game.goTo('Scene1')" }
+	}
+
+
+	, "Scene_Dialog2": {
 		"type": "Dialog"
 		, "desc": [
 			"- Whoa!"
@@ -43,14 +78,14 @@ var Scenes = {
 				, "desc": "- Fuck you!" /* optional */
 				, "type": "dialog" /* scene, hidden, dialog */
 				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
-				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
+				,"portrait": Characters.Main.pic
 			}
 			,{ 
 				"name": "- Hello!" /* display name, if aDesc not defined -- used as aDesc" */
 				, "desc": "-Hell... FUCK YOU!" /* optional */
 				, "type": "dialog" /* scene, hidden, dialog */
 				, "exec": "Game.goTo('Scene2')" /* code to execute on action clicked */
-				,"portrait": "https://a.ppy.sh/7015713?1448466217.png"
+				,"portrait": Characters.Main.pic
 			}
 		]
 		, "exec": {
@@ -67,5 +102,5 @@ var Scenes = {
 		"desc": "THE END"
 		, "actions": []
 		, "type": "subtitle"
-	}	
+	}
 };

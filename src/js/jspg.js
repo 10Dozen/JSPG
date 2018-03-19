@@ -189,44 +189,85 @@ var GamePrototype = function () {
 		eval( "Game.showScene(Scenes." + SceneName + ")" )
 		
 	};
-	
-	this.showScene = function (Scene) {	
+
+	this.showScene = function (Scene) {
+/*
+{
+		"nodes": [
+			{ "type": "Title", "text": "The JSPG Title" }
+			, { "type": "Sub-Title", "text": "The Sub-Title" }
+		]
+		, "exec": { "post": "Game.goTo('Scene_Dialog')" }
+	}
+	*/
 		this.currentScene = Scene;
-		this.sceneDesc = Scene.desc;
-		
-		this.sceneActions = [];
+		this.sceneNodes = Scene.nodes;
 		this.scenesCurrentId++;
-		
+
+		this.sceneActions = [];
+		if (this.currentScene.hasOwnProperty("actions")) {
+        	this.sceneActions = this.currentScene.actions;
+        }
+
+        this.scenesCurrentId++;
+
 		this.AH.hideActionButtons();
 		this.execPreScene();
-		
-		if (this.sceneDesc.constructor !== Array) {			
-			this.sceneDesc = [this.sceneDesc];
-		}
-		
-		this.sceneType;
-		if (this.currentScene.hasOwnProperty("type")) {			
-			switch (this.currentScene.type.toLowerCase()) {
-				case "title": 
-					this.sceneType = "scene-title";
-					break;
-				case "subtitle": 
-					this.sceneType = "scene-subtitle";
-					break;
-				case "dialog":
-					this.sceneType = "scene-even portrait portrait-left";
-					break;
-				default:
-					this.sceneType = "scene-even";			
-			}		
-		} else {
-			this.sceneType = "scene-even";
-			this.currentScene.type = "scene-even";
-		}
-		
-		if (this.currentScene.hasOwnProperty("actions")) {
-			this.sceneActions = this.currentScene.actions;
-		}
+
+		this.scenesCurrentFrame = 0;
+        this.scenesMaxFrame = this.sceneNodes.length;
+		for (var i=0; i < this.sceneNodes.length; i++) {
+			var nodeType;
+			switch (this.sceneNodes[i].type.toLowerCase()) {
+            	case "title":
+            		nodeType = "scene-title";
+            		break;
+            	case "subtitle":
+            		nodeType = "scene-subtitle";
+            		break;
+            	case "dialogleft":
+            		nodeType = "scene-even portrait portrait-left";
+            		break;
+            	case "dialogright":
+            		nodeType = "scene-odd portrait portrait-right";
+            		break;
+            	default:
+            		nodeType = "scene-even";
+            }
+
+			var nodeText = this.sceneNodes[i].text;
+			var nodePortrait = this.sceneNodes[i].hasOwnProperty("portrait") ? "<img src='" + this.sceneNodes[i].portrait + "'/>" : "";
+
+            // Adding DIV to html
+			$block = "<div class='scene-description " + nodeType + "'"
+			+ " sceneId='" 	+ (this.scenesCurrentId-1) + "'"
+			+ " sceneFrame='" + i + "'>"
+			+ nodePortrait
+			+ nodeText + "</div>";
+
+			$("#scenes").append( $block	);
+
+			// Show Scene
+			setTimeout(function () {
+				$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "][sceneFrame=" + Game.scenesCurrentFrame + "]").css("opacity", 1);
+				$(".scene-description[sceneId=" + (Game.scenesCurrentId-1) + "][sceneFrame=" + Game.scenesCurrentFrame + "]").scrollTo();
+
+				Game.scenesCurrentFrame++;
+
+				// Show Actions
+				if (Game.scenesCurrentFrame >= Game.scenesMaxFrame) {
+					Game.AH.showActionButtons()
+				}
+			}, Game.timeouts.showSceneBase + Game.timeouts.showSceneStep*i);
+		};
+
+
+		// Set Actions
+        this.AH.setSceneActions();
+	};
+
+	this.showScene2 = function (Scene) {
+
 		
 		// Scene
 		this.scenesCurrentFrame = 0;
@@ -262,10 +303,8 @@ var GamePrototype = function () {
 			}, Game.timeouts.showSceneBase + Game.timeouts.showSceneStep*i);
 		}
 		
-		// Set Actions
-		this.AH.setSceneActions();
+
 	};
-	
 	
 	this.execPreScene = function () {
 		if (this.currentScene.hasOwnProperty("exec")){

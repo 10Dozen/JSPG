@@ -39,6 +39,14 @@ var Scenes = {
 	, "Scene_Dialog": {
 		"nodes": [
 			{
+				"text": "You are enterting the room and look around."
+				, "type": "PanelLeft"
+			}
+			, {
+				"text": "<img src='https://i.redd.it/1p11ihytu3601.jpg' />"
+				, "type": "PanelRight"
+			}
+			, {
 				"text": "- Whoa!"
 				, "type": "DialogLeft"
 				, "portrait": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"

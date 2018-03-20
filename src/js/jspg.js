@@ -231,6 +231,10 @@ var GamePrototype = function () {
             	case "dialogright":
             		nodeType = "scene-odd portrait portrait-right";
             		break;
+            	case "panelleft":
+            		nodeType = "scene-even";
+            	case "panelright":
+            		nodeType = "scene-odd";
             	default:
             		nodeType = "scene-even";
             }

@@ -16,7 +16,7 @@
 			</div>
 			<div class="header-status">
 				<button class="header-btn btn-half btn-save-project">Save</button>
-				<label class="header-btn btn-half btn-open-project" for="uploader">Open</label>
+				<label class="header-btn btn-half btn-open-project" for="uploader" style="padding: 2.5px 8px; font-size: 14px; font-family: 'Consolas'">Open</label>
 				<input type='file' name='uploader' id="uploader" accept='.js' onchange='Editor.openProjectFile(event)'>
 				<div class="inline"> | </div>
 				<button class="header-btn btn-add-scene">Add Scene</button>
@@ -42,34 +42,50 @@
 						<div class="col-left">Scene Name</div>
 						<div class="col-right"><input class="input-max" id="scene-name" /></div>
 					</li>
-					<li>
-						<div class="col-left">Type</div>
-						<div class="col-right" id="scene-type">
-							<div class="type-switch-on" value="Scene">Scene</div>
-							<div class="type-switch-off" value="Dialog">Dialog</div>
-							<div class="type-switch-off" value="Title">Title</div>
-							<div class="type-switch-off" value="Subtitle">Subtitle</div>
-						</div>
-					</li>
+					<!--
 					<li class="scene-portrait-list-item">
 						<div class="col-left">Portrait URL</div>
 						<div class="col-right"><input class="input-max" id="scene-portrait"/></div>
 					</li>
+					-->
 					<hr />
 
 
 					<li>
-						<div class="col-full"><b>Scene Descripition Blobs</b></div>
+						<div class="col-full"><b>Scene Blobs</b></div>
 					</li>
 					<li>
 						<div class="desc-wrapper">
-							<div class="col-full"><textarea class="textarea-max"></textarea></div>
 							<!--
-							<div class="col-full">
-								<textarea class="textarea-max"></textarea>
-								<div class="btn-short inline-right btn-remove-blob">✖</div>
+							<div class='col-full' style="">
+								<div class="col-left">Type</div>
+								<div class="col-right" id="scene-type">
+									<div class="type-switch-off" value="Scene">Scene Left</div>
+									<div class="type-switch-on" value="Dialog">Dialog Left</div>
+									<div class="type-switch-off" value="Scene">Scene Right</div>
+									<div class="type-switch-off" value="Dialog">Dialog Right</div>
+									<div class="type-switch-off" value="Title">Title</div>
+									<div class="type-switch-off" value="Subtitle">Subtitle</div>
+								</div>
+
+								<textarea class='textarea-max'></textarea>
+								<div class='btn-short inline-right btn-remove-blob'>✖</div>
+								<br /><div>
+									<div class="col-left">Portrait</div>
+									<div class="col-right"><input class="input-max" id="scene-name" /></div>
+								</div>
+								<hr />
 							</div>
-							-->
+
+
+							<!--
+                                                        <div class="col-full"><textarea class="textarea-max"></textarea></div>
+
+                                                        <div class="col-full">
+                                                            <textarea class="textarea-max"></textarea>
+                                                            <div class="btn-short inline-right btn-remove-blob">✖</div>
+                                                        </div>
+                                                        -->
 						</div>
 
 						<div class="btn" id="btn-add-blob">Add Blob</div>

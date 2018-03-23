@@ -360,6 +360,8 @@ var EditorItem = function () {
 
 var SceneViewer = function () {
 	this.scene;
+	this.sceneBlobs = [];
+	this.sceneBlobsID = 0;
 	this.temporaryScene = new Scene();
 
 	this.reset = function () {
@@ -413,10 +415,28 @@ var SceneViewer = function () {
     };
 
     this.addBlob = function (text) {
-        $(".desc-wrapper").append(
-            "<div class='col-full'><textarea class='textarea-max'>" + text + "</textarea><div class='btn-short inline-right btn-remove-blob'>✖</div></div>"
-        );
+    	$(".desc-wrapper").append(
+    		'<div class="col-full scene-blob" blob="' + this.sceneBlobsID + '">'
+            +	'<div class="col-left">Type</div>'
+            +		'<div class="col-right" id="scene-type">'
+            +			'<div class="type-switch-on" value="SceneLeft">Scene Left</div>'
+            +			'<div class="type-switch-off" value="DialogLeft">Dialog Left</div>'
+            +			'<div class="type-switch-off" value="SceneRight">Scene Right</div>'
+            +			'<div class="type-switch-off" value="DialogRight">Dialog Right</div>'
+            +			'<div class="type-switch-off" value="Title">Title</div>'
+            +			'<div class="type-switch-off" value="Subtitle">Subtitle</div>'
+            +		'</div>'
+            +		'<textarea class="textarea-max">' + text + '</textarea>'
+            +		'<div class="btn-short inline-right btn-remove-blob">✖</div>'
+            +		'<br /><div class="blob-portrait col-hidden"><div class="col-left">Portrait</div>'
+            +		'<div class="col-right"><input class="input-max" id="scene-name" /></div></div>'
+            +	'<hr />'
+            +'</div>'
+    	);
+
+		this.initBlob(this.sceneBlobsID)
         this.initEvents();
+        this.sceneBlobsID++;
     };
 
     this.setExecCode = function (pre, post) {
@@ -480,6 +500,18 @@ var SceneViewer = function () {
         Editor.getOpenedScene().set(this.temporaryScene);
     };
 
+	this.initBlob = function (blobID) {
+
+	}
+		$("div[blob=" + blobID + "]").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
+		$("div[blob=" + blobID + "]").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
+/*
+		$("#scene-type").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
+    	$("#scene-type").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
+    	*/
+
+	};
+
 	this.removeEvents = function () {
 		$("#scene-type").find("div").off();
 		$("#btn-add-blob").off();
@@ -489,7 +521,7 @@ var SceneViewer = function () {
 		$(".btn-edit-action").off();
 	};
 
-	this.initEvents = function () {
+	this.initEvents = function (blobID) {
         this.removeEvents();
 		$("input").on("change", function () {
 			Editor.setSceneEditedMark();
@@ -497,10 +529,12 @@ var SceneViewer = function () {
 		$("textarea").on("change", function () {
         	Editor.setSceneEditedMark();
         });
+        /*
         $("#scene-type").find("div").on('click', function () {
         	Editor.SceneViewer.setType( $(this).attr("value") );
         	Editor.setSceneEditedMark();
         });
+        */
         $("#btn-add-blob").on("click", function () {
         	Editor.SceneViewer.addBlob("");
         	Editor.setSceneEditedMark();

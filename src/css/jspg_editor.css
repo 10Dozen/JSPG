@@ -132,9 +132,11 @@ ul {
 
 .type-switch-off {
 	display: inline-block;
-	width: 23%;
+	max-width: 25%;
 	text-align: center;
 	min-height: 14px;
+	padding: 0px 5px;
+	margin-left: 6px;
 	cursor: pointer;
 	font-size: 12px;
 	background-color: #CECECE;
@@ -142,10 +144,11 @@ ul {
 
 .type-switch-on {
 	display: inline-block;
-	width: 25%;
+	max-width: 25%;
 	text-align: center;
 	min-height: 14px;
-	padding: 5px 0px 5px 0px;
+	padding: 5px;
+	margin-left: 6px;
 	cursor: pointer;
 	font-size: 12px;
 	background-color: rgb(177, 230, 89);
@@ -267,7 +270,7 @@ ul {
 }
 
 .col-right {
-	width: 50%;
+	min-width: 50%;
 	padding: 3px 0px;
 	display: inline-block;
 }
@@ -278,12 +281,17 @@ ul {
     display: inline-block;
 }
 
+.col-hidden {
+	display: none;
+}
+
 .input-max {
     width: 100%
 }
 
 .textarea-max {
-    width: 80%;
+    min-width: 80%;
+    min-height: 75px;
 }
 
 .inline {

@@ -1,9 +1,27 @@
+/*
+	Core entities:
+		Scene	- object that contains scene data: name, blobs, execes and actions to display in SceneViewer
+		Blob	- object that contains specific blob data: type, text, url
+		Action	- object that contain specific data for single action (blobs, exec, type, etc.). Used in Scene.
+
+	Entities:
+		EditorItem		- general application object.
+		SceneViewer		-
+		ExecEdit		- scene exec edit popup
+		ActionEdit		- action edit popup
+		ProjectEdit		- project edit popup
+		Splash			- splash screen handler
+*/
+
+
+
+
 var Scene = function (id) {
     this.id = id;
     this.name = "UnnamedScene_" + id;
     this.type = "Scene";   // Scene, Dialog, Title, Subtitle
     this.portraitURL = "";
-    this.blobs = [""];
+    this.blobs = [];
     this.execPre = "";
     this.execPost = "";
     this.actions = [];
@@ -63,6 +81,20 @@ var Action = function (id) {
         this.goTo = action.goTo;
 	};
 
+};
+
+var Blob = function (id) {
+	this.id = id;
+	this.type = "SceneLeft";
+	this.portraitURL = "";
+	this.text = "";
+
+	this.set = function (blob) {
+		this.id = blob.id;
+		this.type = blob.type;
+        this.portraitURL = blob.portraitURL;
+        this.text = blob.i.text;
+	};
 };
 
 var EditorItem = function () {
@@ -502,7 +534,6 @@ var SceneViewer = function () {
 
 	this.initBlob = function (blobID) {
 
-	}
 		$("div[blob=" + blobID + "]").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
 		$("div[blob=" + blobID + "]").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
 /*
@@ -743,6 +774,8 @@ var Splash = function () {
 };
 
 var Editor;
+
+
 
 $(document).ready(function () {
     Editor = new EditorItem();

@@ -450,7 +450,7 @@ var SceneViewer = function () {
     	$(".desc-wrapper").append(
     		'<div class="col-full scene-blob" blob="' + this.sceneBlobsID + '">'
             +	'<div class="col-left">Type</div>'
-            +		'<div class="col-right" id="scene-type">'
+            +		'<div class="col-right scene-type">'
             +			'<div class="type-switch-on" value="SceneLeft">Scene Left</div>'
             +			'<div class="type-switch-off" value="DialogLeft">Dialog Left</div>'
             +			'<div class="type-switch-off" value="SceneRight">Scene Right</div>'
@@ -461,12 +461,12 @@ var SceneViewer = function () {
             +		'<textarea class="textarea-max">' + text + '</textarea>'
             +		'<div class="btn-short inline-right btn-remove-blob">✖</div>'
             +		'<br /><div class="blob-portrait col-hidden"><div class="col-left">Portrait</div>'
-            +		'<div class="col-right"><input class="input-max" id="scene-name" /></div></div>'
+            +		'<div class="col-right"><input class="input-max" /></div></div>'
             +	'<hr />'
             +'</div>'
     	);
 
-		this.initBlob(this.sceneBlobsID)
+		this.initBlobEvents(this.sceneBlobsID)
         this.initEvents();
         this.sceneBlobsID++;
     };
@@ -532,16 +532,26 @@ var SceneViewer = function () {
         Editor.getOpenedScene().set(this.temporaryScene);
     };
 
-	this.initBlob = function (blobID) {
-
-		$("div[blob=" + blobID + "]").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
-		$("div[blob=" + blobID + "]").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
-/*
-		$("#scene-type").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
-    	$("#scene-type").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
-    	*/
-
+	this.initBlobEvents = function (blobID) {
+		$("div[blob=" + blobID + "]").find('.scene-type').find('div').on("click", function () {
+			Editor.SceneViewer.setBlobType( parseInt( $(this).parent().parent().attr("blob")), $(this).attr("value") );
+		});
 	};
+	this.setBlobType = function (blobID, type) {
+		$("div[blob=" + blobID + "]").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');
+    	$("div[blob=" + blobID + "]").find('div[value="' + type + '"]').removeClass('type-switch-off').addClass('type-switch-on');
+
+    	if (type == "DialogLeft" || type == "DialogRight") {
+    		$("div[blob=" + blobID + "]").find(".blob-portrait").removeClass("col-hidden");
+    	} else {
+    		$("div[blob=" + blobID + "]").find(".blob-portrait").addClass("col-hidden");
+    	}
+	};
+
+	this.blobPortraitAutocomplete = function (blobID) {
+	
+	}
+
 
 	this.removeEvents = function () {
 		$("#scene-type").find("div").off();
@@ -560,12 +570,6 @@ var SceneViewer = function () {
 		$("textarea").on("change", function () {
         	Editor.setSceneEditedMark();
         });
-        /*
-        $("#scene-type").find("div").on('click', function () {
-        	Editor.SceneViewer.setType( $(this).attr("value") );
-        	Editor.setSceneEditedMark();
-        });
-        */
         $("#btn-add-blob").on("click", function () {
         	Editor.SceneViewer.addBlob("");
         	Editor.setSceneEditedMark();

@@ -147,6 +147,18 @@ img {
 	transition-duration: 0.15s;
 }
 
+.scene-bigimage {
+	margin-right: 0px;
+	background-color: #444;
+
+	transition-property: opacity;
+	transition-duration: 1s;
+}
+
+.scene-bigimage > img {
+	max-width: 430px;
+}
+
 .portrait {
 	height: 128px;	
 }

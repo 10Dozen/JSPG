@@ -233,14 +233,23 @@ var GamePrototype = function () {
             		break;
             	case "panelleft":
             		nodeType = "scene-even";
+            		break;
             	case "panelright":
             		nodeType = "scene-odd";
+            		break;
+            	case "bigimage":
+            		nodeType = "scene-bigimage";
+            		break;
             	default:
             		nodeType = "scene-even";
             }
 
 			var nodeText = this.sceneNodes[i].text;
 			var nodePortrait = this.sceneNodes[i].hasOwnProperty("portrait") ? "<img src='" + this.sceneNodes[i].portrait + "'/>" : "";
+
+			if (this.sceneNodes[i].type.toLowerCase() == "bigimage") {
+				nodeText = "<img src='" + nodeText + "' />";
+			}
 
             // Adding DIV to html
 			$block = "<div class='scene-description " + nodeType + "'"

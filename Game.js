@@ -26,6 +26,12 @@ var Characters = {
 		"pic": "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png"
 	}
 };
+
+var Atlas = {
+
+};
+
+
 var ProjectName = "The Dusin's Game";
 
 var Scenes = {
@@ -43,9 +49,9 @@ var Scenes = {
 				, "type": "PanelLeft"
 			}
 			, {
-				"text": "<img src='https://i.redd.it/1p11ihytu3601.jpg' />"
-				, "type": "PanelRight"
-			}
+                 "type": "BigImage"
+                 , "text": "https://i.redd.it/1p11ihytu3601.jpg"
+            }
 			, {
 				"text": "- Whoa!"
 				, "type": "DialogLeft"

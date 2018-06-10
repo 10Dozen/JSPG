@@ -399,6 +399,9 @@ var EditorItem = function () {
 			Editor.saveScene();
 			Editor.addScene();
 		});
+		$('.btn-copy-scene').on("click", function () {
+			Editor.duplicateScene( Editor.getOpenedScene() );
+		});
 		$('.btn-save-scene').on('click', function () {
 			Editor.saveScene();
 			Editor.drawScenesList(true);
@@ -419,6 +422,7 @@ var EditorItem = function () {
 	this.removeEvents = function () {
 		$('.scene-list-btn').off();
 		$('.btn-add-scene').off();
+		$('.btn-copy-scene').off();
 		$('.btn-delete-scene').off();
 		$('.btn-save-scene').off();
 		$('#project-title').off();

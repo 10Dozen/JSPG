@@ -346,14 +346,15 @@ var EditorItem = function () {
 	};
 
 	this.getExportedProject = function () {
-		var text = "var ProjectName = \"" + this.ProjectName + "\";<br />var Scenes = {<br />";
+		var br = "";//"&lt;br /&gt;";
+		var text = "var ProjectName = \"" + this.ProjectName + "\";<br />" + br + "var Scenes = {<br />" + br;
 		var Project = {};
 		for (var i = 0; i < this.scenes.length; i++) {
 			var sceneData = '"' + this.scenes[i].name + '": ' + JSON.stringify( this.scenes[i].convert() );
-			text = text + "&nbsp;&nbsp;&nbsp;&nbsp;," + sceneData + "<br />";
+			text = text + "&nbsp;&nbsp;&nbsp;&nbsp;," + sceneData.replace(/<br \/>/g, '&lt;br /&gt;') + "<br />" + br;
 		}
 		// text = text.substring(0, text.length - 1) + "};<br /><br />";
-		text = text + "};<br /><br />";
+		text = text + "};<br /><br />" + br + br;
 		
 		return text;
 	};
@@ -371,6 +372,7 @@ var EditorItem = function () {
 			Editor.openScene(id);
 		});
 		$('.btn-add-scene').on("click", function () {
+			Editor.saveScene();
 			Editor.addScene();
 		});
 		$('.btn-save-scene').on('click', function () {
@@ -457,9 +459,9 @@ var SceneViewer = function () {
 		$("#scene-portrait").val(scene.portraitURL);
 		this.setType(scene.type);
 
-		$( $(".desc-wrapper").find("textarea")[0] ).val(scene.blobs[0]);
+		$( $(".desc-wrapper").find("textarea")[0] ).val(scene.blobs[0].replace(/<br \/>/g, "\r\n"));
 		for (var i = 1; i < scene.blobs.length; i++) {
-			this.addBlob(scene.blobs[i]);
+			this.addBlob(scene.blobs[i].replace(/<br \/>/g, "\r\n"));
 		}
 
 		this.temporaryScene.actions.sort(function (a,b) { return (a.order - b.order); });
@@ -743,7 +745,7 @@ var ActionEdit = function () {
 var ProjectEdit = function () {
 	this.show = function () {
 		$('.project-name').val( Editor.ProjectName );
-		$('.project-popup').css("display","block");
+		$('.project-popup').css({ "display":"block", "max-width": "900px" });
 		
 		var exportedData = Editor.getExportedProject();
 		if ($("#export-field").length == 0) {

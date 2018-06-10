@@ -266,17 +266,28 @@ var GamePrototype = function () {
 	
 	this.execPreScene = function () {
 		if (this.currentScene.hasOwnProperty("exec")){
-			if (this.currentScene.exec.hasOwnProperty("pre")){
+			if (this.currentScene.exec.hasOwnProperty("pre") ){
 				eval( this.currentScene.exec.pre );
 			}
 		}		
 	};
 	this.execPostScene = function () {
-		if (this.currentScene.hasOwnProperty("exec")){
-			if (this.currentScene.exec.hasOwnProperty("post")){
+		console.log("Exec Post Scene: Called");
+		
+		if (this.currentScene.hasOwnProperty("exec")) {
+			console.log("Exec Post Scene: Has EXEC -- " + this.currentScene.hasOwnProperty("exec"));
+			
+			if (this.currentScene.exec.hasOwnProperty("post")) {
+				console.log("Exec Post Scene: Executing POST");
+				console.log(this.currentScene.exec.post);
 				eval( this.currentScene.exec.post );
 			}
-		}		
+			
+			if (this.currentScene.exec.hasOwnProperty("goTo")) {
+				console.log("Exec Post Scene: Executing GOTO");
+				this.goTo( this.currentScene.exec.goTo );
+			}
+		}
 	};
 	
 	this.AH = new ActionHandler();	

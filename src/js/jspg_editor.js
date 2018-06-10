@@ -250,6 +250,30 @@ var EditorItem = function () {
 		reader.readAsText(uploader.files[0]);
 	};
 
+	this.duplicateScene = function (scene) {
+		var newScene = this.addScene();
+		
+		newScene.name = scene.name + "Copy";
+		newScene.portraitURL = scene.portraitURL;
+		
+		newScene.blobs = [];
+		for (var i = 0; i < scene.blobs.length; i++) {
+			newScene.blobs.push( scene.blobs[i] );
+		};
+		
+		newScene.actions = [];
+		for (var i = 0; i < scene.actions.length; i++) {
+			var action = new Action(i);
+			action.set(scene.actions[i]);
+			
+			newScene.actions.push(action);
+		};
+		
+		newScene.exec = {"pre": scene.exec.pre, "post": scene.exec.post };		
+		
+		this.SceneViewer.load( this.getOpenedScene() );
+	};
+	
 	this.openProject = function (codeString) {
 		this.reset();
 		var name = ( codeString.match(/var Projectname\s*=\s*"(.*)";/i) )[1];
@@ -351,7 +375,7 @@ var EditorItem = function () {
 		var Project = {};
 		for (var i = 0; i < this.scenes.length; i++) {
 			var sceneData = '"' + this.scenes[i].name + '": ' + JSON.stringify( this.scenes[i].convert() );
-			text = text + "" + sceneData.replace(/<br \/>/g, '&lt;br /&gt;') + "<br />&nbsp;&nbsp;&nbsp;&nbsp;," + br;
+			text = text + "" + sceneData.replace(/</g, '&lt').replace(/>/g, '&gt') + "<br />&nbsp;&nbsp;&nbsp;&nbsp;," + br;
 		}
 		text = text.substring(0, text.length - 1) + "<br />};<br /><br />";
 		// text = text + "};<br /><br />" + br + br;
@@ -459,9 +483,11 @@ var SceneViewer = function () {
 		$("#scene-portrait").val(scene.portraitURL);
 		this.setType(scene.type);
 
-		$( $(".desc-wrapper").find("textarea")[0] ).val(scene.blobs[0].replace(/<br \/>/g, "\r\n"));
+		$( $(".desc-wrapper").find("textarea")[0] ).val( this.escapeTags(scene.blobs[0]) );
 		for (var i = 1; i < scene.blobs.length; i++) {
-			this.addBlob(scene.blobs[i].replace(/<br \/>/g, "\r\n"));
+			this.addBlob( 
+				this.escapeTags(scene.blobs[i])
+			);
 		}
 
 		this.temporaryScene.actions.sort(function (a,b) { return (a.order - b.order); });
@@ -470,6 +496,11 @@ var SceneViewer = function () {
 		}
 	};
 
+	this.escapeTags = function (text) {
+		return text.replace(/<br \/>/g, "\r\n").replace(/<img src='(.*)' \/>/g, "#img($1)")
+	};
+	
+	
 	this.setType = function (type) {
 		this.temporaryScene.type = type;
 		$("#scene-type").find('.type-switch-on').removeClass('type-switch-on').addClass('type-switch-off');

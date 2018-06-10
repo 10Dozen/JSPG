@@ -347,14 +347,14 @@ var EditorItem = function () {
 
 	this.getExportedProject = function () {
 		var br = "";//"&lt;br /&gt;";
-		var text = "var ProjectName = \"" + this.ProjectName + "\";<br />" + br + "var Scenes = {<br />" + br;
+		var text = "var ProjectName = \"" + this.ProjectName + "\";<br />" + br + "var Scenes = {<br />&nbsp;&nbsp;&nbsp;&nbsp;" + br;
 		var Project = {};
 		for (var i = 0; i < this.scenes.length; i++) {
 			var sceneData = '"' + this.scenes[i].name + '": ' + JSON.stringify( this.scenes[i].convert() );
-			text = text + "&nbsp;&nbsp;&nbsp;&nbsp;," + sceneData.replace(/<br \/>/g, '&lt;br /&gt;') + "<br />" + br;
+			text = text + "" + sceneData.replace(/<br \/>/g, '&lt;br /&gt;') + "<br />&nbsp;&nbsp;&nbsp;&nbsp;," + br;
 		}
-		// text = text.substring(0, text.length - 1) + "};<br /><br />";
-		text = text + "};<br /><br />" + br + br;
+		text = text.substring(0, text.length - 1) + "<br />};<br /><br />";
+		// text = text + "};<br /><br />" + br + br;
 		
 		return text;
 	};

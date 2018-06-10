@@ -154,6 +154,11 @@ var EditorItem = function () {
 		}
 	};
 
+	this.saveScene = function () {
+		console.log("Scene Saved!");
+		this.SceneViewer.saveScene();
+	};
+	
 	this.drawScenesList = function (isOnOpen) {
 		// Resorting
 		var ordering = [];
@@ -340,6 +345,19 @@ var EditorItem = function () {
 		return text;
 	};
 
+	this.getExportedProject = function () {
+		var text = "var ProjectName = \"" + this.ProjectName + "\";<br />var Scenes = {<br />";
+		var Project = {};
+		for (var i = 0; i < this.scenes.length; i++) {
+			var sceneData = '"' + this.scenes[i].name + '": ' + JSON.stringify( this.scenes[i].convert() );
+			text = text + "&nbsp;&nbsp;&nbsp;&nbsp;," + sceneData + "<br />";
+		}
+		// text = text.substring(0, text.length - 1) + "};<br /><br />";
+		text = text + "};<br /><br />";
+		
+		return text;
+	};
+	
 	this.showProjectTitle = function (text) {
 		$("#project-title").html(text);
 	};
@@ -349,14 +367,14 @@ var EditorItem = function () {
 
 		$('.scene-list-btn').on('click', function () {
 			var id = parseInt( $(this).attr('sceneId') );
+			Editor.saveScene();
 			Editor.openScene(id);
 		});
 		$('.btn-add-scene').on("click", function () {
 			Editor.addScene();
 		});
 		$('.btn-save-scene').on('click', function () {
-			console.log("Scene Saved!");
-			Editor.SceneViewer.saveScene();
+			Editor.saveScene();
 			Editor.drawScenesList(true);
 		});
 		$('.btn-delete-scene').on('click', function () {
@@ -726,6 +744,14 @@ var ProjectEdit = function () {
 	this.show = function () {
 		$('.project-name').val( Editor.ProjectName );
 		$('.project-popup').css("display","block");
+		
+		var exportedData = Editor.getExportedProject();
+		if ($("#export-field").length == 0) {
+			$('.project-popup-wrapper').append("<hr /><br /><div id='export-field'>" + exportedData + "</div>");
+			$("#export-field").css({ "font-size": "5px" });
+		} else {
+			$("#export-field").html( exportedData );
+		};		
 	};
 
 	this.hide = function () {

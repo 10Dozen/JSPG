@@ -4,7 +4,7 @@ var Scene = function (id) {
 	this.type = "Scene";   // Scene, Dialog, Title, Subtitle
 	this.portraitURL = "";
 	this.blobs = [""];
-	this.exec = { "pre": "", "post": ""};
+	this.exec = { "pre": "", "post": "", "goTo": ""};
 	this.actions = [];
 	this.order = id;
 
@@ -46,10 +46,11 @@ var Scene = function (id) {
 		};
 
 		if (this.portraitURL != "") { scene["portrait"] = this.portraitURL };
-		if (this.exec.pre != "" || this.exec.post != "") {
+		if (this.exec.pre != "" || this.exec.post != "" || this.exec.goTo != "") {
 			scene["exec"] = {};
 			if (this.exec.pre != "") { scene["exec"]["pre"] = this.exec.pre; };
 			if (this.exec.post != "") { scene["exec"]["post"] = this.exec.post; };
+			if (this.exec.goTo != "") { scene["exec"]["goTo"] = Editor.getSceneById( this.exec.goTo ).name; };
 		};
 
 		if (this.actions.length > 0) {
@@ -195,6 +196,15 @@ var EditorItem = function () {
 		)
 	};
 
+	this.composeGoTo = function () {
+		var html = "";
+		for (var i = 0; i < this.scenes.length; i++) {
+			html = html + "<option value=" + this.scenes[i].id + ">" + this.scenes[i].name + "</option>";
+		}
+
+		$(".select-goto").html(html);
+	};
+	
 	this.showExecEdit = function () {
 		Editor.Splash.show();
 		Editor.ExecEdit.show();
@@ -524,19 +534,25 @@ var SceneViewer = function () {
 		this.initEvents();
 	};
 
-	this.setExecCode = function (pre, post) {
-		if (typeof pre === "undefined" && typeof post === "undefined") {
+	this.setExecCode = function (pre, post, goTo) {
+		if (typeof pre === "undefined" && typeof post === "undefined" && typeof goTo === "undefined" ) {
 			pre = this.temporaryScene.exec.pre;
 			post = this.temporaryScene.exec.post;
+			goTo = this.temporaryScene.exec.goTo;
 		} else {
 			this.temporaryScene.exec.pre = pre;
 			this.temporaryScene.exec.post = post;
+			this.temporaryScene.exec.goTo = goTo;
 		}
 
 		if (pre === "") { pre = "n/a"; } else { if (pre.length > 50) { pre = pre.substring(0,47) + "..."; } }
 		if (post === "") { post = "n/a"; } else { if (post.length > 50) { post = post.substring(0,47) + "..."; } }
+		if (goTo === "") { displayGoTo = "n/a"; } else { 
+			var displayGoTo = Editor.getSceneById(goTo).name;
+			if (displayGoTo.length > 50) { displayGoTo = displayGoTo.substring(0,47) + "..."; } 
+		}
 
-		$(".exec-code-summary").html("<span>Pre</span> " + pre + "  <span>Post</span> " + post);
+		$(".exec-code-summary").html("<span>Pre</span> " + pre + "  <span>Post</span> " + post + " <span>GoTo</span> " + displayGoTo);
 	};
 
 	this.addAction = function (isNew, action) {
@@ -636,19 +652,22 @@ var SceneViewer = function () {
 
 var ExecEdit = function () {
 	this.show = function () {
+		Editor.composeGoTo();
 	  	$("#textarea-exec-pre-scene").val( Editor.SceneViewer.temporaryScene.exec.pre );
 	   	$("#textarea-exec-post-scene").val( Editor.SceneViewer.temporaryScene.exec.post );
+		$("#exec-goto").val( Editor.SceneViewer.temporaryScene.exec.goTo );
 		$('.exec-popup').css('display', 'block');
 	};
 
 	this.hide = function () {
 		$('.exec-popup').css('display', 'none');
-	}
+	};
 
 	this.save = function () {
 		Editor.SceneViewer.setExecCode(
 			$("#textarea-exec-pre-scene").val()
 			, $("#textarea-exec-post-scene").val()
+			, $("#exec-goto").val()
 		)
 
 	   	Editor.hideExecEdit();
@@ -699,15 +718,6 @@ var ActionEdit = function () {
 		this.action.goTo = $("#action-goto").val();
 	};
 
-	this.composeGoTo = function () {
-		var html = "";
-		for (var i = 0; i < Editor.scenes.length; i++) {
-			html = html + "<option value=" + Editor.scenes[i].id + ">" + Editor.scenes[i].name + "</option>";
-		}
-
-		$("#action-goto").html(html);
-	};
-
 	this.reset = function () {
 		$('.action-name').val("");
 		this.setType("Simple");
@@ -724,7 +734,7 @@ var ActionEdit = function () {
 	this.show = function (id) {
 		$('.action-popup').css('display', 'block');
 		this.reset();
-		this.composeGoTo();
+		Editor.composeGoTo();
 
 		this.action = Editor.SceneViewer.temporaryScene.getActionById(id);
 		$('.action-order').html(this.action.order);

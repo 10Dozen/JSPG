@@ -137,6 +137,15 @@
 				<div>
 					<textarea class="textarea-max"  id="textarea-exec-post-scene"></textarea>
 				</div>
+				<div>
+					<div class="col-left">Go To</div>
+					<select class='input-select select-goto' id="exec-goto">
+						<option>Scene_0</option>
+						<option>Scene_1</option>
+						<option>Scene_2</option>
+						<option>Scene_3</option>
+					</select>
+				</div>
 			</div>
 			<hr />
 			<span  style="float:right; margin: 0px 0px 8px 0px"><div class='btn inline btn-exec-save'>✓ OK</div><div class='btn inline btn-exec-cancel'>CANCEL</div></span>
@@ -185,7 +194,7 @@
 				<textarea class="textarea-max action-exec"></textarea>
 				<br/>
 				<div class="col-left">Go To</div>
-				<select class='input-select' id="action-goto">
+				<select class='input-select select-goto' id="action-goto">
 					<option>Scene_0</option>
 					<option>Scene_1</option>
 					<option>Scene_2</option>

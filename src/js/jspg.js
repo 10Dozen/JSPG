@@ -86,9 +86,7 @@ const ACTION_TYPES = {
 
 // === Main ===
 const ActionHandler = function () {
-    this.actions = [];
-    this.actionsId = 0;
-
+    this.actions = []
     this.inlineActions = []
 
     this.getActionById = function (id) {
@@ -97,10 +95,7 @@ const ActionHandler = function () {
 
     this.clearActionList = function () {
         this.actions.splice(0, this.actions.length)
-        this.actionsId = 0;
-
         this.inlineActions.splice(0, this.inlineActions.length)
-        this.inlineActionsId = 0;
     };
 
     this.setSceneActions = function (actions) {
@@ -111,20 +106,17 @@ const ActionHandler = function () {
 
         actions.forEach(action => {
             log('AH.setSceneActions', `Id: ${action.id}, Name: ${action.name}`);
-            $(".actions").append( `<div class="action-btn btn-${action.id}"></div>` )
+            $(".actions").append( `<div class="action-btn" uid=${action.id}></div>` )
 
-            const btn = `.btn-${action.id}`
-            $(btn).html(action.name)
-            $(btn).attr("actionid", action.id)
-            $(btn).css({
+            const $btn = $(`.action-btn[uid=${action.id}]`)
+            $btn.html(action.name)
+            $btn.css({
                 "display": "block",
                 "position": "absolute",
                 "left": "-200px"
             })
-            $(btn).off()
-            $(btn).on("click", () => {
-                this.onActionSelected(action.id)
-            })
+            $btn.off()
+            $btn.on("click", () => this.onActionSelected(action.id))
         })
 
         $(".actions").css("min-height", $(".actions").height() + "px");
@@ -188,7 +180,7 @@ const ActionHandler = function () {
             // Map inline actions to actual html-elements
             this.inlineActions.forEach(action => {
                 action.element = $(`span[scene-id=${Game.currentSceneId}] .inline-button[uid=${action.id}]`)
-                action.element.on("click", () => { this.onInlineActionClicked(action.id) })
+                action.element.on("click", () => this.onInlineActionClicked(action.id) )
             })
         }, GAME_TIMEOUTS.ACTION.SHOW_OPTIONS);
     };
@@ -212,6 +204,7 @@ const ActionHandler = function () {
         log('AH.addInlineAction',
             `Added inline action with id ${action.id} (text: ${action.text}, tag: ${action.tag}, use_limit: ${action.use_limit})`)
 
+        console.log(this.inlineActions)
         return action
     }
 
@@ -232,8 +225,8 @@ const ActionHandler = function () {
     }
 };
 
-const Action = function (id) {
-    this.id = id
+const Action = function () {
+    this.id = uid()
     this.name = ""
     this.desc = ""
     this.exec = ""
@@ -296,7 +289,7 @@ const InlineAction = function (text, callback, tag='', use_limit=1) {
     }
 
     this.compose = function () {
-        return `<button class='inline-button' uid=${this.id}>${this.text}</button>`
+        return `<button class='inline-button' uid=${this.id} tag=${this.tag}>${this.text}</button>`
     }
 
     this.disable = function () {
@@ -325,8 +318,8 @@ const Scene = function(id) {
                     let desc = sceneConfig[p]
                     if (desc.constructor !== Array) {
                          desc = [desc]
-                     }
-                    desc = desc.filter(el => { return el !== "" })
+                    }
+
 
                     this.desc = desc
                     break
@@ -362,19 +355,30 @@ const Scene = function(id) {
         }
     }
 
+    this.compileDescLines = function () {
+        preparedLines = []
+        this.desc.forEach(line => {
+            if (line.startsWith("`") && line.endsWith("`")) {
+                line = eval(line)
+            }
+
+            if (line !== "") preparedLines.push(line)
+        })
+
+        this.desc = preparedLines
+    }
+
     this.setActions = function (action_list) {
         this.clearActions()
-        for (let i = 0; i < action_list.length; ++i) {
-            this.addAction(i, action_list[i])
-        }
+        action_list.forEach(action_cfg => this.addAction(action_cfg))
     }
 
-    this.addAction = function (id, action_cfg) {
-        this.insertAction(id, action_cfg, this.actions.length)
+    this.addAction = function (action_cfg) {
+        this.insertAction(action_cfg, this.actions.length)
     }
 
-    this.insertAction = function (id, action_cfg, idx) {
-        const action = new Action(id)
+    this.insertAction = function (action_cfg, idx) {
+        const action = new Action()
         if (action.fromConfig(action_cfg)) {
             this.actions.splice(idx, 0, action)
         }
@@ -406,37 +410,17 @@ const Game = new (function () {
     this.currentScene = {}
     this.AH = new ActionHandler();
 
-    this.currentSceneData = {
-        type: "",
-        style: "",
-        desc: [],
-        actions: []
-    }
-
     this.goTo = function (SceneName) {
         setTimeout(()=>{
             this.showScene(Scenes[SceneName])
         }, GAME_TIMEOUTS.GOTO)
     };
 
-    this.getSceneProperty = function (propertyName, _default) {
-        for (const k in this.currentScene) {
-            if (k.toLowerCase() == propertyName) {
-                return this.currentScene[k]
-            }
-        }
-
-        return _default;
-    }
-
     this.composeBlob = function (frame) {
         const scene = this.currentScene
 
         // Run interpretation on desired description lines
         let desc = scene.desc[frame]
-        if (desc.startsWith("`") && desc.endsWith("`")) {
-            desc = eval(desc)
-        }
 
         // Set portrait img node
         let $portrait = scene.portrait;
@@ -471,7 +455,11 @@ const Game = new (function () {
             }
         }
 
+        // Prepare Actions
+        this.AH.setSceneActions(scene.actions);
+
         // Skip blob rendering if there is none
+        scene.compileDescLines()
         const framesAmount = scene.desc.length
         if (framesAmount == 0) {
             log('ShowScene', `[id:${sceneId}] There is no description blobs. Stop rendering.`)
@@ -484,9 +472,6 @@ const Game = new (function () {
 
             return
         }
-
-        // Prepare Actions
-        this.AH.setSceneActions(scene.actions);
 
         // Rendering description blobs
         $("#scenes").append(`<span scene-id=${sceneId}></span>`)
@@ -554,7 +539,6 @@ const Helper = new (function() {
         const element = new Img(uri, tag, attrs)
         return element.compose()
     }
-
     this.Label = function(text, tag='', attrs={}) {
         const element = new Label(text, tag, attrs)
         return element.compose()
@@ -598,18 +582,15 @@ const Helper = new (function() {
         },
 
         add: function(action_cfg) {
-            const id = Game.currentScene.actions.length + 1
-            Game.currentScene.addAction(id, action_cfg)
+            Game.currentScene.addAction(action_cfg)
         },
 
         addFirst: function(action_cfg) {
-            const id = Game.currentScene.actions.length + 1
-            Game.currentScene.insertAction(id, action_cfg, 0)
+            Game.currentScene.insertAction(action_cfg, 0)
         },
 
         putAt: function (action_cfg, idx) {
-            const id = Game.currentScene.actions.length + 1
-            Game.currentScene.insertAction(id, action_cfg, idx)
+            Game.currentScene.insertAction(action_cfg, idx)
         },
 
         getByTag: function (tag) {

@@ -1,3 +1,17 @@
+function log(prefix, msg) {
+    console.log(`[JSPG/${prefix}] ${msg}`)
+}
+
+const UID_SEQUENCE = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+function uid() {
+    const uid = []
+    for (let i = 0; i < 10; ++i) {
+        uid.push(UID_SEQUENCE.selectRandom())
+    }
+
+    return uid.join('')
+}
+
 // === Expansion functions ==
 (function($) {
     $.fn.scrollTo = function() {
@@ -60,6 +74,7 @@ const ACTION_FIELDS = {
     TYPE: "type",
     GOTO: "goto" ,
     PORTRAIT: "portrait",
+    TAG: "tag",
     CONDITION: "condition"
 }
 
@@ -69,11 +84,12 @@ const ACTION_TYPES = {
     DIALOG: "dialog"
 }
 
-
 // === Main ===
-var ActionHandler = function () {
+const ActionHandler = function () {
     this.actions = [];
     this.actionsId = 0;
+
+    this.inlineActions = []
 
     this.getActionById = function (id) {
         return this.actions.find(action => { return action.id === id })
@@ -82,42 +98,19 @@ var ActionHandler = function () {
     this.clearActionList = function () {
         this.actions.splice(0, this.actions.length)
         this.actionsId = 0;
+
+        this.inlineActions.splice(0, this.inlineActions.length)
+        this.inlineActionsId = 0;
     };
 
-    this.checkActionCondition = function (actionConfig) {
-        for (const p in actionConfig) {
-            if (p.toLowerCase() == ACTION_FIELDS.CONDITION) {
-                return actionConfig[p]()
-            }
-        }
-        return true
-    }
-
-    this.addAction = function (actionConfig) {
-        const action = new Action(this.actionsId)
-        action.fromConfig(actionConfig)
-
-        this.actions.push(action)
-        ++this.actionsId
-
-        return action;
-    };
-
-    this.setSceneActions = function () {
+    this.setSceneActions = function (actions) {
         this.clearActionList();
 
-        const actionConfigs = Game.currentSceneData.actions;
-        console.log(`[AH.setSceneActions] There are ${actionConfigs.length} actions`)
+        this.actions = actions
+        log('AH.setSceneActions', `Preparing ${actions.length} actions`)
 
-        actionConfigs.forEach(cfg => {
-            if (!this.checkActionCondition(cfg)) {
-                console.log('[AH.setSceneActions] Action is not avaialble (condition failed)')
-                return
-            }
-
-            const action = this.addAction(cfg)
-            console.log(`[AH.setSceneActions] Id: ${action.id}, Name: ${action.name}`);
-
+        actions.forEach(action => {
+            log('AH.setSceneActions', `Id: ${action.id}, Name: ${action.name}`);
             $(".actions").append( `<div class="action-btn btn-${action.id}"></div>` )
 
             const btn = `.btn-${action.id}`
@@ -168,19 +161,19 @@ var ActionHandler = function () {
     }
 
     this.executeAction = function (action) {
-        console.log('(OnActionExecute) GoTo: ' + action.goToScene)
         setTimeout(() => {
             // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
             const execResult = Game.execCode(action.exec)
             if (
                 (typeof execResult != "undefined" && !execResult)
-                || action.goToScene == ""
+                || action.goto == ""
             ) {
-                console.log('[AH.executeAction] Skip action\'s GoTo')
+                log('AH.OnActionExecute', 'Skip action\'s GoTo')
                 return
             }
 
-            Game.goTo(action.goToScene)
+            log('AH.OnActionExecute', `GoTo: ${action.goto}`);
+            Game.goTo(action.goto)
         }, GAME_TIMEOUTS.ACTION.EXECUTE);
     }
 
@@ -190,71 +183,229 @@ var ActionHandler = function () {
                 "position": "",
                 "left": "0px",
                 "opacity": 1
-            });
+            })
+
+            // Map inline actions to actual html-elements
+            this.inlineActions.forEach(action => {
+                action.element = $(`span[scene-id=${Game.currentSceneId}] .inline-button[uid=${action.id}]`)
+                action.element.on("click", () => { this.onInlineActionClicked(action.id) })
+            })
         }, GAME_TIMEOUTS.ACTION.SHOW_OPTIONS);
     };
+
     this.hideActionButtons = function () {
+        const actionBtns = ".action-btn"
+        $(actionBtns).css("display","none");
+        $(actionBtns).css("opacity", 0);
+        $(actionBtns).off();
+        $(actionBtns).remove();
+
+        $(".action-btn-holder").css("display","block");
         $(".actions").css("min-height", $(".actions").height() + "px");
 
-        $(".action-btn").css("display","none");
-        $(".action-btn-holder").css("display","block");
-        $(".action-btn").css("opacity", 0);
-
-        $(".action-btn").off();
-        $(".action-btn").remove();
+        this.inlineActions.forEach(action => action.disable())
     };
+
+    this.addInlineAction = function (text, callback, tag='', use_limit=1) {
+        const action = new InlineAction(text, callback, tag, use_limit)
+        this.inlineActions.push(action)
+        log('AH.addInlineAction',
+            `Added inline action with id ${action.id} (text: ${action.text}, tag: ${action.tag}, use_limit: ${action.use_limit})`)
+
+        return action
+    }
+
+    this.getInlineActionById = function(id) {
+        return this.inlineActions.find(action => action.id === id)
+    }
+
+    this.getInlineActionByTag = function(tag) {
+        return this.inlineActions.find(action => action.tag.toLowerCase() === tag.toLowerCase())
+    }
+
+    this.onInlineActionClicked = function (id) {
+        log('AH.onInlineActionClicked', `Clicked action with id ${id}`)
+
+        const action = this.getInlineActionById(id)
+        if (typeof action === "undefined") return
+        return action.onClick()
+    }
 };
 
-var Action = function (id) {
-    this.id = id;
-    this.name = "";
-    this.desc = "";
-    this.exec = "";
-    this.goToScene = "";
-    this.type = ACTION_TYPES.SCENE;
-    this.portrait = "";
+const Action = function (id) {
+    this.id = id
+    this.name = ""
+    this.desc = ""
+    this.exec = ""
+    this.goto = ""
+    this.type = ACTION_TYPES.SCENE
+    this.portrait = ""
+    this.tag = ""
+    this.available = true
 
     this.fromConfig = function (actionConfig) {
-        console.log('|Action.fromConfig|')
-        console.log(actionConfig)
         for (const p in actionConfig) {
             switch (p.toLowerCase()) {
-                case ACTION_FIELDS.NAME:
-                    this.name = actionConfig[p]
-                    break;
-                case ACTION_FIELDS.DESC:
-                    this.desc = actionConfig[p]
-                    break
-                case ACTION_FIELDS.EXEC:
-                    this.exec = actionConfig[p]
-                    break
                 case ACTION_FIELDS.TYPE:
                     this.type = actionConfig[p].toLowerCase()
                     break
-                case ACTION_FIELDS.GOTO:
-                    this.goToScene = actionConfig[p]
-                    break
                 case ACTION_FIELDS.PORTRAIT:
                     this.portrait = "<img src='" + actionConfig[p] + "'/>"
+                    break
+                case ACTION_FIELDS.CONDITION:
+                    this.available = actionConfig[p]()
+                    break
+                case ACTION_FIELDS.NAME:
+                case ACTION_FIELDS.DESC:
+                case ACTION_FIELDS.TAG:
+                case ACTION_FIELDS.EXEC:
+                case ACTION_FIELDS.GOTO:
+                    this[p.toLowerCase()] = actionConfig[p]
                     break
             }
         }
 
         if ( this.name == "" ) {
-            throw new Error("|Action| Name is not defined");
-            return;
+            throw new Error("[JSPG|Action] Name is not defined");
+            return false
         }
 
         if (this.desc == "") {
             this.desc = this.name
         }
+
+        return this.available
     }
 };
 
-var GamePrototype = function () {
-    this.currentSceneId = -1
+const InlineAction = function (text, callback, tag='', use_limit=1) {
+    this.id = uid()
+    this.text = text
+    this.tag = tag
+    this.callback = callback
+    this.use_limit = use_limit
+    this.element = ''
 
+    this.onClick = function() {
+        if (use_limit > 0) { --this.use_limit }
+
+        log('InlineAction', `Using action ${this.text}. use_limit now is ${this.use_limit}`)
+        this.callback()
+
+        if (this.use_limit == 0) this.disable()
+    }
+
+    this.compose = function () {
+        return `<button class='inline-button' uid=${this.id}>${this.text}</button>`
+    }
+
+    this.disable = function () {
+        this.element.off()
+        this.element.removeClass('inline-button')
+        this.element.addClass('inline-button-disabled')
+    }
+}
+
+const Scene = function(id) {
+    this.id = id
+    this.desc = []
+    this.style = BLOB_STYLES.SCENE_LEFT
+    this.actions = []
+    this.type = SCENE_TYPES.SCENE
+    this.portrait = ''
+    this.pre_exec = ''
+    this.post_exec = ''
+    this.goto = ''
+
+    this.fromConfig = function (sceneConfig) {
+        log('Scene', `Generating new scene with type ${sceneConfig.type ?? SCENE_TYPES.SCENE}`)
+        for (const p in sceneConfig) {
+            switch (p.toLowerCase()) {
+                case SCENE_FIELDS.DESC:
+                    let desc = sceneConfig[p]
+                    if (desc.constructor !== Array) {
+                         desc = [desc]
+                     }
+                    desc = desc.filter(el => { return el !== "" })
+
+                    this.desc = desc
+                    break
+                case SCENE_FIELDS.ACTIONS:
+                    this.setActions(sceneConfig[p])
+                    break
+                case SCENE_FIELDS.TYPE:
+                    this.type = sceneConfig[p].toLowerCase()
+                    let style = BLOB_STYLES.SCENE_LEFT
+                    switch (this.type) {
+                        case SCENE_TYPES.TITLE:
+                            style = BLOB_STYLES.TITLE
+                            break
+                        case SCENE_TYPES.SUBTITLE:
+                            style = BLOB_STYLES.SUBTITLE
+                            break
+                        case SCENE_TYPES.DIALOG:
+                            style = BLOB_STYLES.DIALOG_LEFT
+                            break
+                        case SCENE_TYPES.DIALOG_RIGHT:
+                            style = BLOB_STYLES.DIALOG_RIGHT
+                            break
+                    }
+                    this.style = style
+                    break
+                case SCENE_FIELDS.PORTRAIT:
+                case SCENE_FIELDS.PRE_EXEC:
+                case SCENE_FIELDS.POST_EXEC:
+                case SCENE_FIELDS.GOTO:
+                    this[p.toLowerCase()] = sceneConfig[p]
+                    break
+            }
+        }
+    }
+
+    this.setActions = function (action_list) {
+        this.clearActions()
+        for (let i = 0; i < action_list.length; ++i) {
+            this.addAction(i, action_list[i])
+        }
+    }
+
+    this.addAction = function (id, action_cfg) {
+        this.insertAction(id, action_cfg, this.actions.length)
+    }
+
+    this.insertAction = function (id, action_cfg, idx) {
+        const action = new Action(id)
+        if (action.fromConfig(action_cfg)) {
+            this.actions.splice(idx, 0, action)
+        }
+    }
+
+    this.getActionByTag = function (tag) {
+        const actionIdx = this.actions.findIndex(action => action.tag == tag)
+        if (actionIdx < 0) return
+        return this.actions[actionIdx]
+    }
+
+    this.clearActions = function () {
+        this.actions.splice(0, this.actions.length)
+    }
+
+    this.deleteActionAt = function (idx, size=1) {
+        this.actions.splice(idx, size)
+    }
+
+    this.deleteActionByTag = function (tag) {
+        const actionIdx = this.actions.findIndex(action => action.tag == tag)
+        if (actionIdx < 0) return
+        this.deleteActionAt(actionIdx)
+    }
+}
+
+const Game = new (function () {
+    this.currentSceneId = -1
     this.currentScene = {}
+    this.AH = new ActionHandler();
+
     this.currentSceneData = {
         type: "",
         style: "",
@@ -278,75 +429,35 @@ var GamePrototype = function () {
         return _default;
     }
 
-    this.readCurrentSceneData = function () {
-        let desc = this.getSceneProperty(SCENE_FIELDS.DESC, []);
-        if (desc.constructor !== Array) {
-            desc = [desc];
-        }
-
-        // Filter empty lines
-        desc = desc.filter(el => { return el !== "" })
-
-        let type = this.getSceneProperty(SCENE_FIELDS.TYPE, SCENE_TYPES.SCENE).toLowerCase()
-
-        let style = BLOB_STYLES.SCENE_LEFT
-        switch (type) {
-            case SCENE_TYPES.TITLE:
-                style = BLOB_STYLES.TITLE
-                break
-            case SCENE_TYPES.SUBTITLE:
-                style = BLOB_STYLES.SUBTITLE
-                break
-            case SCENE_TYPES.DIALOG:
-                style = BLOB_STYLES.DIALOG_LEFT
-                break
-            case SCENE_TYPES.DIALOG_RIGHT:
-                style = BLOB_STYLES.DIALOG_RIGHT
-                break
-        }
-
-        const actions = this.getSceneProperty(SCENE_FIELDS.ACTIONS, [])
-
-        const portrait = this.getSceneProperty(SCENE_FIELDS.PORTRAIT, "")
-
-        this.currentSceneData.type = type
-        this.currentSceneData.style = style
-        this.currentSceneData.desc = desc
-        this.currentSceneData.actions = actions
-        this.currentSceneData.portrait = portrait
-
-        return this.currentSceneData
-    }
-
-    this.composeBlob = function (id, frame, sceneData) {
-        let desc = sceneData.desc[frame]
-        if (desc == "") {
-            return ""
-        }
+    this.composeBlob = function (frame) {
+        const scene = this.currentScene
 
         // Run interpretation on desired description lines
+        let desc = scene.desc[frame]
         if (desc.startsWith("`") && desc.endsWith("`")) {
             desc = eval(desc)
         }
 
         // Set portrait img node
-        let $portrait = sceneData.portrait;
-        if (sceneData.type == SCENE_TYPES.DIALOG && $portrait != "") {
+        let $portrait = scene.portrait;
+        if (scene.type == SCENE_TYPES.DIALOG && $portrait != "") {
             $portrait = `<img src="${$portrait}"/>`;
         }
 
         // Compose blob
-        return `<div class="scene-description ${sceneData.style}" sceneId="${id}" sceneFrame="${frame}">${$portrait}${desc}</div>`
+        return `<div class="scene-description ${scene.style}" frame=${frame}>${$portrait}${desc}</div>`
     }
 
     this.showScene = function (SceneToShow)  {
+        const sceneId = ++this.currentSceneId;
+        log('ShowScene', `---------- Rendering new scene with id ${sceneId} ----------`)
         // Drop actions before any next step
         this.AH.hideActionButtons();
 
         // Copy scene object to safely apply pre-exec code:
-        this.currentScene = Object.assign({}, SceneToShow);
-        const sceneId = ++this.currentSceneId;
-        console.log(`(ShowScene) Rendering new scene with id ${sceneId}`)
+        const scene = new Scene(sceneId)
+        scene.fromConfig(SceneToShow)
+        this.currentScene = scene
 
         // Run scene's Pre-Exec
         // This may change some scene's data, so data should be read after
@@ -355,39 +466,37 @@ var GamePrototype = function () {
         const preExecResult = this.execPreScene();
         if (typeof preExecResult != "undefined") {
             if (!preExecResult) {
-                console.log(`(ShowScene)[id:${sceneId}] Stop scene rendering as Pre-exec resulted in False`)
+                log('ShowScene', `[id:${sceneId}] Stop scene rendering as Pre-exec resulted in False`)
                 return
             }
         }
 
-        // Reads data to draw in scene
-        const scene = this.readCurrentSceneData()
-
         // Skip blob rendering if there is none
         const framesAmount = scene.desc.length
         if (framesAmount == 0) {
-            console.log(`(ShowScene)[id:${sceneId}] There is no description blobs. Stop rendering.`)
+            log('ShowScene', `[id:${sceneId}] There is no description blobs. Stop rendering.`)
 
-            console.log(`(ShowScene)[id:${sceneId}] Rendering actions`)
+            log('ShowScene', `[id:${sceneId}] Rendering actions`)
             this.AH.showActionButtons()
 
-            console.log(`(ShowScene)[id:${sceneId}] Executing post scene`)
+            log('ShowScene', `[id:${sceneId}] Executing post scene`)
             this.execPostScene()
 
             return
         }
 
         // Prepare Actions
-        this.AH.setSceneActions();
+        this.AH.setSceneActions(scene.actions);
 
         // Rendering description blobs
+        $("#scenes").append(`<span scene-id=${sceneId}></span>`)
         for (let frame = 0; frame < framesAmount; ++frame) {
-            const $blob = this.composeBlob(sceneId, frame, scene)
-            $("#scenes").append($blob)
+            const $blob = this.composeBlob(frame)
+            $(`span[scene-id=${sceneId}]`).append($blob)
 
             setTimeout(() => {
-                console.log(`(ShowScene) On Blob Render Timeout. Rendering scene ${sceneId}, frame ${frame}`)
-                const element = `.scene-description[sceneId=${sceneId}][sceneFrame=${frame}]`
+                log('ShowScene.On Blob Render Timeout', `Rendering scene ${sceneId}, frame ${frame}`)
+                const element = `span[scene-id=${sceneId}] .scene-description[frame=${frame}]`
                 $(element).css("opacity", 1)
                 $(element).scrollTo()
             }, GAME_TIMEOUTS.SCENE.SHOW + (GAME_TIMEOUTS.SCENE.STEP * frame))
@@ -395,43 +504,68 @@ var GamePrototype = function () {
 
         // Set up scene finalizer timer
         const timeout = GAME_TIMEOUTS.SCENE.SHOW + (GAME_TIMEOUTS.SCENE.STEP * framesAmount)
-        console.log(`(ShowScene)[id:${sceneId}] Setting timeout to end rendering in ${timeout} s.`)
+        log('ShowScene', `[id:${sceneId}] Setting timeout to end rendering in ${timeout} s.`)
         setTimeout(() => {
-            console.log(`(ShowScene)[id:${sceneId}] Blobs drawn. Rendering actions`)
+            log('ShowScene', `[id:${sceneId}] Blobs drawn. Rendering actions`)
             this.AH.showActionButtons()
 
-            console.log(`(ShowScene)[id:${sceneId}] Blobs drawn. Executing post scene`)
+            log('ShowScene', `[id:${sceneId}] Blobs drawn. Executing post scene`)
             this.execPostScene()
         }, timeout)
     };
 
     this.execPreScene = function () {
-        console.log(`(Pre Scene)[id:${Game.currentSceneId}]`);
-        const exec = this.getSceneProperty(SCENE_FIELDS.PRE_EXEC, "")
-        return this.execCode(exec)
+        log('PreScene', `[id:${this.currentSceneId}] Executing pre-scene code`)
+        return this.execCode(this.currentScene.pre_exec)
     };
 
     this.execPostScene = function () {
-        console.log(`(Post Scene)[id:${Game.currentSceneId}]`);
-        let exec = this.getSceneProperty(SCENE_FIELDS.POST_EXEC, "")
-        this.execCode(exec)
+        log('PostScene', `[id:${this.currentSceneId}] Executing post-scene code`)
+        this.execCode(this.currentScene.post_exec)
 
-        let goToScene = this.getSceneProperty(SCENE_FIELDS.GOTO, "")
+        const goToScene = this.currentScene.goto
         if (goToScene == "") { return }
 
-        console.log(`(Post Scene:)[id:${Game.currentSceneId}] GoTo navigation to ${goToScene}`);
+        log('PostScene', `[id:${this.currentSceneId}] GoTo navigation to ${goToScene}`);
         this.goTo(goToScene)
     };
 
     this.execCode = function (code) {
-        return (typeof(code) == typeof("")) ? eval(code) : code()
+        let result
+        if (typeof(code) == typeof("")) {
+            if (code != "") {
+                result = eval(code)
+            }
+        } else {
+            result = code()
+        }
+
+        return result
     }
 
-    this.AH = new ActionHandler();
-    this.AH.hideActionButtons();
-};
+})();
 
-var Helper = new (function() {
+const Helper = new (function() {
+    this.Click = function(text, callback, tag='', use_limit=1) {
+        const inline_action = Game.AH.addInlineAction(text, callback, tag, use_limit)
+        return inline_action.compose()
+    }
+    this.Img = function(uri, tag='', attrs={}) {
+        const element = new Img(uri, tag, attrs)
+        return element.compose()
+    }
+
+    this.Label = function(text, tag='', attrs={}) {
+        const element = new Label(text, tag, attrs)
+        return element.compose()
+    }
+
+    this.Find = {
+        ByTag: function(tag) {
+            return $(`*[tag=${tag}]`)[0]
+        }
+    }
+
     this.desc = {
         set: function(lines) {
             Game.currentScene.desc = lines
@@ -460,33 +594,74 @@ var Helper = new (function() {
 
     this.actions = {
         set: function(action_list) {
-            Game.currentScene.actions = action_list
+            Game.currentScene.setActions(action_list)
         },
 
         add: function(action_cfg) {
-            Game.currentScene.actions.push(action_cfg)
+            const id = Game.currentScene.actions.length + 1
+            Game.currentScene.addAction(id, action_cfg)
         },
 
         addFirst: function(action_cfg) {
-            Game.currentScene.actions.unshift(action_cfg)
+            const id = Game.currentScene.actions.length + 1
+            Game.currentScene.insertAction(id, action_cfg, 0)
         },
 
         putAt: function (action_cfg, idx) {
-            Game.currentScene.actions.splice(idx, 0, action_cfg)
+            const id = Game.currentScene.actions.length + 1
+            Game.currentScene.insertAction(id, action_cfg, idx)
+        },
+
+        getByTag: function (tag) {
+            return Game.currentScene.getActionByTag(tag)
         },
 
         clear: function(line) {
-            Game.currentScene.actions = []
+            Game.currentScene.clearActions()
         },
 
         deleteAt: function(idx, size=1) {
-            Game.currentScene.actions.splice(idx, size)
+            Game.currentScene.deleteActionAt(idx, size)
+        },
+
+        deleteByTag: function (tag) {
+            Game.currentScene.deleteActionByTag(tag)
         }
     }
 })()
 
-$( document ).ready(function() {
-    Game = new GamePrototype();
+// ----- Elements ----
+const Img = function (uri, tag='', attrs={}) {
+    this.id = uid()
+    this.tag = tag
+    this.uri = uri
+    this.attrs = attrs
 
+    this.compose = function() {
+        const attrs = []
+        Object.keys(this.attrs).forEach(k => attrs.push(`${k}='${this.attrs[k]}'`))
+        const attrLine = attrs.join(' ')
+
+        return `<img uid='${this.id}' tag='${this.tag}' src='${this.uri}' ${attrLine} />`
+    }
+}
+
+const Label = function (text, tag='', attrs={}) {
+    this.id = uid()
+    this.tag = tag
+    this.text = text
+    this.attrs = attrs
+
+    this.compose = function() {
+        const attrs = []
+        Object.keys(this.attrs).forEach(k => attrs.push(`${k}='${this.attrs[k]}'`))
+        const attrLine = attrs.join(' ')
+
+        return `<label uid='${this.id}' tag='${this.tag}' ${attrLine}>${this.text}</label>`
+    }
+}
+
+
+$( document ).ready(function() {
     Game.showScene(Scenes.Init);
 });

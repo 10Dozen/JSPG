@@ -1,4 +1,4 @@
-body {	
+body {
 	margin: 0px;
 	padding: 0px;
 	font-family: helvetica,arial,sans-serif;
@@ -6,7 +6,7 @@ body {
 }
 
 /* ****************
-	Landing page 
+	Landing page
 **************** */
 #header {
 	background-color: #252525;
@@ -14,7 +14,7 @@ body {
 }
 
 #header-title {
-	font-size: 24px;	
+	font-size: 24px;
 	padding: 2px 0px 0px 40px;
 }
 
@@ -29,12 +29,12 @@ body {
 	font-size: 18px;
 	background-color: #5a5a5a;
 	padding: 6px 0px 3px 40px;
-	
+
 }
 
 
 /* ****************
-	Form 
+	Form
 **************** */
 #game-form {
 	max-width: 512px;
@@ -52,13 +52,13 @@ body {
 .action-btn {
 	border: 1px solid #333;
 	background-color: #eee;
-	
+
 	padding: 5px;
 	margin-bottom: 5px;
-	
+
 	color: #333;
 	font-size: 14px;
-	
+
 	opacity: 0;
 	transition-property: opacity;
 	transition-duration: 1.5s;
@@ -75,38 +75,62 @@ body {
 	min-height: 32px;
 }
 
+.inline-button {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  color: #d98a8a;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.inline-button:hover {
+    color: #D33;
+    text-decoration: none;
+}
+
+.inline-button-disabled {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    color: #aaa;
+    text-decoration: none;
+    cursor: cursor;
+}
+
 img {
 	max-width: 390px;
 }
 
 
 
+
 /* ******************
 	Scene Types
-   ****************** */ 
+   ****************** */
 .scene-description {
 	border: 1px solid #999;
 	border-radius: 10px;
 	padding: 15px 20px;
-	
-	font-size: 12px;
+
+	font-size: 14px;
 	color: #ddd;
 
-	
-	opacity: 0;	
+
+	opacity: 0;
 }
 
 .scene-even {
 	margin-right: 40px;
 	background-color: #444;
-	
+
 	transition-property: opacity;
 	transition-duration: 1s;
 }
 .scene-odd {
 	margin: 5px 0px 5px 40px;
-	background-color: #666;	
-	
+	background-color: #666;
+
 	transition-property: opacity;
 	transition-duration: 0.3s;
 }
@@ -115,13 +139,13 @@ img {
 	border-top: 1px solid #777;
 	border-bottom: 1px solid #777;
 	border-left-width: 0px;
-	border-right-width: 0px;	
+	border-right-width: 0px;
 	border-radius: 0px;
-	
+
 	color: #777;
 	font-size: 24px;
 	text-align: center;
-	
+
 	margin-top: 15px;
 	margin-bottom: 15px;
 	opacity: 0;
@@ -133,13 +157,13 @@ img {
 	border-top: 1px solid #777;
 	border-bottom: 1px solid #777;
 	border-left-width: 0px;
-	border-right-width: 0px;	
+	border-right-width: 0px;
 	border-radius: 0px;
-	
+
 	color: #777;
 	font-size: 14px;
 	text-align: center;
-	
+
 	margin-top: 10px;
 	margin-bottom: 10px;
 	opacity: 1;
@@ -148,7 +172,7 @@ img {
 }
 
 .portrait {
-	height: 128px;	
+	height: 128px;
 }
 
 .portrait-left img {
@@ -156,7 +180,7 @@ img {
 	display: block;
 	float: left;
 	padding: 0px 5px 0px 0px;
-	
+
 }
 
 .portrait-right img {
@@ -164,5 +188,5 @@ img {
 	display: block;
 	float: right;
 	padding: 0px 5px 0px 0px;
-	
+
 }

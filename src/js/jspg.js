@@ -16,9 +16,17 @@ Array.prototype.selectRandom = function(func, thisArg) {
     return this[Math.floor(Math.random() * this.length)]
 }
 
-
-
+// === JSPG ===
 const JSPG = {
+    Meta: {
+        name: 'Untitled',
+        author: 'Unknown',
+        version: '0.0.1',
+        guid: ''
+    },
+    Settings: {
+        onVersionMismatch: (savedVersion)=>{}  // function to run on load game when version mismatched
+    },
     Scenes: []
 }
 JSPG['Constants'] = {
@@ -107,7 +115,7 @@ JSPG['execCode'] = function (code) {
 }
 JSPG['uid'] = function () {
     const uid = [
-        JSPG.GetCurrentScene().id, 
+        JSPG.GetCurrentScene().id,
         '-'
     ]
     for (let i = 0; i < 10; ++i) {
@@ -116,12 +124,46 @@ JSPG['uid'] = function () {
 
     return uid.join('')
 }
+JSPG['normalizeAndCopyToObject'] = function (objSource, objTarget, propsToNormalize, callbackForProps={}) {
+    for (const key in objSource) {
+        const propCallback = Object.keys(callbackForProps).find(el => el.toLowerCase() == key.toLowerCase())
+        let value = objSource[key]
+        if (propCallback) {
+            const bindedCallback = callbackForProps[propCallback].bind(objTarget)
+            value = bindedCallback(value)
+        }
+        if (typeof value == 'undefined') continue
+
+        const normalizedPropName = propsToNormalize.find(el => el.toLowerCase() == key.toLowerCase())
+        if (!normalizedPropName) {
+            objTarget[key] = value
+        } else {
+            objTarget[normalizedPropName] = value
+        }
+    }
+}
 
 // === Public Functions ===
-JSPG['PlayScenario'] = function (list, init_scene='Init') {
-    this.Scenes = list
+JSPG['PlayScenario'] = function (scenes, init_scene='Init') {
+    this.Scenes = scenes
+    if (scenes.hasOwnProperty('Meta')) {
+        this.normalizeAndCopyToObject(
+            scenes.Meta,
+            this.Meta,
+            ['guid','name','author','version']
+        )
+    }
+
+    if (scenes.hasOwnProperty('Settings')) {
+       this.normalizeAndCopyToObject(
+           scenes.Settings,
+           this.Settings,
+           ['onVersionMismatch']
+       )
+    }
+
+    $("game-title").html(`${this.Meta.name}, <small>v.${this.Meta.version} by ${this.Meta.author}</small>`)
     return this.GoTo(init_scene)
-    
 }
 JSPG['GoTo'] = function (name) {
     return this.SceneHandler.goTo(name)
@@ -131,8 +173,9 @@ JSPG['GetCurrentScene'] = function () {
 }
 
 JSPG['Entities'] = {}
-JSPG['Entities']['Scene'] = function (id) {
+JSPG['Entities']['Scene'] = function (id, name) {
     this.id = id
+    this.name = name
     this.desc = []
     this.style = JSPG.Constants.BLOB_STYLES.SCENE_LEFT
     this.actions = []
@@ -144,46 +187,38 @@ JSPG['Entities']['Scene'] = function (id) {
 
     this.fromConfig = function (sceneConfig) {
         log('Scene', `Generating new scene with type ${sceneConfig.hasOwnProperty("type") ? sceneConfig.type : JSPG.Constants.SCENE_TYPES.SCENE}`)
-        for (const p in sceneConfig) {
-            switch (p.toLowerCase()) {
-                case JSPG.Constants.SCENE_FIELDS.DESC:
-                    let desc = sceneConfig[p]
-                    if (desc.constructor !== Array) {
-                        desc = [desc]
-                    }
 
-                    this.desc = desc
+        propCallbacks = {}
+        propCallbacks[JSPG.Constants.SCENE_FIELDS.DESC] = desc => {
+            return Array.isArray(desc) ? desc : [desc]
+        }
+        propCallbacks[JSPG.Constants.SCENE_FIELDS.ACTIONS] = actions => {
+            return this.setActions(actions)
+        }
+        propCallbacks[JSPG.Constants.SCENE_FIELDS.TYPE] = type => {
+            let style = JSPG.Constants.BLOB_STYLES.SCENE_LEFT
+            switch (type.toLowerCase()) {
+                case JSPG.Constants.SCENE_TYPES.TITLE:
+                    style = JSPG.Constants.BLOB_STYLES.TITLE
                     break
-                case JSPG.Constants.SCENE_FIELDS.ACTIONS:
-                    this.setActions(sceneConfig[p])
+                case JSPG.Constants.SCENE_TYPES.SUBTITLE:
+                    style = JSPG.Constants.BLOB_STYLES.SUBTITLE
                     break
-                case JSPG.Constants.SCENE_FIELDS.TYPE:
-                    this.type = sceneConfig[p].toLowerCase()
-                    let style = JSPG.Constants.BLOB_STYLES.SCENE_LEFT
-                    switch (this.type) {
-                        case JSPG.Constants.SCENE_TYPES.TITLE:
-                            style = JSPG.Constants.BLOB_STYLES.TITLE
-                            break
-                        case JSPG.Constants.SCENE_TYPES.SUBTITLE:
-                            style = JSPG.Constants.BLOB_STYLES.SUBTITLE
-                            break
-                        case JSPG.Constants.SCENE_TYPES.DIALOG:
-                            style = JSPG.Constants.BLOB_STYLES.DIALOG_LEFT
-                            break
-                        case JSPG.Constants.SCENE_TYPES.DIALOG_RIGHT:
-                            style = JSPG.Constants.BLOB_STYLES.DIALOG_RIGHT
-                            break
-                    }
-                    this.style = style
+                case JSPG.Constants.SCENE_TYPES.DIALOG:
+                    style = JSPG.Constants.BLOB_STYLES.DIALOG_LEFT
                     break
-                case JSPG.Constants.SCENE_FIELDS.PORTRAIT:
-                case JSPG.Constants.SCENE_FIELDS.PRE_EXEC:
-                case JSPG.Constants.SCENE_FIELDS.POST_EXEC:
-                case JSPG.Constants.SCENE_FIELDS.GOTO:
-                    this[p.toLowerCase()] = sceneConfig[p]
+                case JSPG.Constants.SCENE_TYPES.DIALOG_RIGHT:
+                    style = JSPG.Constants.BLOB_STYLES.DIALOG_RIGHT
                     break
             }
+            this.style = style
+            return type.toLowerCase()
         }
+
+        JSPG.normalizeAndCopyToObject(sceneConfig, this,
+                                      Object.values(JSPG.Constants.SCENE_FIELDS),
+                                      propCallbacks)
+
     }
 
     this.compileDescLines = function () {
@@ -247,26 +282,13 @@ JSPG['Entities']['Action'] = function () {
     this.available = true
 
     this.fromConfig = function (actionConfig) {
-        for (const p in actionConfig) {
-            switch (p.toLowerCase()) {
-                case JSPG.Constants.ACTION_FIELDS.TYPE:
-                    this.type = actionConfig[p].toLowerCase()
-                    break
-                case JSPG.Constants.ACTION_FIELDS.PORTRAIT:
-                    this.portrait = "<img src='" + actionConfig[p] + "'/>"
-                    break
-                case JSPG.Constants.ACTION_FIELDS.CONDITION:
-                    this.available = actionConfig[p]()
-                    break
-                case JSPG.Constants.ACTION_FIELDS.NAME:
-                case JSPG.Constants.ACTION_FIELDS.DESC:
-                case JSPG.Constants.ACTION_FIELDS.TAG:
-                case JSPG.Constants.ACTION_FIELDS.EXEC:
-                case JSPG.Constants.ACTION_FIELDS.GOTO:
-                    this[p.toLowerCase()] = actionConfig[p]
-                    break
-            }
-        }
+        propsCallbacks = {}
+        propsCallbacks[JSPG.Constants.ACTION_FIELDS.TYPE] = type => type.toLowerCase()
+        propsCallbacks[JSPG.Constants.ACTION_FIELDS.PORTRAIT] = img => `<img src='${img}'/>`
+        propsCallbacks[JSPG.Constants.ACTION_FIELDS.CONDITION] = condition => condition()
+        JSPG.normalizeAndCopyToObject(actionConfig, this,
+                                      Object.values(JSPG.Constants.ACTION_FIELDS),
+                                      propsCallbacks)
 
         if ( this.name == "" ) {
             throw new Error("[JSPG|Action] Name is not defined");
@@ -288,40 +310,40 @@ JSPG['Entities']['Element'] = function(tag='') {
     this.attributes = {}
     this.content = ''
     this.eventHandlers = []
-    
+
     this.AsImage = function(src) {
         this.html_tag = JSPG.Constants.ELEMENTS.TAGS.IMAGE
         this.template = JSPG.Constants.ELEMENTS.TEMPLATES.SHORT
         this.AddAttrs({'src': src})
         return this
     }
-    
+
     this.AsLabel = function(text) {
         this.html_tag = JSPG.Constants.ELEMENTS.TAGS.LABEL
         this.template = JSPG.Constants.ELEMENTS.TEMPLATES.FULL
         this.content = text
-        
+
         log('ElementEntity.AsLabel', `HTML Tag: ${this.html_tag}, Template: ${this.template}`)
         return this
     }
-    
+
     this.AsClick = function(text) {
         this.html_tag = JSPG.Constants.ELEMENTS.TAGS.CLICK
-        this.template = JSPG.Constants.ELEMENTS.TEMPLATES.FULL      
+        this.template = JSPG.Constants.ELEMENTS.TEMPLATES.FULL
         this.content = text
         return this
     }
-    
+
     this.Get = function() {
         const attrs = [
             `uid=${this.id}`,
-            `tag=${this.tag}`           
+            `tag=${this.tag}`
         ]
         Object.keys(this.attributes).forEach(k => attrs.push(`${k}='${this.attributes[k]}'`))
         const attrLine = attrs.join(' ')
-        
+
         console.log(attrLine)
-        
+
         const html = this.template.replace('$$html_tag', this.html_tag)
                             .replace('$$attrs', attrLine)
                             .replace('$$content', this.content)
@@ -329,96 +351,93 @@ JSPG['Entities']['Element'] = function(tag='') {
         log('ElementEntity.Get', html)
         return html
     }
-    
-    this.AddAttrs = function(attrs) {        
+
+    this.AddAttrs = function(attrs) {
         Object.assign(this.attributes, attrs)
         return this
     }
-    
+
     this.SetTag = function(tag) {
         this.tag = tag
         return this
     }
-    
+
     this.SetEventHandlers = function (ehs) {
         this.eventHandlers = ehs
     }
-    
+
     this.AddEventHandler = function (event, callback, use_limit=-1, mark_disabled=false) {
         this.eventHandlers.push([event, callback, use_limit, mark_disabled])
     }
-    
+
     this.findEventHandler = function (event) {
         return this.eventHandlers.find(eh => eh[0] == event)
     }
-    
+
     this.RunEventHandler = function (event) {
         const eh = this.findEventHandler(event)
         if (!eh) return
-        
+
         const callback = eh[1]
         const use_limit = eh[2]
         const disableOnLimit = eh[3]
-        
+
         log('ElementEntity.RunEventHandler', `Running event [${event}] for element [${this.html_tag}/uid=${this.id} tag=${this.tag}]`)
-        
+
         console.log(callback)
         callback()
-        
+
         if (use_limit == -1) return
-        
+
         const new_limit = use_limit - 1
         eh[2] = new_limit
         if (new_limit > 0) return
-        
+
         log('ElementEntity.RunEventHandler', `Event handler reached its limit for event [${event}] for element [${this.html_tag}/uid=${this.id} tag=${this.tag}]`)
 
         this.RemoveEventHandler(event)
         if (disableOnLimit) {
             this.Disable()
         }
-        
+
     }
-    
+
     this.RemoveEventHandler = function (event) {
         const idx = this.eventHandlers.findIndex(eh=>eh[0]==event)
         if (idx < 0) return
-        
+
         (this.Find()).off(event)
         this.eventHandlers.splice(idx,1)
-        
+
         log('ElementEntity.RemoveEventHandler', `Event handler [${event}] for element [${this.html_tag}/uid=${this.id} tag=${this.tag}] was removed!`)
 
     }
-    
+
     this.Find = function () {
         $node = $(`${this.html_tag}[uid=${this.id}]`)
         if ($node.length == 0) return
         return $($node[0])
     }
-    
+
     this.Disable = function() {
         const $node = this.Find()
         $node.off()
-        $node.addClass('disabled') // TODO: Type specific class?
-        
+        $node.prop('disabled', true)
+
         this.eventHandlers.splice(0, this.eventHandlers.length)
-        
+
         log('ElementEntity.Disable', `Element [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
     }
 }
 
 JSPG['ActionHandler'] = new (function () {
     this.actions = []
-    this.inlineActions = []
-
     this.getActionById = function (id) {
         return this.actions.find(action => { return action.id === id })
     };
 
     this.clearActionList = function () {
         this.actions.splice(0, this.actions.length)
-        this.inlineActions.splice(0, this.inlineActions.length)
     };
 
     this.setSceneActions = function (actions) {
@@ -499,12 +518,6 @@ JSPG['ActionHandler'] = new (function () {
                 "left": "0px",
                 "opacity": 1
             })
-
-            // Map inline actions to actual html-elements
-            this.inlineActions.forEach(action => {
-                action.element = $(`span[scene-id=${Game.currentSceneId}] .inline-button[uid=${action.id}]`)
-                action.element.on("click", () => this.onInlineActionClicked(action.id) )
-            })
         }, JSPG.Constants.TIMEOUTS.ACTION.SHOW_OPTIONS);
     };
 
@@ -517,44 +530,81 @@ JSPG['ActionHandler'] = new (function () {
 
         $(".action-btn-holder").css("display","block");
         $(".actions").css("min-height", $(".actions").height() + "px");
-
-        this.inlineActions.forEach(action => action.disable())
     };
+})()
+JSPG['ElementsHandler'] = new (function () {
+    this.elements = []  // list of custom elements objects
 
-    this.addInlineAction = function (text, callback, tag='', use_limit=1) {
-        const action = new InlineAction(text, callback, tag, use_limit)
-        this.inlineActions.push(action)
-        log('AH.addInlineAction',
-            `Added inline action with id ${action.id} (text: ${action.text}, tag: ${action.tag}, use_limit: ${action.use_limit})`)
+    this.enableElements = function () {
+        // Activates element's event handlers. Invoked on scene rendering.
+        this.elements.forEach(el => {
+            const $node = el.Find()
+            if (typeof $node == "undefined") return
 
-        console.log(this.inlineActions)
-        return action
+            $node.off()
+            el.eventHandlers.forEach(eh => {
+                $node.on(eh[0], event => el.RunEventHandler(eh[0]))
+            })
+        })
     }
 
-    this.getInlineActionById = function(id) {
-        return this.inlineActions.find(action => action.id === id)
+    this.clearElementsList = function () {
+        this.elements.forEach(el => el.Disable())
+        this.elements.splice(0, this.elements.length)
     }
 
-    this.getInlineActionByTag = function(tag) {
-        return this.inlineActions.find(action => action.tag.toLowerCase() === tag.toLowerCase())
+    this.createElement = function (type, tag='', content='', attributes={}, eventsHandlers=[]) {
+        log('Elements.createElement', `Type: ${type}, Content: ${content}`)
+        let element = new JSPG.Entities.Element(tag)
+        switch (type.toLowerCase()) {
+            case JSPG.Constants.ELEMENTS.TYPES.LABEL:
+                log('Elements.createElement', 'Creating LABEL')
+                element.AsLabel(content)
+
+                console.log(element.html_tag)
+                break
+            case JSPG.Constants.ELEMENTS.TYPES.IMAGE:
+                element.AsImage(content)
+                break
+            case JSPG.Constants.ELEMENTS.TYPES.CLICK:
+                element.AsClick(content)
+                break
+        }
+
+
+        console.log(element.html_tag)
+        element.AddAttrs(attributes).        SetEventHandlers(eventsHandlers)
+
+        console.log(element.html_tag)
+        this.elements.push(element)
+        return element
     }
 
-    this.onInlineActionClicked = function (id) {
-        log('AH.onInlineActionClicked', `Clicked action with id ${id}`)
+    this.findIndexByTag = function (tag) {
+        return this.elements.findIndex(e => e.tag == tag)
+    }
 
-        const action = this.getInlineActionById(id)
-        if (typeof action === "undefined") return
-        return action.onClick()
+    this.findByTag = function (tag) {
+        return this.elements.find(el => el.tag == tag)
+    }
+
+    this.deleteElement = function (tag) {
+        const elIdx = this.findIndexByTag(tag)
+        if (typeof elIdx < 0) return
+
+        this.elements[elIdx].Disable()
+        this.elements.splice(elIdx, 1)
     }
 })()
 JSPG['SceneHandler'] = new (function () {
     this.currentSceneId = -1
     this.currentScene = {}
     this.AH = JSPG.ActionHandler
+    this.EH = JSPG.ElementsHandler
 
     this.goTo = function (SceneName) {
         setTimeout(()=>{
-            this.showScene(JSPG.Scenes[SceneName])
+            this.showScene(SceneName, JSPG.Scenes[SceneName])
         }, JSPG.Constants.TIMEOUTS.GOTO)
     };
 
@@ -574,15 +624,16 @@ JSPG['SceneHandler'] = new (function () {
         return `<div class="scene-description ${scene.style}" frame=${frame}>${$portrait}${desc}</div>`
     }
 
-    this.showScene = function (SceneToShow)  {
+    this.showScene = function (name, sceneConfig)  {
         const sceneId = ++this.currentSceneId;
-        log('ShowScene', `---------- Rendering new scene with id ${sceneId} ----------`)
+        log('ShowScene', `---------- Rendering new scene with id ${sceneId}: ${name} ----------`)
         // Drop actions before any next step
         this.AH.hideActionButtons();
+        this.EH.clearElementsList();
 
         // Copy scene object to safely apply pre-exec code:
-        const scene = new JSPG.Entities.Scene(sceneId)
-        scene.fromConfig(SceneToShow)
+        const scene = new JSPG.Entities.Scene(sceneId, name)
+        scene.fromConfig(sceneConfig)
         this.currentScene = scene
 
         // Run scene's Pre-Exec
@@ -621,7 +672,7 @@ JSPG['SceneHandler'] = new (function () {
         for (let frame = 0; frame < framesAmount; ++frame) {
             const $blob = this.composeBlob(frame)
             $(`span[scene-id=${sceneId}]`).append($blob)
-            
+
             const frameTimeout = JSPG.Constants.TIMEOUTS.SCENE.STEP * frame
             setTimeout(() => {
                 log('ShowScene.On Blob Render Timeout', `Rendering scene ${sceneId}, frame ${frame}`)
@@ -638,8 +689,11 @@ JSPG['SceneHandler'] = new (function () {
             log('ShowScene', `[id:${sceneId}] Blobs drawn. Rendering actions`)
             this.AH.showActionButtons()
 
-            log('ShowScene', `[id:${sceneId}] Blobs drawn. Executing post scene`)
+            log('ShowScene', `[id:${sceneId}]              Executing post scene`)
             this.execPostScene()
+
+            log('ShowScene', `[id:${sceneId}]              Enabling elements`)
+            this.EH.enableElements()
         }, timeout)
     };
 
@@ -657,94 +711,176 @@ JSPG['SceneHandler'] = new (function () {
 
         log('PostScene', `[id:${this.currentSceneId}] GoTo navigation to ${goToScene}`);
         this.goTo(goToScene)
-    };
-})();
-JSPG['ElementsHandler'] = new (function () {
-    this.elements = []  // list of custom elements objects
-    
-    this.enableElements = function () {
-        // Activates element's event handlers. Invoked on scene rendering.
-        this.elements.forEach(el => {
-            const $node = el.Find()
-            if (typeof $node == typeof "undefined") return
-        
-            $node.off()
-            el.eventHandlers.forEach(eh => {
-                $node.on(eh[0], event => el.RunEventHandler(eh[0]))
-            })        
-        })
-    }
-    
-    this.clearElementsList = function () {
-        this.elements.forEach(this.disableElement)
-        this.elements.splice(0, this.elements.length)
-    }
-    
-    this.disableElement = function (el) {
-        const node = el.Find()
-        node.off()
-        node.addClass('disabled')
     }
 
-    this.createElement = function (type, tag='', content='', attributes={}, eventsHandlers=[]) {
-        log('Elements.createElement', `Type: ${type}, Content: ${content}`)
-        let element = new JSPG.Entities.Element(tag)
-        switch (type.toLowerCase()) {
-            case JSPG.Constants.ELEMENTS.TYPES.LABEL:
-                log('Elements.createElement', 'Creating LABEL')
-                element.AsLabel(content)
-                
-                console.log(element.html_tag)
-                break
-            case JSPG.Constants.ELEMENTS.TYPES.IMAGE:
-                element.AsImage(content)
-                break
-            case JSPG.Constants.ELEMENTS.TYPES.CLICK:
-                element.AsClick(content)
-                break
+    this.clearOutput = function (sys_msg='') {
+        $('#scenes').html('')
+        if (sys_msg == '') return
+
+        const style = JSPG.Constants.BLOB_STYLES.SUBTITLE
+        $('#scenes').append(`<div class='scene-description ${style}'>${sys_msg}</div>`)
+    }
+})();
+
+JSPG['Persistence'] = new (function () {
+    this.subscribers = []
+
+    this.Entity = {
+        Save: function (customDictionary) {
+            this.currentSceneName = JSPG.GetCurrentScene().name
+            this.custom = customDictionary
+
+            this.subscribers = {}
+            JSPG.Persistence.subscribers.forEach(sub => {
+                const name = sub[0]
+                const obj = sub[1]
+                this.subscribers[name] = JSON.stringify(obj)
+            })
+        },
+
+        Metadata: function () {
+            this.date = new Date()
+            this.version = JSPG.Meta.version
         }
-        
-        
-        console.log(element.html_tag)
-        element.AddAttrs(attributes).        SetEventHandlers(eventsHandlers)
-        
-        console.log(element.html_tag)
-        this.elements.push(element)
-        return element
     }
-    
-    this.findIndexByTag = function (tag) {
-        return this.elements.findIndex(e => e.tag == tag)
+
+    this.getKeyBySlotId = function (slot_id) {
+        const name = JSPG.Meta.name
+        const prefix = `${name}+${slot_id}`
+        return {
+            meta: `${prefix}_meta`,
+            data: `${prefix}_savegame`
+        }
     }
-    
-    this.findByTag = function (tag) {
-        return this.elements.find(el => el.tag == tag)
+
+    this.Save = function (slot_id, saveObject) {
+        const target = this.getKeyBySlotId(slot_id)
+
+        const meta = new this.Entity.Metadata()
+        const data = new this.Entity.Save(saveObject)
+        window.localStorage.setItem(target.meta, JSON.stringify(meta))
+        window.localStorage.setItem(target.data, JSON.stringify(data))
+
+        log('Persistence', `Game was saved to slot ${slot_id} -> [${target.data}]`)
     }
-    
-    this.deleteElement = function (tag) {
-        const elIdx = this.findIndexByTag(tag)
-        if (typeof elIdx < 0) return
-        
-        this.disableElement(this.elements[elIdx])
-        this.elements.splice(elIdx, 1)
+
+    this.Load = function (slot_id) {
+        const target = this.getKeyBySlotId(slot_id)
+        log('Persistence', `Game was loaded from slot ${slot_id} -> [${target.data}]`)
+        const meta = window.localStorage.getItem(target.meta)
+        const data = window.localStorage.getItem(target.data)
+
+        if (!meta) return
+
+        const parsedMeta = JSON.parse(meta)
+        console.log(parsedMeta)
+        if (JSPG.Meta.version != parsedMeta.version) {
+            console.log(`Saved game version mismatch! Current game version ${JSPG.Meta.version}, but saved game has ${parsedMeta.version}`)
+            JSPG.Meta.onVersionMismatch(parsedMeta.version)
+        }
+
+        const parsedData = JSON.parse(data)
+        console.log(parsedData)
+
+        this.subscribers.forEach(sub => {
+            const name = sub[0]
+            const obj = sub[1]
+            const rules = sub[2]
+
+            this.loadObject(obj, JSON.parse(parsedData.subscribers[name]), rules)
+            console.log(obj)
+        })
+
+        // todo: restore scene
+        log('Persistence.Load', `Loading scene ${parsedData.currentSceneName}`)
+        JSPG.SceneHandler.clearOutput(`Game loaded (slot ${slot_id})`)
+        JSPG.GoTo(parsedData.currentSceneName)
+
+        return parsedData.custom
     }
-    
-    
-})
+
+    this.Delete = function (slot_id) {
+        const target = this.getKeyBySlotId(slot_id)
+        window.localStorage.removeItem(target.meta)
+        window.localStorage.removeItem(target.data)
+        log('Persistence', `Save file [${target.data}] was deleted!`)
+    }
+
+    this.Subscribe = function(name, obj, rules) {
+        this.subscribers.push([name, obj, rules])
+    }
+
+    this.Unsubsribe = function(name) {
+        const idx = this.subscribers.findIndex(el => el[0] == name)
+        console.log(idx)
+        this.subscribers.splice(idx, 1)
+    }
+
+    this.loadObject = function (obj, dataObj, rules={}) {
+        for (const k in obj) {
+            //log("loadObject", `Checking key [${k}]`)
+            // Skip if there is no saved data for this key
+            if (!dataObj.hasOwnProperty(k)) {
+                log("loadObject", `SKIP. Saved object doesnt contain key [${k}]`)
+                continue
+            }
+
+            // Skip if data type is different
+            if (typeof obj[k] != typeof dataObj[k]) {
+                log("loadObject", `SKIP. Target and saved object key [${k}] data type mismatch!`)
+                continue
+            }
+
+            let rule = true
+            let isRuleContainer = false
+            const hasRule = rules.hasOwnProperty(k)
+            if (hasRule) {
+                rule = rules[k]
+                isRuleContainer = (typeof rule == typeof Object.prototype) && Array.isArray(rule)
+            }
+
+            //log("loadObject", `HasRule: ${hasRule}, isContainer: ${isRuleContainer}, rule: ${rule}`)
+
+            // Skip if rules is bool and mark this field as skippable
+            if (hasRule && !isRuleContainer && !rule) {
+                log("loadObject", `SKIP. Rule restricts copying of key [${k}]`)
+                continue
+            }
+
+            if (typeof obj[k] == typeof Object.prototype) {
+                // Replace if array
+                if (Array.isArray(obj[k])) {
+                    //log("loadObject", `Copy ARRAY value`)
+                    obj[k] = dataObj[k]
+                    continue
+                }
+                // or invoke function recursevely for deep copy
+                //log("loadObject", `Invoking loadObject for nested object!`)
+                this.loadObject(obj[k], dataObj[k], rule)
+                continue
+            } else {
+                // Replace if data is not a container
+                //log("loadObject", `Copy SIMPLE value!`)
+                obj[k] = dataObj[k]
+            }
+
+            //log("loadObject", `=== Finished for key [${k}] ===`)
+        }
+
+        log("loadObject", `Finished!`)
+    }
+})()
 JSPG['Helper'] =  new (function() {
     this.Click = function(text, callback, tag='', use_limit=1) {
         const element = JSPG.ElementsHandler.createElement(
-            JSPG.Constants.ELEMENTS.TYPES.CLICK, 
-            tag, 
+            JSPG.Constants.ELEMENTS.TYPES.CLICK,
+            tag,
             text
         )
-        element.AddEventHandler("click", callback, use_limit)
-        
+        element.AddEventHandler("click", callback, use_limit, true)
+        element.AddAttrs({class: "inline-button"})
+
         return element.Get()
-        /*
-        const inline_action = JSPG.ActionHandler.addInlineAction(text, callback, tag, use_limit)
-        return inline_action.compose()
-        */
     }
     this.Img = function(uri, tag='', attrs={}) {
         const element = JSPG.ElementsHandler.createElement(JSPG.Constants.ELEMENTS.TYPES.IMAGE, tag, uri, attrs)
@@ -757,7 +893,7 @@ JSPG['Helper'] =  new (function() {
 
     this.Find = {
         ByTag: function(tag) {
-            return JSPG.ElementsHandler.findByTag(tag)
+            return JSPG.ElementsHandler.findByTag(tag).Find()
             // return $(`*[tag=${tag}]`)[0]
         }
     }
@@ -824,9 +960,11 @@ JSPG['Helper'] =  new (function() {
 })()
 
 
+
+
+
 // === Start ===
 const $h = JSPG.Helper
 $( document ).ready(function() {
-    
-    JSPG.PlayScenario(Scenes, 'Init')
+    JSPG.PlayScenario(scenes=Scenes, init_scene='Init')
 });

@@ -11,6 +11,7 @@ body {
 #header {
 	background-color: #252525;
 	color: white;
+    width: 100%;
 }
 
 #header-title {
@@ -44,10 +45,6 @@ body {
 	padding: 3px 0px;
 	list-style-type: none;
 }
-
-
-
-
 
 .action-btn {
 	border: 1px solid #333;
@@ -89,7 +86,7 @@ body {
     text-decoration: none;
 }
 
-.inline-button-disabled {
+.inline-button:disabled {
     background: none!important;
     border: none;
     padding: 0!important;

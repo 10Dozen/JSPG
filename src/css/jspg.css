@@ -1,75 +1,200 @@
 body {
-	margin: 0px;
-	padding: 0px;
-	font-family: helvetica,arial,sans-serif;
-	background-color: #ececec;
+    margin: 0px;
+    padding: 0px;
+    font-family: helvetica,arial,sans-serif;
+    background-color: #ececec;
 }
 
 /* ****************
-	Landing page
+   Header
 **************** */
 #header {
-	background-color: #252525;
-	color: white;
+    background-color: #252525;
+    color: white;
     width: 100%;
 }
 
 #header-title {
-	font-size: 24px;
-	padding: 2px 0px 0px 40px;
+    font-size: 24px;
+    padding: 2px 0px 0px 40px;
 }
 
 #header-title span {
-	background-color: #c52334;
-	padding: 0px 4px;
-	border-radius: 0px 8px 8px 8px;
-	font-weight: bold;
+    background-color: #c52334;
+    padding: 0px 4px;
+    border-radius: 0px 8px 8px 8px;
+    font-weight: bold;
 }
 
 #header-status {
-	font-size: 18px;
-	background-color: #5a5a5a;
-	padding: 6px 0px 3px 40px;
-
+    font-size: 18px;
+    background-color: #5a5a5a;
+    padding: 6px 0px 3px 40px;
 }
 
+/* ****************
+   Overlay
+***************** */
+#overlay {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    right: 0;
+    top: 0;
+    background-color: rgba(0,0,0, 0.9);
+    overflow-x: hidden;
+    transition: 0.5s;
+}
+
+.simple-menu-header {
+    position: relative;
+    top: 5%;
+    width: 100%;
+    text-align: center;
+
+    font-size: 36px;
+    color: #515151;
+}
+
+.simple-menu-content {
+    position: relative;
+    top: 25%;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+}
+
+#overlay a {
+  padding: 8px;
+  text-decoration: none;
+  font-size: 36px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+#overlay a:hover, #overlay a:focus {
+  color: #f1f1f1;
+}
+
+#overlay .closebtn {
+  position: absolute;
+  top: 20px;
+  right: 45px;
+  font-size: 60px;
+}
 
 /* ****************
-	Form
+   Menu
+***************** */
+#menu button {
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #c52334;
+
+    position: fixed;
+    right: -166px;
+    transition: 0.3s;
+    width: 200px;
+    height: 58px;
+
+    padding: 5px;
+    font-size: 20px;
+    color: #ddd;
+    border-width: 0px;
+    border-radius: 6px 0px 0px 6px;
+}
+
+#menu button:hover {
+    right: 0px;
+}
+
+#menu button:disabled {
+    background-color: rgba(194, 49, 66, 0.3);
+}
+
+.menu-button-idx-0 {
+    top: 54px;
+}
+
+.menu-button-idx-1 {
+    top: calc(54px + (58px + 8px) * 1);
+}
+
+.menu-button-idx-2 {
+    top: calc(54px + (58px + 8px) * 2);
+}
+
+.menu-button-idx-3 {
+    top: calc(54px + (58px + 8px) * 3);
+}
+
+.menu-button-idx-4 {
+    top: calc(54px + (58px + 8px) * 4);
+}
+
+.menu-button-idx-5 {
+    top: calc(54px + (58px + 8px) * 5);
+}
+
+.menu-button-idx-6 {
+    top: calc(54px + (58px + 8px) * 6);
+}
+
+.menu-button-idx-7 {
+    top: calc(54px + (58px + 8px) * 7);
+}
+
+.menu-button-idx-8 {
+    top: calc(54px + (58px + 8px) * 8);
+}
+
+.menu-button-icon {
+    position: absolute;
+    left: 3%;
+}
+.menu-button-icon img {
+    max-width: 24px;
+    max-height: 24px;
+}
+
+/* ****************
+    Form
 **************** */
 #game-form {
-	max-width: 512px;
+    max-width: 512px;
 }
 
 #game-form ul li {
-	padding: 3px 0px;
-	list-style-type: none;
+    padding: 3px 0px;
+    list-style-type: none;
 }
 
 .action-btn {
-	border: 1px solid #333;
-	background-color: #eee;
+    border: 1px solid #333;
+    background-color: #eee;
 
-	padding: 5px;
-	margin-bottom: 5px;
+    padding: 5px;
+    margin-bottom: 5px;
 
-	color: #333;
-	font-size: 14px;
+    color: #333;
+    font-size: 14px;
 
-	opacity: 0;
-	transition-property: opacity;
-	transition-duration: 1.5s;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 1.5s;
 }
 
 .action-btn:hover {
-	border: 1px solid #333;
-	background-color: #F5E99F;
-	color: #333;
-	cursor:pointer;
+    border: 1px solid #333;
+    background-color: #F5E99F;
+    color: #333;
+    cursor:pointer;
 }
 
 .actions {
-	min-height: 32px;
+    min-height: 32px;
 }
 
 .inline-button {
@@ -96,94 +221,94 @@ body {
 }
 
 img {
-	max-width: 390px;
+    max-width: 390px;
 }
 
 
 
 
 /* ******************
-	Scene Types
+    Scene Types
    ****************** */
 .scene-description {
-	border: 1px solid #999;
-	border-radius: 10px;
-	padding: 15px 20px;
+    border: 1px solid #999;
+    border-radius: 10px;
+    padding: 15px 20px;
 
-	font-size: 14px;
-	color: #ddd;
+    font-size: 14px;
+    color: #ddd;
 
 
-	opacity: 0;
+    opacity: 0;
 }
 
 .scene-even {
-	margin-right: 40px;
-	background-color: #444;
+    margin-right: 40px;
+    background-color: #444;
 
-	transition-property: opacity;
-	transition-duration: 1s;
+    transition-property: opacity;
+    transition-duration: 1s;
 }
 .scene-odd {
-	margin: 5px 0px 5px 40px;
-	background-color: #666;
+    margin: 5px 0px 5px 40px;
+    background-color: #666;
 
-	transition-property: opacity;
-	transition-duration: 0.3s;
+    transition-property: opacity;
+    transition-duration: 0.3s;
 }
 
 .scene-title {
-	border-top: 1px solid #777;
-	border-bottom: 1px solid #777;
-	border-left-width: 0px;
-	border-right-width: 0px;
-	border-radius: 0px;
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-radius: 0px;
 
-	color: #777;
-	font-size: 24px;
-	text-align: center;
+    color: #777;
+    font-size: 24px;
+    text-align: center;
 
-	margin-top: 15px;
-	margin-bottom: 15px;
-	opacity: 0;
-	transition-property: opacity;
-	transition-duration: 0.3s;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
 }
 
 .scene-subtitle {
-	border-top: 1px solid #777;
-	border-bottom: 1px solid #777;
-	border-left-width: 0px;
-	border-right-width: 0px;
-	border-radius: 0px;
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-radius: 0px;
 
-	color: #777;
-	font-size: 14px;
-	text-align: center;
+    color: #777;
+    font-size: 14px;
+    text-align: center;
 
-	margin-top: 10px;
-	margin-bottom: 10px;
-	opacity: 1;
-	transition-property: opacity;
-	transition-duration: 0.3s;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.3s;
 }
 
 .portrait {
-	height: 128px;
+    height: 128px;
 }
 
 .portrait-left img {
-	width: 128px;
-	display: block;
-	float: left;
-	padding: 0px 5px 0px 0px;
+    width: 128px;
+    display: block;
+    float: left;
+    padding: 0px 5px 0px 0px;
 
 }
 
 .portrait-right img {
-	width: 128px;
-	display: block;
-	float: right;
-	padding: 0px 5px 0px 0px;
+    width: 128px;
+    display: block;
+    float: right;
+    padding: 0px 5px 0px 0px;
 
 }

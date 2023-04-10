@@ -22,12 +22,14 @@ const JSPG = {
         name: 'Untitled',
         author: 'Unknown',
         version: '0.0.1',
-        guid: ''
+        guid: '',
+        JSPGVersion: '0.13.0'
     },
     Settings: {
         onVersionMismatch: (savedVersion)=>{}  // function to run on load game when version mismatched
     },
-    Scenes: []
+    Scenes: [],
+    Screens: []
 }
 JSPG['Constants'] = {
     UID_SEQ: ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'],
@@ -97,6 +99,11 @@ JSPG['Constants'] = {
             LABEL: "label",
             CLICK: "click"
         }
+    },
+    SCREENS: {
+        TYPES: {
+            SIMPLE_MENU: 'simple_menu'
+        }
     }
 }
 
@@ -125,6 +132,11 @@ JSPG['uid'] = function () {
     return uid.join('')
 }
 JSPG['normalizeAndCopyToObject'] = function (objSource, objTarget, propsToNormalize, callbackForProps={}) {
+    const selfNormalization = objTarget == null
+    if (selfNormalization) {
+        objTarget = objSource
+    }
+
     for (const key in objSource) {
         const propCallback = Object.keys(callbackForProps).find(el => el.toLowerCase() == key.toLowerCase())
         let value = objSource[key]
@@ -138,14 +150,20 @@ JSPG['normalizeAndCopyToObject'] = function (objSource, objTarget, propsToNormal
         if (!normalizedPropName) {
             objTarget[key] = value
         } else {
+            console.log(`Key ${key} should be normalized`)
             objTarget[normalizedPropName] = value
+            if (selfNormalization && key !== normalizedPropName) {
+                console.log('Key deleted after normalization')
+                delete objTarget[key]
+            }
         }
     }
 }
 
 // === Public Functions ===
-JSPG['PlayScenario'] = function (scenes, init_scene='Init') {
+JSPG['PlayScenario'] = function (scenes, screens, init_scene='Init') {
     this.Scenes = scenes
+    this.Screens = screens
     if (scenes.hasOwnProperty('Meta')) {
         this.normalizeAndCopyToObject(
             scenes.Meta,
@@ -163,6 +181,8 @@ JSPG['PlayScenario'] = function (scenes, init_scene='Init') {
     }
 
     $("game-title").html(`${this.Meta.name}, <small>v.${this.Meta.version} by ${this.Meta.author}</small>`)
+    JSPG.MenuHandler.addSystemScreens()
+
     return this.GoTo(init_scene)
 }
 JSPG['GoTo'] = function (name) {
@@ -189,12 +209,8 @@ JSPG['Entities']['Scene'] = function (id, name) {
         log('Scene', `Generating new scene with type ${sceneConfig.hasOwnProperty("type") ? sceneConfig.type : JSPG.Constants.SCENE_TYPES.SCENE}`)
 
         propCallbacks = {}
-        propCallbacks[JSPG.Constants.SCENE_FIELDS.DESC] = desc => {
-            return Array.isArray(desc) ? desc : [desc]
-        }
-        propCallbacks[JSPG.Constants.SCENE_FIELDS.ACTIONS] = actions => {
-            return this.setActions(actions)
-        }
+        propCallbacks[JSPG.Constants.SCENE_FIELDS.DESC] = desc => Array.isArray(desc) ? desc : [desc]
+        propCallbacks[JSPG.Constants.SCENE_FIELDS.ACTIONS] = actions => this.setActions(actions)
         propCallbacks[JSPG.Constants.SCENE_FIELDS.TYPE] = type => {
             let style = JSPG.Constants.BLOB_STYLES.SCENE_LEFT
             switch (type.toLowerCase()) {
@@ -341,13 +357,10 @@ JSPG['Entities']['Element'] = function(tag='') {
         ]
         Object.keys(this.attributes).forEach(k => attrs.push(`${k}='${this.attributes[k]}'`))
         const attrLine = attrs.join(' ')
-
-        console.log(attrLine)
-
         const html = this.template.replace('$$html_tag', this.html_tag)
-                            .replace('$$attrs', attrLine)
-                            .replace('$$content', this.content)
-                            .replace('$$html_tag', this.html_tag)
+                                  .replace('$$attrs', attrLine)
+                                  .replace('$$content', this.content)
+                                  .replace('$$html_tag', this.html_tag)
         log('ElementEntity.Get', html)
         return html
     }
@@ -383,8 +396,6 @@ JSPG['Entities']['Element'] = function(tag='') {
         const disableOnLimit = eh[3]
 
         log('ElementEntity.RunEventHandler', `Running event [${event}] for element [${this.html_tag}/uid=${this.id} tag=${this.tag}]`)
-
-        console.log(callback)
         callback()
 
         if (use_limit == -1) return
@@ -420,15 +431,100 @@ JSPG['Entities']['Element'] = function(tag='') {
     }
 
     this.Disable = function() {
-        const $node = this.Find()
-        $node.off()
-        $node.prop('disabled', true)
-
         this.eventHandlers.splice(0, this.eventHandlers.length)
 
+        const $node = this.Find()
+        if (!$node) return
+
+        $node.off()
+        $node.prop('disabled', true)
         log('ElementEntity.Disable', `Element [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
     }
 }
+JSPG['Entities']['ScreenTemplates'] = {}
+JSPG['Entities']['ScreenTemplates'][JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU] = function () {
+    this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU
+    this.title = ''
+    this.content = []
+    this.onClickHandlers = []
+    this.HEADER_CLASS = 'simple-menu-header'
+    this.CONTENT_CLASS = 'simple-menu-content'
+    this.FIELDS = {
+        TITLE: 'title',
+        CONTENT: 'content',
+        PRE_EXEC: 'pre_exec'
+    }
+    this.FIELDS_CONTENT = {
+        TITLE: 'title',
+        NAVIGATETO: 'navigateto',
+        ONCLICK: 'onclick',
+    }
+
+    this.fromConfig = function (config) {
+        propCallbacks = {}
+        propCallbacks[this.FIELDS.CONTENT] = list => {
+            const normalizedList = []
+            list.forEach(el => {
+                let normalizedElement = {}
+                JSPG.normalizeAndCopyToObject(el,
+                    normalizedElement,
+                    Object.values(this.FIELDS_CONTENT))
+                normalizedList.push(normalizedElement)
+            })
+            return normalizedList
+        }
+
+        JSPG.normalizeAndCopyToObject(config, this,
+                                      Object.values(this.FIELDS),
+                                      propCallbacks)
+
+        if (!this.hasOwnProperty('pre_exec')) return this
+
+        // Pre_exec may change fields read from config
+        // and changed fields may need again normalization
+        this.pre_exec(this)
+        JSPG.normalizeAndCopyToObject(this, null, Object.values(this.FIELDS), propCallbacks)
+
+        return this
+    }
+
+    this.Get = function () {
+        const html = []
+        this.onClickHandlers.length = 0
+        if (this.title != '') {
+            html.push(`<div class='${this.HEADER_CLASS}'>${this.title}</div>`)
+        }
+
+        html.push(`<div class='${this.CONTENT_CLASS}'>`)
+        this.content.forEach((content, idx) => {
+            console.log('For each content (idx:' + idx)
+            console.log(content)
+
+            const onClickCode = []
+            if (typeof content.onclick != 'undefined') {
+                this.onClickHandlers[idx] = content.onclick
+                onClickCode.push(`JSPG.MenuHandler.onScreenElementClick(${idx})`)
+
+                console.log('OnClick code defined - setting on click handler')
+                console.log(onClickCode)
+            }
+            if (typeof content.navigateto != 'undefined') {
+                onClickCode.push(` JSPG.MenuHandler.ShowScreen(\"${content.navigateto}\") `)
+                console.log('NavigateTo defined - adding destination')
+                console.log(onClickCode)
+            }
+            console.log(onClickCode)
+
+            this.onClickHandlers.push(content.onClick)
+            html.push(`<a href='#' onclick='${onClickCode.join(';')}'>${content.title}</a>`)
+        })
+        html.push(`</div>`)
+        html.push(`<a href="javascript:void(0)" class="closebtn" onclick="JSPG.MenuHandler.HideScreen()">&times;</a>`)
+
+        return html.join('')
+    }
+}
+
 
 JSPG['ActionHandler'] = new (function () {
     this.actions = []
@@ -549,7 +645,8 @@ JSPG['ElementsHandler'] = new (function () {
     }
 
     this.clearElementsList = function () {
-        this.elements.forEach(el => el.Disable())
+        console.log(`Elements size ${this.elements.length}`)
+        this.elements.forEach(el => {console.log(el); el.Disable()})
         this.elements.splice(0, this.elements.length)
     }
 
@@ -560,8 +657,6 @@ JSPG['ElementsHandler'] = new (function () {
             case JSPG.Constants.ELEMENTS.TYPES.LABEL:
                 log('Elements.createElement', 'Creating LABEL')
                 element.AsLabel(content)
-
-                console.log(element.html_tag)
                 break
             case JSPG.Constants.ELEMENTS.TYPES.IMAGE:
                 element.AsImage(content)
@@ -571,11 +666,9 @@ JSPG['ElementsHandler'] = new (function () {
                 break
         }
 
+        element.AddAttrs(attributes)
+        element.SetEventHandlers(eventsHandlers)
 
-        console.log(element.html_tag)
-        element.AddAttrs(attributes).        SetEventHandlers(eventsHandlers)
-
-        console.log(element.html_tag)
         this.elements.push(element)
         return element
     }
@@ -720,10 +813,222 @@ JSPG['SceneHandler'] = new (function () {
         const style = JSPG.Constants.BLOB_STYLES.SUBTITLE
         $('#scenes').append(`<div class='scene-description ${style}'>${sys_msg}</div>`)
     }
-})();
+})()
+JSPG['MenuHandler'] = new (function () {
+    this.items = []
+    this.currentScreen = null
+
+    this.Constants = {
+        BUTTON_CLASS_PREFIX: 'menu-button-idx-'
+    }
+
+    this.Entity = {
+        Icon: function (img, text, icon_class) {
+            this.img = !img ? '' : img
+            this.text = !text ? '' : text
+            this.class = !icon_class ? '' : icon_class
+
+            this.get = function() {
+                const content = this.img == ''
+                                ? this.text
+                                : `<img src='${this.img}' alt='${this.text}' />`
+                return `<i class='menu-button-icon ${this.class}'>${content}</i>`
+            }
+        },
+        Button: function (tag, positionIdx, title, icon, onClick, attrs={}) {
+            this.positionIdx = positionIdx
+            this.tag = tag
+            this.title = title
+            this.icon = icon
+            this.onClick = onClick
+            this.attributes = attrs
+
+            this.get = function () {
+                const attrs = {
+                    posid: this.positionIdx,
+                    tag: tag ,
+                    onclick: "JSPG.MenuHandler.OnMenuItemClick(this)"
+                }
+                Object.assign(attrs, this.attributes)
+
+                const classByIdx = `${JSPG.MenuHandler.Constants.BUTTON_CLASS_PREFIX}${this.positionIdx}`
+                attrs['class'] = attrs.hasOwnProperty('class')
+                                 ? `${attrs['class']} ${classByIdx}`
+                                 : classByIdx
+
+                const attrsList = []
+                Object.keys(attrs).forEach(key=>attrsList.push(`${key}='${attrs[key]}'`))
+
+                return `<button ${attrsList.join(' ')}>${this.icon}${this.title}</button>`
+            }
+
+            this.find = function () {
+                return $(`#menu button[posid=${this.positionIdx}]`)
+            }
+
+            this.updatePositionIdx = function (newPositionIdx) {
+                const $element = this.find()
+                $element.attr({posid: newPositionIdx})
+                $element.removeClass(`${JSPG.MenuHandler.Constants.BUTTON_CLASS_PREFIX}${this.positionIdx}`)
+                $element.addClass(`${JSPG.MenuHandler.Constants.BUTTON_CLASS_PREFIX}${newPositionIdx}`)
+
+                this.positionIdx = newPositionIdx
+            }
+
+            this.enable = function () { this.find().attr('disabled', false) }
+            this.disable = function () { this.find().attr('disabled', true) }
+        }
+    }
+
+    // Protected-like
+    this.AddMenuItem = function (tag, title, iconData, onclick, attrs={}) {
+        let icon = iconData == null
+                   ? ''
+                   : (new this.Entity.Icon(iconData.img, iconData.text, iconData.class)).get()
+        const item = new this.Entity.Button(tag,
+                                        positionIdx=this.items.length,
+                                        title,
+                                        icon,
+                                        onclick,
+                                        attrs)
+        this.items.push(item)
+        const html = item.get()
+        $("#menu").append(html)
+    }
+
+    this.RemoveMenuItem = function (findBy) {
+        // findBy may be integer (position idx) or string (tag name)
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+
+        item.find().remove()
+        this.items.splice(idx, 1)
+        this.updateMenuItems()
+    }
+
+    this.ClearMenuItems = function () {
+        this.items.forEach(item => item.find().remove())
+        this.items.splice(0, this.items.length)
+    }
+
+    this.DisableMenuItem = function (findBy) {
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+
+        item.disable()
+    }
+
+    this.EnableMenuItem = function (findBy) {
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+
+        item.enable()
+    }
+
+    this.OnMenuItemClick = function (btn) {
+        const posid = btn.getAttribute('posid')
+        return this.items[posid].onClick()
+    }
+
+    this.GetCurrentScreen = function () {
+        return this.currentScreen;
+    }
+
+    this.ShowScreen = function (screenName) {
+        const screenConfig = JSPG.Screens[screenName]
+        const typeKey = Object.keys(screenConfig).find(key => key.toLowerCase() == 'type')
+        if (!typeKey) return
+
+        const screen = new JSPG.Entities.ScreenTemplates[screenConfig[typeKey]]()
+        screen.fromConfig(screenConfig)
+
+        this.currentScreen = screen
+        this.UpdateScreenContent()
+
+        document.getElementById("overlay").style.width = "100%"
+    }
+
+    this.UpdateScreenContent = function (html) {
+        // Replace screen content with given HTML or by screen's Get() method
+        if (typeof html != 'undefined') {
+            $("#overlay").html(html)
+        }
+        if (this.currentScreen == null) return
+        $("#overlay").html(this.currentScreen.Get())
+    }
+
+    this.HideScreen = function () {
+        document.getElementById("overlay").style.width = "0%"
+        this.currentScreen = null
+        this.UpdateScreenContent(html='')
+    }
+
+    this.AddMainMenuButton = function () {
+        this.AddMenuItem(tag='main-menu-button',
+                         title='Menu',
+                         iconData=null,
+                         onClick=() => { this.ShowScreen('Main') },
+                         attr={class: 'menu-button-main'})
+    }
+
+    // Private-like
+    this.updateMenuItems = function () {
+        for (let idx = 0; idx < this.items.length; ++idx) {
+            this.items[idx].updatePositionIdx(idx)
+        }
+    }
+
+    this.findMenuItem = function (findBy) {
+        // findBy may be integer (position idx) or string (tag name)
+        let idx = (typeof findBy == typeof "")
+                  ? this.items.findIndex(item => item.tag == findBy)
+                 : findBy
+        if (idx < 0 || idx >= this.items.length) return [-1, null]
+
+        return [idx,  this.items[idx]]
+    }
+
+    this.onScreenElementClick = function (eventHandlerIdx) {
+        console.log(`Menu.onScreenElementClick/ Handler id = ${eventHandlerIdx}`)
+        const handler = this.currentScreen.onClickHandlers[eventHandlerIdx]
+        if (typeof handler == 'undefined') return
+
+        console.log('Menu.onScreenElementClick/ Invoking event handler for click')
+        handler()
+    }
+
+    this.addSystemScreens = function () {
+        JSPG.Screens.SaveGameScreen = {
+            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+            title: 'Save Game',
+            pre_exec: JSPG.Persistence.formatSaveMenuScreen.bind(JSPG.Persistence)
+        }
+
+        JSPG.Screens.LoadGameScreen = {
+            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+            title: 'Load Game',
+            pre_exec: JSPG.Persistence.formatLoadMenuScreen.bind(JSPG.Persistence)
+        }
+
+        JSPG.Screens.AboutScreen = {
+            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+            title: 'About',
+            content: [
+                {title: `${JSPG.Meta.name}`},
+                {title:`by ${JSPG.Meta.author}`},
+                {title:`Version ${JSPG.Meta.version}`},
+                {title:`Game UID: ${JSPG.Meta.guid}`},
+                {title:''},
+                {title:`Powered by JSPG version ${JSPG.Meta.JSPGVersion}`}
+            ]
+        }
+    }
+
+})()
 
 JSPG['Persistence'] = new (function () {
     this.subscribers = []
+    this.customSaveObject = null
 
     this.Entity = {
         Save: function (customDictionary) {
@@ -745,19 +1050,19 @@ JSPG['Persistence'] = new (function () {
     }
 
     this.getKeyBySlotId = function (slot_id) {
-        const name = JSPG.Meta.name
-        const prefix = `${name}+${slot_id}`
+        const guid = JSPG.Meta.guid
+        const prefix = `${guid}+${slot_id}`
         return {
             meta: `${prefix}_meta`,
             data: `${prefix}_savegame`
         }
     }
 
-    this.Save = function (slot_id, saveObject) {
+    this.Save = function (slot_id) {
         const target = this.getKeyBySlotId(slot_id)
 
         const meta = new this.Entity.Metadata()
-        const data = new this.Entity.Save(saveObject)
+        const data = new this.Entity.Save(this.customSaveObject)
         window.localStorage.setItem(target.meta, JSON.stringify(meta))
         window.localStorage.setItem(target.data, JSON.stringify(data))
 
@@ -776,7 +1081,7 @@ JSPG['Persistence'] = new (function () {
         console.log(parsedMeta)
         if (JSPG.Meta.version != parsedMeta.version) {
             console.log(`Saved game version mismatch! Current game version ${JSPG.Meta.version}, but saved game has ${parsedMeta.version}`)
-            JSPG.Meta.onVersionMismatch(parsedMeta.version)
+            JSPG.Settings.onVersionMismatch(parsedMeta.version)
         }
 
         const parsedData = JSON.parse(data)
@@ -812,8 +1117,11 @@ JSPG['Persistence'] = new (function () {
 
     this.Unsubsribe = function(name) {
         const idx = this.subscribers.findIndex(el => el[0] == name)
-        console.log(idx)
         this.subscribers.splice(idx, 1)
+    }
+
+    this.SetSaveObject = function (saveObject) {
+        this.customSaveObject = saveObject
     }
 
     this.loadObject = function (obj, dataObj, rules={}) {
@@ -868,6 +1176,54 @@ JSPG['Persistence'] = new (function () {
         }
 
         log("loadObject", `Finished!`)
+    }
+
+    this.formatLoadMenuScreen = function (screen) {
+        screen.content = []
+        for (let i = 0; i < 10; ++i) {
+            let title = `Slot ${i + 1} -- Empty slot`
+            let onClick = ()=>{}
+            const slot = this.getKeyBySlotId(i)
+            const metaString = window.localStorage.getItem(slot.meta)
+
+            if (metaString != null) {
+                const meta = JSON.parse(metaString)
+                const date = new Date(meta.date)
+                console.log(meta)
+                title = `Slot ${i + 1} -- ${date.toDateString()} ${date.toLocaleTimeString()} -- Game Version: ${meta.version}`
+                onClick = () => {
+                    JSPG.MenuHandler.HideScreen();
+                    setTimeout(() => { JSPG.Persistence.Load(i); }, 100)
+                }
+            }
+            screen.content.push({title: title, onClick: onClick})
+        }
+    }
+
+    this.formatSaveMenuScreen = function (screen) {
+        screen.content = []
+        const onClick = function (slot_id) {
+            JSPG.Persistence.Save(slot_id);
+            JSPG.MenuHandler.HideScreen();
+        }
+
+        for (let i = 0; i < 10; ++i) {
+            let title = `Slot ${i + 1} -- Empty slot`
+
+            const slot = this.getKeyBySlotId(i)
+            const metaString = window.localStorage.getItem(slot.meta)
+            console.log(metaString)
+            if (metaString != null) {
+                const meta = JSON.parse(metaString)
+                const date = new Date(meta.date)
+                title = `Slot ${i + 1} -- ${date.toDateString()} ${date.toLocaleTimeString()} -- Game Version: ${meta.version}`
+            }
+
+            console.log('formatSaveManu/ Result:')
+            console.log(title)
+            console.log(onClick.bind(null, i))
+            screen.content.push({title: title, onClick: onClick.bind(null, i)})
+        }
     }
 })()
 JSPG['Helper'] =  new (function() {
@@ -961,10 +1317,12 @@ JSPG['Helper'] =  new (function() {
 
 
 
-
-
 // === Start ===
 const $h = JSPG.Helper
+const Scenes = {}
+const Screens = {}
+
 $( document ).ready(function() {
-    JSPG.PlayScenario(scenes=Scenes, init_scene='Init')
+    JSPG.PlayScenario(scenes=Scenes, screens=Screens, init_scene='Init')
+    JSPG.MenuHandler.AddMainMenuButton()
 });

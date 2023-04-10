@@ -1,3 +1,33 @@
+
+Scenes['Meta'] = {
+    guid: 'af9a0e87-fd00-4a9b-97e6-84a3a0ba09b6', /* Generate any, e.g. https://www.uuidgenerator.net/ */
+    name: "Example Game",
+    author: "Unknown",
+    version: '0.0.1'
+}
+
+
+Screens['Main'] = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+    title: 'Main Menu',
+    content: [
+        {
+            title: 'Save',
+            navigateTo: 'SaveGameScreen'
+        },
+        {
+            title: 'Load',
+            navigateTo: 'LoadGameScreen'
+        },
+        {
+            title: 'About',
+            navigateTo: 'AboutScreen'
+        }
+    ]
+}
+
+
+
 /*
  * Scenes variable is mandatory and should always contain 'Init' scene (game will start from it).
  *
@@ -23,77 +53,77 @@
  */
 
 
-var Scenes = {
-	"Init": {
-		type: "Title",
-		desc: "The JSPG Title",
-		goTo: 'Scene_Dialog'
-	}	
-	, "Scene_Dialog": {
-		type: "Dialog",
-		desc: [
-			"- Whoa!",
-			"- Whatta yo doing?"	
-		],
-		portrait: "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png",
-		post_exec: () => {
-			alert("OBJECTION!")
-			Game.goTo("Scene1")  /* same as GoTo but invoked manually */
-		}
+Scenes["Init"] = {
+	type: "Title",
+	desc: "The JSPG Title",
+	goTo: 'Scene_Dialog'
+}	
+
+Scenes["Scene_Dialog"] = {
+	type: "Dialog",
+	desc: [
+		"- Whoa!",
+		"- Whatta yo doing?"	
+	],
+	portrait: "http://65.media.tumblr.com/avatar_6ea49b9b3506_128.png",
+	post_exec: () => {
+		alert("OBJECTION!")
+		JSPG.GoTo("Scene1")  /* same as GoTo but invoked manually */
 	}
-	, "Scene1": {
-		desc: "- You chose a wrong door, leather man. Leather club is two blocks down!",
-		actions: [
-			{ 
-				name: "- Fuck You!", /* display name */
-				/* desc: "- Fuck you!" // optional - name will be used */
-				type: "dialog", /* scene, hidden, dialog */
-				exec: "Game.goTo('Scene2')", /* code to execute on action clicked */
-				portrait: "https://a.ppy.sh/7015713?1448466217.png"
-			},
-			{ 
-				name: "- Hello!",
-				desc: "-Hell... FUCK YOU!",
-				type: "dialog" ,
-				goTo: "Scene2",
-				portrait: "https://a.ppy.sh/7015713?1448466217.png"
-			}
-		],
-		pre_exec: "console.log('Pre-init Exec')",  /* This will be evaluated using eval() before scene redn */
-		post_exec: ()=>{ console.log('Post-init Exec') }, /* and this will be invoked as */
-	}	
-	
-	, "Scene2": {
-		desc: "This won't be rendered at all",
-		pre_exec: () => {
-			// Making some changes and force player to navigate to another scene
-			window.MyVariable = false
-			Game.goTo('Scene3')
-			
-			// If exec function returns false - current scene rendering will be aborted
-			return false
+}
+
+Scenes["Scene1"] = {
+	desc: "- You chose a wrong door, leather man. Leather club is two blocks down!",
+	actions: [
+		{ 
+			name: "- Fuck You!", /* display name */
+			/* desc: "- Fuck you!" // optional - name will be used */
+			type: "dialog", /* scene, hidden, dialog */
+			exec: "JSPG.GoTo('Scene2')", /* code to execute on action clicked */
+			portrait: "https://a.ppy.sh/7015713?1448466217.png"
+		},
+		{ 
+			name: "- Hello!",
+			desc: "-Hell... FUCK YOU!",
+			type: "dialog" ,
+			goTo: "Scene2",
+			portrait: "https://a.ppy.sh/7015713?1448466217.png"
 		}
-	}	
+	],
+	pre_exec: "console.log('Pre-init Exec')",  /* This will be evaluated using eval() before scene redn */
+	post_exec: ()=>{ console.log('Post-init Exec') }, /* and this will be invoked as */
+}	
 	
-	, "Scene3": {
-		desc: "- You want to finish this game?",
-		actions: [
-			{
-				name: "Finish game",
-				condition: () => { return window.MyVariable }, /* This action won't be available on first pass */
-				goTo: "Scene4"
-			},
-			{
-				name: "Not yet!",
-				condition: () => { return !window.MyVariable }, /* This action will be availabe only on first pass*/
-				exec: () => { window.MyVariable = true },  /* on selection - makes first action available */
-				goTo: "Scene3"  /* and navigate to this scene again */
-			}
-		]
+Scenes["Scene2"] = {
+	desc: "This won't be rendered at all",
+	pre_exec: () => {
+		// Making some changes and force player to navigate to another scene
+		window.MyVariable = false
+		JSPG.GoTo('Scene3')
+		
+		// If exec function returns false - current scene rendering will be aborted
+		return false
 	}
+}	
 	
-	, "Scene4": {
-		desc: "THE END",
-		type: "subtitle"
-	}	
-};
+Scenes["Scene3"] = {
+	desc: "- You want to finish this game?",
+	actions: [
+		{
+			name: "Finish game",
+			condition: () => { return window.MyVariable }, /* This action won't be available on first pass */
+			goTo: "Scene4"
+		},
+		{
+			name: "Not yet!",
+			condition: () => { return !window.MyVariable }, /* This action will be availabe only on first pass*/
+			exec: () => { window.MyVariable = true },  /* on selection - makes first action available */
+			goTo: "Scene3"  /* and navigate to this scene again */
+		}
+	]
+}
+	
+Scenes["Scene4"] = {
+	desc: "THE END",
+	type: "subtitle"
+}

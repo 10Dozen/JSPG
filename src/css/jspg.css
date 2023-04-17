@@ -65,24 +65,40 @@ body {
     margin-top: 30px;
 }
 
-#overlay a {
-  padding: 8px;
-  text-decoration: none;
-  font-size: 36px;
-  color: #818181;
-  display: block;
-  transition: 0.3s;
+.simple-menu-content a {
+    padding: 8px;
+    text-decoration: none;
+    font-size: 36px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
 }
 
-#overlay a:hover, #overlay a:focus {
-  color: #f1f1f1;
+.simple-menu-content a:hover, .simple-menu-content a:focus {
+    color: #f1f1f1;
+}
+
+.simple-menu-content p {
+    padding: 8px;
+    font-size: 24px;
+    color: #818181;
 }
 
 #overlay .closebtn {
-  position: absolute;
-  top: 20px;
-  right: 45px;
-  font-size: 60px;
+    text-decoration: none;
+    display: block;
+    position: absolute;
+    top: 20px;
+    right: 45px;
+
+    padding: 8px;
+    font-size: 60px;
+    color: #818181;
+    transition: 0.3s;
+}
+
+#overlay .closebtn:hover, #overlay .closebtn:focus {
+    color: #f1f1f1;
 }
 
 /* ****************
@@ -94,7 +110,6 @@ body {
     background-color: #c52334;
 
     position: fixed;
-    right: -166px;
     transition: 0.3s;
     width: 200px;
     height: 58px;
@@ -106,8 +121,18 @@ body {
     border-radius: 6px 0px 0px 6px;
 }
 
-#menu button:hover {
+#menu .menu-button {
+    right: -166px;
+}
+
+#menu .menu-button:hover {
     right: 0px;
+}
+
+@media only screen and (hover: none) and (pointer: coarse) {
+    #menu .menu-button {
+        right: 0px;
+    }
 }
 
 #menu button:disabled {
@@ -159,11 +184,10 @@ body {
     max-height: 24px;
 }
 
-/* ****************
-    Form
-**************** */
+/***** Main game lane ******* */
 #game-form {
     max-width: 512px;
+    font-size: 18px;
 }
 
 #game-form ul li {
@@ -172,6 +196,8 @@ body {
 }
 
 .action-btn {
+    display: flex;
+    align-items: center;
     border: 1px solid #333;
     background-color: #eee;
 
@@ -179,11 +205,10 @@ body {
     margin-bottom: 5px;
 
     color: #333;
-    font-size: 14px;
 
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 1.5s;
+    transition-duration: 0.5s;
 }
 
 .action-btn:hover {
@@ -193,17 +218,37 @@ body {
     cursor:pointer;
 }
 
+.action-btn i {
+    padding-right: 10px;
+}
+
+.action-btn-icon img {
+    max-width: 64px;
+    max-height: 64px;
+}
+
+.img128 img {
+    max-width: 128px!important;
+    max-height: 128px!important;
+}
+
+.img256 img {
+    max-width: 256px!important;
+    max-height: 256px!important;
+}
+
 .actions {
     min-height: 32px;
 }
 
 .inline-button {
-  background: none!important;
-  border: none;
-  padding: 0!important;
-  color: #d98a8a;
-  text-decoration: underline;
-  cursor: pointer;
+    font-size: 18px;
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    color: #d98a8a;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .inline-button:hover {
@@ -220,95 +265,88 @@ body {
     cursor: cursor;
 }
 
-img {
-    max-width: 390px;
-}
-
-
-
-
-/* ******************
-    Scene Types
-   ****************** */
+/*** Blob styles ****/
 .scene-description {
     border: 1px solid #999;
     border-radius: 10px;
     padding: 15px 20px;
 
-    font-size: 14px;
     color: #ddd;
 
-
     opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.5s;
+}
+.scene-description img {
+    max-width: 390px;
 }
 
 .scene-even {
     margin-right: 40px;
     background-color: #444;
-
-    transition-property: opacity;
-    transition-duration: 1s;
 }
 .scene-odd {
     margin: 5px 0px 5px 40px;
     background-color: #666;
-
-    transition-property: opacity;
-    transition-duration: 0.3s;
 }
 
 .scene-title {
+    font-size: 28px;
+    text-align: center;
+    color: #777;
+
     border-top: 1px solid #777;
     border-bottom: 1px solid #777;
     border-left-width: 0px;
     border-right-width: 0px;
     border-radius: 0px;
-
-    color: #777;
-    font-size: 24px;
-    text-align: center;
 
     margin-top: 15px;
     margin-bottom: 15px;
-    opacity: 0;
-    transition-property: opacity;
-    transition-duration: 0.3s;
 }
 
 .scene-subtitle {
+    font-size: 18px;
+    text-align: center;
+    color: #777;
+
     border-top: 1px solid #777;
     border-bottom: 1px solid #777;
     border-left-width: 0px;
     border-right-width: 0px;
     border-radius: 0px;
 
-    color: #777;
-    font-size: 14px;
-    text-align: center;
-
     margin-top: 10px;
     margin-bottom: 10px;
-    opacity: 1;
-    transition-property: opacity;
-    transition-duration: 0.3s;
 }
 
 .portrait {
-    height: 128px;
+    min-height: 128px;
 }
-
+.portrait img {
+    height: 128px;
+    max-width: 128px;
+}
 .portrait-left img {
-    width: 128px;
     display: block;
     float: left;
-    padding: 0px 5px 0px 0px;
-
+    padding-right: 5px;
 }
-
 .portrait-right img {
-    width: 128px;
     display: block;
     float: right;
-    padding: 0px 5px 0px 0px;
+    padding-left: 5px;
+}
 
+.container {
+
+    color: #333;
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-radius: 0px;
+
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

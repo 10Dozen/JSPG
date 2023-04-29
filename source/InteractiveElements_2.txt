@@ -1,0 +1,31 @@
+Element Interface:
+    ._Construct({...})  --> create Element of given type (e.g. AsImage(), AsClick())
+    .Compose()  --> composes and returns HTML code of element
+    .Find(...) --> finds element HTML node in document
+    .Enable()  --> assign eventhandler to HTML node in document
+    .Disable()   --> removes eventhandler from HTML node in document
+    .AddEventHandler(event, callback, ...)  --> register event handler for element (not HTML node!)
+    .RemoveEventHandler(event) --> unregister event handler for element (but doesnt remove from HTML node!)
+    ----
+    
+    
+Element handler:
+    .registerElement(elementObject)   -> starts to track element (enables/disables on scene start or end)
+    .runElementsEventHandlerByIndex(element, event, idx)  --> runs eventhandler for given element
+    .unregisterElement(elementObject or idx)  -> removes element from tracking
+    ------
+    
+    
+Setting attributes and eventhandler should be done via accessing variables:
+    element.attrs
+    element.events
+        .push(...)
+    
+
+$h.Img():
+    el = new JSPG.Entities.Element(tag).AsImage(src)
+
+$h.Checkbox():
+    el = new JSPG.Entities.LabeledElement(tag, label).AsCheckbox(false)
+    el.AddEventHandler
+

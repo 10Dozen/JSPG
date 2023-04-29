@@ -1,0 +1,69 @@
+	this.Click = function(text, callback, tag='', use_limit=1, style=null, attrs=null)
+
+
+
+
+
+	$h.Checkbox(label="Label for CB", default=false tag='MyTag', callback=(), style=null, attrs=null, controlStyle=null, controlStyle=null)
+
+	$h.Radio(options=["Option1", "Option2"], defaultIdx=0, callback=(), tag='MyTag2',  style=null, attrs=null, controlStyle=null, controlStyle=null)
+
+	$h.Radio({
+		options: ['Option1', 'Option2'],
+		default: 0,
+		callback: (selected, idx) => { cosole.log(selected) },
+		tag: "MyTag",
+		style: "",
+		controlStyle: "",
+		attrs: {},
+		controlAttrs: {},
+		events: [
+			['click', ()=>{}]
+		]
+	})
+
+
+	"Here are radio:",
+	"`${$h.Radio({options: ["Option1","Option2"], default: 1, callback: (s,i)=> console.log(i + ' ' + s), tag: 'MyRadio', class: 'my-label', ctrlClass: 'my-radio-class'})}`"
+
+	$h.Slider(range=[0,100], default=50,
+
+
+	// Labeled Element
+	Tag applies to input element, label acquires tag = %Tag-label
+	EventHandlers applied to control element
+	// Methods:
+		.Find() - returns control $HTML element
+		.Label() -- returns label $HTML element
+		.Value()  -- returns value of control element
+
+
+	$h.Checkbox(labeltext..., isSelected, type(-1 or 1)   		->  Label [ ] or [ ] Label
+	$h.Radio(labeltext..., isSelected)  			->  [] Label or     Label []
+	$h.Slider(min,max, selected, label function)    -> [-----|------] ValueLabel  or ValueLabel [-----|-----]
+	$h.Meter(...)    [====     ] (Label) or (Label) [====    ]
+
+
+	// Element Group
+	- Tag applies to header element, other elements acquire tag=%Tag-idx
+	- Nested elements are created as Element objects and registered in ElementsHandler
+	- Event handlers by default applied to header element, to apply to specific nested use el.Nested(1).AddEventHandler()
+
+
+	// Methods:
+		.Find()  -- return parent $HTML element (e.g. `table` or `ul` or `group`)
+		.Nested(idx or tag) -- returns nested element/labeled element if no params - return list of all nested elements
+		.Value()  -- return selected value (element and idx) of a group or null if non-interactive  (e.g. document.querySelector('input[name="fav_language"]:checked').value;)
+		.HasInput() -- returns true if group contains input elements (e.g. radiobuttons)
+
+	// E.g. group of radiobuttons
+	$h.Options(list of options, default one, onselectionCallback, class, style, attrs)
+
+	$h.Table(header=[], data=[][])
+	$h.List(elements=[])
+	$h.OrderedList(elements=[])
+
+
+	// Element
+	// Reuse content field to get ranges and and defaults
+	$h.Select(options=[1,2,3], defaultIdx=1, tag='MyTag3', ...)     [dropdown   V]

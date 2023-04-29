@@ -1,0 +1,11 @@
+//@map: JSPG.Maps.BLOB_TYPE_BY_TOKEN : JSPG.Constants.INLINE_TOKENS_TYPES : JSPG.Constants.BLOB_TYPES
+
+// Inline Token to Blob type mapping
+SCENE_LEFT = *
+SCENE_RIGHT = *
+TITLE = *
+SUBTITLE = *
+DIALOG_LEFT = *
+DIALOG_RIGHT = *
+CONTAINER = *
+HIDDEN = *

@@ -23,17 +23,19 @@ const Logger = function (component, level=2) {
         return lvlToCheck <= this.level
     }
 
-    this.err = function (...msg) {
+    this.error = function (...msg) {
         const lvl = this.LOG_LEVELS.ERROR
         if (!this.isLogLevelAllowed(lvl)) return
         console.error(this.getMsgPrefix(lvl), ...msg)
     }
+    this.err = this.error
 
-    this.warn = function (...msg) {
+    this.warning = function (...msg) {
         const lvl = this.LOG_LEVELS.WARNING
         if (!this.isLogLevelAllowed(lvl)) return
         console.warn(this.getMsgPrefix(lvl), ...msg)
     }
+    this.warn = this.warning
 
     this.info = function (...msg) {
         const lvl = this.LOG_LEVELS.INFO

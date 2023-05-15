@@ -190,12 +190,6 @@ body {
     font-size: 18px;
 }
 
-#game-form ul li {
-    padding: 3px 0px;
-    list-style-type: none;
-}
-
-
 #actions {
     opacity: 0;
     transition-property: opacity;
@@ -293,6 +287,11 @@ body {
 .scene-description img {
     max-width: 390px;
 }
+
+.scene-description video {
+    max-width: 390px;
+}
+
 
 .scene-even {
     margin-right: 40px;

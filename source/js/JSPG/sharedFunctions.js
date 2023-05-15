@@ -1,6 +1,6 @@
 // === Shared Functions ===
-JSPG['execCode'] = function (code) {
-    if (typeof(code) != typeof("")) return code()
+JSPG['execCode'] = function (code, ...params) {
+    if (typeof(code) != typeof("")) return code(...params)
     if (code != "") return eval(code)
     return
 }

@@ -73,42 +73,62 @@ this.onActionSelected = function (actionId) {
     this.hideSceneActions()
     const action = this.getActionById(actionId)
 
-    const drawTimeout = this.showActionDescription(action)
-    this.executeAction(action, drawTimeout)
+    const execTimeout = this.executeAction(action)
+    const drawTimeout = this.showActionDescription(action, execTimeout)
+    this.executePostAction(action, drawTimeout)
 }
 
-this.showActionDescription = function (action) {
-    if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return
+this.executeAction = function (action) {
+    const timeout = JSPG.Constants.TIMEOUTS.ACTION.BEFORE_EXECUTE
+    if (!action.exec) return 0
+
+    setTimeout(() => {
+        // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
+        const execResult = action.exec(action)
+        if (execResult != undefined && !execResult) {
+            action.available = false
+            this.log.debug('{executeAction}', 'Skip action\'s GoTo')
+            return
+        }
+    }, timeout);
+
+    return (timeout + JSPG.Constants.TIMEOUTS.ACTION.AFTER_EXECUTE)
+}
+
+this.showActionDescription = function (action, offsetTimeout) {
+    if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
+
     const contentfullBlobs = action.parseDescriptions()
     const frames = contentfullBlobs.length
-    if (frames == 0) return 0
+    if (frames == 0) return offsetTimeout
 
-    const baseTimeout = JSPG.Constants.TIMEOUTS.ACTION.SHOW_ANSWER
-    let timeout = baseTimeout
+    let timeout = offsetTimeout + JSPG.Constants.TIMEOUTS.ACTION.SHOW_ANSWER
     for (let frame = 0; frame < frames; ++frame) {
         timeout += JSPG.Constants.TIMEOUTS.SCENE.STEP * frame
 
         JSPG.SceneHandler.drawBlob(contentfullBlobs[frame], timeout, frame == 0)
     }
 
-    return timeout
+    return (timeout + JSPG.Constants.TIMEOUTS.ACTION.AFTER_ANSWER)
 }
 
-this.executeAction = function (action, drawTimeout) {
+this.executePostAction = function (action, offsetTimeout) {
+    if (!action.goto || action.goto == '') return
+
     setTimeout(() => {
-        // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
-        const execResult = JSPG.execCode(action.exec)
-        if (
-            (execResult != undefined && !execResult)
-            || action.goto === ''
-        ) {
-            this.log.debug('{OnActionExecute}', 'Skip action\'s GoTo')
-            return
+        if (!action.available) {
+            this.log.info('{executePostAction}', 'Action is unavailable. Skip GoTo.')
+            return 0
         }
 
-        this.log.debug('{OnActionExecute}', `GoTo: ${action.goto}`);
-        JSPG.SceneHandler.goTo(action.goto)
-    }, JSPG.Constants.TIMEOUTS.ACTION.EXECUTE + drawTimeout);
+        let targetScene = action.goto
+        if (typeof action.goto != typeof '') {
+            this.log.debug('{executePostAction}', 'Post-action function to be invoked')
+            targetScene = action.goto(action)
+        }
+        this.log.debug('{executePostAction}', `GoTo for action: ${targetScene}`)
+        JSPG.SceneHandler.goTo(targetScene)
+    }, offsetTimeout)
 }
 
 this.hideSceneActions = function () {

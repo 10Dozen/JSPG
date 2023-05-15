@@ -1,4 +1,4 @@
-//@wrap:function:JSPG.Entities.LabeledElement:label='', tag=null, align='left'
+//@wrap:function:JSPG.Entities.LabeledElement:tag=null, label='', align='left'
 // Constructor of HTML element with label (e.g. checkbox, radio, slider or meter)
 // Should be registered by JSPG.ElementsHandler.RegisterElement(element) for proper handling.
 
@@ -32,11 +32,9 @@ this.log = new Logger(
 this.AsCheckbox = function (isChecked=false, value='', name='') {
     this.html_tag = JSPG.Constants.HTML.TAGS.INPUT
     this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
-    console.log('===========')
-    console.log(isChecked)
     this.attrs.modify({
         type: 'checkbox',
-        checked: isChecked ? 'true' : null,
+        checked: isChecked ? '+' : null,
         value: value,
         name: name,
     })
@@ -52,10 +50,11 @@ this.AsRadio = function (isSelected=false, value='', name='') {
     this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
     this.attrs.modify({
         type: 'radio',
-        checked: isSelected ? 'true' : null,
-        value: value,
+        checked: isSelected ? '+' : null,
+        value: value ? value : this.labelContent,
         name: name
     })
+
     this.isCheckable = true
     this.attachLabel(`radio-${this.id}`)
     this.finalize()
@@ -78,6 +77,7 @@ this.AsSlider = function (min=0, max=10, value=5, step=1, name='',
         step: step
     })
     if (labelUpdateCallback) {
+        this.labelUpdateCallback = labelUpdateCallback
         this.AddEventHandler(
             'input',
             (element, event) => labelUpdateCallback(element, event.target.value),
@@ -128,8 +128,8 @@ this.Get = function () {
 
 this.Value = function () {
     if (!this.element) return
-    
-    return this.isCheckable ? this.element.checked : this.element.value
+
+    return this.element.value
 }
 
 this.Enable = function () {
@@ -139,6 +139,13 @@ this.Enable = function () {
 
     element.disabled = false
     this.eventHandler.apply(element, this)
+
+    if (this.attrs.get('type') && this.attrs.get('type') === 'range') {
+        this.labelUpdateCallback(this, this.Value())
+    }
+    if (this.html_tag === JSPG.Constants.HTML.TAGS.METER) {
+        this.SetLabel(this.Value())
+    }
 }
 
 this.Disable = function () {
@@ -183,6 +190,10 @@ this.findInDOM = function () {
     }
 
     return this.element
+}
+
+this.toString = function () {
+    return `Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/`
 }
 
 this.finalize = function () {

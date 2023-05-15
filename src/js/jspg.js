@@ -1,4 +1,4 @@
-// Version: 0.13.0.78
+// Version: 0.13.0.160
 // Build by ezbld tool =)
 
 // === Expansion functions ==
@@ -131,17 +131,19 @@ const Logger = function (component, level=2) {
         return lvlToCheck <= this.level
     }
 
-    this.err = function (...msg) {
+    this.error = function (...msg) {
         const lvl = this.LOG_LEVELS.ERROR
         if (!this.isLogLevelAllowed(lvl)) return
         console.error(this.getMsgPrefix(lvl), ...msg)
     }
+    this.err = this.error
 
-    this.warn = function (...msg) {
+    this.warning = function (...msg) {
         const lvl = this.LOG_LEVELS.WARNING
         if (!this.isLogLevelAllowed(lvl)) return
         console.warn(this.getMsgPrefix(lvl), ...msg)
     }
+    this.warn = this.warning
 
     this.info = function (...msg) {
         const lvl = this.LOG_LEVELS.INFO
@@ -197,8 +199,10 @@ JSPG.Constants = {
     TIMEOUTS: {
         ACTION: {
             SHOW_OPTIONS: 500,
+            BEFORE_EXECUTE: 200,
+            AFTER_EXECUTE: 200,
             SHOW_ANSWER: 200,
-            EXECUTE: 200
+            AFTER_ANSWER: 500,
         },
         SCENE: {
             SHOW: 200,
@@ -260,17 +264,6 @@ JSPG.Constants = {
             DISABLE_ON_LIMIT: 'disableOnLimit',
         },
     },
-    ELEMENTS: {
-        IMAGE: "image",
-        LABEL: "label",
-        CLICK: "click",
-        INPUT: "input",
-        CHECKBOX: "checkbox",
-        SELECT: "select",
-        OPTIONS: "options",
-        SLIDER: "slider",
-        METER: "meter",
-    },
     SCREENS: {
         TYPES: {
             SIMPLE_MENU: 'simpleMenu',
@@ -285,11 +278,17 @@ JSPG.Constants = {
         },
         TAGS: {
             IMAGE: "img",
+            VIDEO: "video",
             LABEL: "label",
             CLICK: "button",
             INPUT: "input",
             SELECT: "select",
             METER: "meter",
+            OPTION: "option",
+            GROUP: "group",
+            ORDERED_LIST: "ol",
+            LIST: "ul",
+            LIST_ENTRY: "li"
         },
         MENU: {
             ICON_CLS: 'menu-button-icon'
@@ -349,7 +348,7 @@ JSPG.Maps = {
 JSPG.Logging = {
     SCENE_HANDLER: {id: 'SceneHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
     ACTION_HANDLER: {id: 'ActionHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
-    ELEMENTS_HANDLER: {id: 'ElementsHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
+    ELEMENTS_HANDLER: {id: 'ElementsHandler', level: JSPG.Constants.LOG_LEVELS.DEBUG},
     MENU_HANDLER: {id: 'MenuHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
     PERSISTENCE: {id: 'Persistence', level: JSPG.Constants.LOG_LEVELS.INFO},
     ENTITIES: {
@@ -357,16 +356,16 @@ JSPG.Logging = {
         ACTION: {id: 'Action-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
         BLOB: {id: 'Blob-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
         ICON: {id: 'Icon-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ELEMENT: {id: 'Element-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        LABELED_ELEMENT: {id: 'LabeledElement-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ELEMENTS_GROUP: {id: 'ElementGroup-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ELEMENT: {id: 'Element-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
+        LABELED_ELEMENT: {id: 'LabeledElement-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
+        ELEMENTS_GROUP: {id: 'ElementGroup-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
         SCREEN: {id: 'Screen-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
     }
 }
 
 // === Shared Functions ===
-JSPG['execCode'] = function (code) {
-    if (typeof(code) != typeof("")) return code()
+JSPG['execCode'] = function (code, ...params) {
+    if (typeof(code) != typeof("")) return code(...params)
     if (code != "") return eval(code)
     return
 }
@@ -545,8 +544,8 @@ JSPG.Entities.Action = function () {
     this.id = JSPG.uid()
     this.name = ""
     this.icon = null
-    this.desc = ""
-    this.exec = ""
+    this.desc = []
+    this.exec = null
     this.goto = ""
     this.type = JSPG.Constants.BLOB_TYPES.SCENE_RIGHT
     this.portrait = ""
@@ -580,7 +579,7 @@ JSPG.Entities.Action = function () {
             return false
         }
     
-        if (this.desc === '') {
+        if (this.desc.length == 0) {
             this.desc = [this.name]
         }
     
@@ -802,6 +801,7 @@ JSPG.Entities.Element = function (tag) {
         this.html_tag = JSPG.Constants.HTML.TAGS.LABEL
         this.html_template = JSPG.Constants.HTML.TEMPLATES.FULL
         this.content = text
+    
         this.finalize()
         return this
     }
@@ -810,6 +810,21 @@ JSPG.Entities.Element = function (tag) {
         this.html_tag = JSPG.Constants.HTML.TAGS.IMAGE
         this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
         this.attrs.modify('src', src)
+    
+        this.finalize()
+        return this
+    }
+    
+    this.AsVideo = function (src, autoplay=true, loop=true, muted=false, controls=false) {
+        this.html_tag = JSPG.Constants.HTML.TAGS.VIDEO
+        this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
+        this.attrs.modify({
+            src: src,
+            autoplay: autoplay ? '+' : null,
+            loop: loop ? '+' : null,
+            muted: muted ? '+' : null,
+            controls: controls ? '+' : null
+        })
         this.finalize()
         return this
     }
@@ -834,6 +849,19 @@ JSPG.Entities.Element = function (tag) {
         return this
     }
     
+    this.AsOption = function (label, value, selected=false) {
+        this.html_tag = JSPG.Constants.HTML.TAGS.OPTION
+        this.html_template = JSPG.Constants.HTML.TEMPLATES.FULL
+        this.content = label
+        this.attrs.modify({
+            value: value,
+            selected: selected ? 'true' : null
+        })
+    
+        this.finalize()
+        return this
+    }
+    
     this.AsCustom = function (html_tag, isFullForm=true, content='') {
         this.html_tag = html_tag
         this.html_template = isFullForm
@@ -841,6 +869,8 @@ JSPG.Entities.Element = function (tag) {
                              : JSPG.Constants.HTML.TEMPLATES.SHORT
         this.content = content
         this.finalize()
+    
+        return this
     }
     // Public functions
     this.Get = function () {
@@ -866,13 +896,24 @@ JSPG.Entities.Element = function (tag) {
     
         element.disabled = false
         this.eventHandler.apply(element, this)
+    
+        if (this.html_tag === JSPG.Constants.HTML.TAGS.VIDEO && this.attrs.get('autoplay')) {
+            //this.element.load()
+            this.element.play()
+        }
     }
     
     this.Disable = function () {
         // Removes eventhandler from HTML node in document
         this.eventHandler.clear(this.element)
     
-        if (this.element) this.element.disabled = true
+        if (this.element) {
+            this.element.disabled = true
+    
+            if (this.html_tag === JSPG.Constants.HTML.TAGS.VIDEO) {
+                this.element.pause()
+            }
+        }
         this.log.info('{Disable}', `Element [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
     }
     
@@ -896,17 +937,23 @@ JSPG.Entities.Element = function (tag) {
         return this.element
     }
     
+    this.toString = function () {
+        return `Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/`
+    }
+    
     this.finalize = function () {
         delete this['AsLabel']
         delete this['AsImage']
+        delete this['AsVideo']
         delete this['AsClick']
         delete this['AsInput']
+        delete this['AsOption']
         delete this['AsCustom']
         delete this['finalize']
     }
 }
 
-JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
+JSPG.Entities.LabeledElement = function (tag=null, label='', align='left') {
     // Constructor of HTML element with label (e.g. checkbox, radio, slider or meter)
     // Should be registered by JSPG.ElementsHandler.RegisterElement(element) for proper handling.
     
@@ -940,11 +987,9 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
     this.AsCheckbox = function (isChecked=false, value='', name='') {
         this.html_tag = JSPG.Constants.HTML.TAGS.INPUT
         this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
-        console.log('===========')
-        console.log(isChecked)
         this.attrs.modify({
             type: 'checkbox',
-            checked: isChecked ? 'true' : null,
+            checked: isChecked ? '+' : null,
             value: value,
             name: name,
         })
@@ -960,10 +1005,11 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
         this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
         this.attrs.modify({
             type: 'radio',
-            checked: isSelected ? 'true' : null,
-            value: value,
+            checked: isSelected ? '+' : null,
+            value: value ? value : this.labelContent,
             name: name
         })
+    
         this.isCheckable = true
         this.attachLabel(`radio-${this.id}`)
         this.finalize()
@@ -986,6 +1032,7 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
             step: step
         })
         if (labelUpdateCallback) {
+            this.labelUpdateCallback = labelUpdateCallback
             this.AddEventHandler(
                 'input',
                 (element, event) => labelUpdateCallback(element, event.target.value),
@@ -1036,8 +1083,8 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
     
     this.Value = function () {
         if (!this.element) return
-        
-        return this.isCheckable ? this.element.checked : this.element.value
+    
+        return this.element.value
     }
     
     this.Enable = function () {
@@ -1047,6 +1094,13 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
     
         element.disabled = false
         this.eventHandler.apply(element, this)
+    
+        if (this.attrs.get('type') && this.attrs.get('type') === 'range') {
+            this.labelUpdateCallback(this, this.Value())
+        }
+        if (this.html_tag === JSPG.Constants.HTML.TAGS.METER) {
+            this.SetLabel(this.Value())
+        }
     }
     
     this.Disable = function () {
@@ -1093,6 +1147,10 @@ JSPG.Entities.LabeledElement = function (label='', tag=null, align='left') {
         return this.element
     }
     
+    this.toString = function () {
+        return `Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/`
+    }
+    
     this.finalize = function () {
         delete this['AsCheckbox']
         delete this['AsRadio']
@@ -1109,16 +1167,14 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
     this.tag = tag
     this.align = align
     this.joinWith = joinWith
-    this.onValueChange = null
     this.value = null
     
-    this.type = ''
-    this.html_tag = ''
+    this.html_tag = JSPG.Constants.HTML.TAGS.GROUP
     
     this.attrs = new JSPG.Entities.Attributes({uid: this.id, tag: this.tag})
     this.eventHandler = new JSPG.Entities.EventHandler()
     
-    this.nestedElemetns = new Map()
+    this.nestedElements = []
     
     this.log = new Logger(
         JSPG.Logging.ENTITIES.ELEMENTS_GROUP.id.replace('$id', this.id),
@@ -1126,47 +1182,85 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
     )
     
     // Constructor functions
-    this.AsRadiobuttons = function (options, defaultIdx=0, name='', values=null) {
+    this.AsRadiobuttons = function (options, defaultIdx=0, values=null) {
         // Configure element to Radiobutton set
-        this.type = 'RadiobuttonSet'
+        const name = `radiobuttons-set-${this.id}`
         for (let idx = 0; idx < options.length; ++idx) {
             const tag = `${this.tag}-nested-${idx}`
             const label = options[idx]
             const value = values ? values[idx] : null
     
-            const rb = new JSPG.Entities
-                           .LabeledElement(label, tag, this.align)
+            const el = new JSPG.Entities
+                           .LabeledElement(tag, label, this.align)
                            .AsRadio(/*isChecked*/ defaultIdx == idx, value, name)
     
-            this.nestedElements.set(tag, rb)
+            this.nestedElements.push(el)
         }
-        this.onValueChange = (event) => {
-            if (event.target.checked) {
-                this.value = this.nestedElements.get(event.target.getAttribute('tag'))
+    
+        this.Value = () => {
+            for (const nel of this.nestedElements.values()) {
+                if (nel.element.checked) return nel.Value()
             }
         }
     
         this.finalize()
+        return this
     }
     
+    this.AsOptions = function (options, defaultIdx=0, values=null) {
+        this.html_tag = JSPG.Constants.HTML.TAGS.SELECT
+        for (let idx = 0; idx < options.length; ++idx) {
+            const tag = `${this.tag}-nested-${idx}`
+            const label = options[idx]
+            const value = values ? values[idx] : null
+            const isSelected = defaultIdx == idx
+    
+            const el = new JSPG.Entities.Element(tag)
+                           .AsOption(label, value, isSelected)
+    
+            this.nestedElements.push(el)
+        }
+    
+        this.Value = () => {
+            for (const nel of this.nestedElements.values()) {
+                if (nel.element.selected) return nel.Value()
+            }
+        }
+    
+        this.finalize()
+        return this
+    }
+    
+    this.AsList = function (options, ordered=false) {
+        this.html_tag = ordered
+                        ? JSPG.Constants.HTML.TAGS.ORDERED_LIST
+                        : JSPG.Constants.HTML.TAGS.LIST
+        for (let idx = 0; idx < options.length; ++idx) {
+            const el = new JSPG.Entities.Element()
+                           .AsCustom(JSPG.Constants.HTML.TAGS.LIST_ENTRY, true, options[idx])
+            this.nestedElements.push(el)
+        }
+        this.joinWith = ''
+    
+        this.finalize()
+        return this
+    }
     
     // Public
     this.Get = function () {
         // Compose element and its childs to HTML code
         const content = []
-        for (const nestedItem of this.nestedElements.values()) {
-            content.push(nestedItem.Get())
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            content.push(this.nestedElements[idx].Get())
         }
-        const html = `<${html_tag} ${this.attrs.compose()}>${content.join(this.joinWith)}</${html_tag}>`
+        const html = `<${this.html_tag} ${this.attrs.compose()}>${content.join(this.joinWith)}</${this.html_tag}>`
     
         return html
     }
     
     this.Value = function () {
-        // Returns value of elements group
-        // this.value is updated by this.onValueChange function, depending on type of group
-    
-        this.value
+        // Returns value of elements group. Is overwritten in As... functions
+        return null
     }
     
     this.Enable = function () {
@@ -1175,17 +1269,10 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
         if (!element) return
     
         element.disabled = false
-    
-        switch (this.type) {
-            case "RadiobuttonSet": {
-                $(this.element).on('change.inbuilt', '*', this.onValueChange)
-                break;
-            }
-        }
         this.eventHandler.apply(element, this)
     
-        for (const nested in this.nestedElements.values()) {
-            nested.Enable()
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].Enable()
         }
     }
     
@@ -1195,8 +1282,8 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
     
         if (!this.element) return
     
-        for (const nested in this.nestedElements.values()) {
-            nested.Disable()
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].Disable()
         }
         this.element.disabled = true
         this.log.info('{Disable}', `Element group [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
@@ -1214,51 +1301,49 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
     
     this.AddEventHandlerToNested = function (eventName, callback, tag, useLimit, disableOnLimit) {
         // Adds event listener to all childs, but not element itself
-        for (const nested in this.nestedElements.values()) {
-            nested.AddEventHandler(...arguments)
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].AddEventHandler(...arguments)
         }
     }
     
     this.RemoveEventHandlerFromNested = function (eventName, tag) {
         // Removes event listener from all childs, but not element itself
-        for (const nested in this.nestedElements.values()) {
-            nested.RemoveEventHandler(eventName, tag)
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].RemoveEventHandler(eventName, tag)
         }
     }
     
-    this.Nested = function (tagOrIndex) {
+    this.Nested = function (index) {
         // Returns nested element by given tag or index
-        let tag = tagOrIndex
-        if (typeof tag != typeof '') {
-            if (this.nestedElements.size() > tag) {
-                this.log.error('{Nested}', 'Given nested index ${tag} is out of range (${this.nestedElements.size()})!')
-                return
-            }
-    
-            tag = `${this.tag}-nested-${tag}`
+        if (index > this.nestedElements.size || index < 0) {
+            this.log.error('{Nested}', 'Given nested index ${tag} is out of range (${this.nestedElements.size})!')
+            return null
         }
-        return this.nestedElements.get(tag)
+    
+        return this.nestedElements[index]
     }
     
     
     // Private
     this.findInDOM = function () {
         if (!this.element) {
-            const $node = $(`${html_tag}[uid=${this.id}]`)
+            const $node = $(`${this.html_tag}[uid=${this.id}]`)
             if ($node.length > 0) this.element = $node[0]
         }
     
         return this.element
     }
     
-    this.finalize = function () {
-        delete this['AsRadiobuttons']
-        delete this['finalize']
+    this.toString = function () {
+        return `Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.size} items`
     }
     
-    
-    
-            rb.AsRadio(/*isChecked*/ false, /*value*/ value, /*name*/ name)
+    this.finalize = function () {
+        delete this['AsRadiobuttons']
+        delete this['AsOptions']
+        delete this['AsList']
+        delete this['finalize']
+    }
 }
 
 JSPG.Entities.Attributes = function (...params) {
@@ -1352,7 +1437,12 @@ JSPG.Entities.Attributes = function (...params) {
     this.compose = function () {
         const attrList = []
         for (const k in this.attrs) {
-            attrList.push(`${k}="${this.attrs[k]}"`)
+            const val = this.attrs[k]
+            if (val == '+') {
+                attrList.push(k)
+            } else {
+                attrList.push(`${k}="${this.attrs[k]}"`)
+            }
         }
         return `class="${this.classlist.join(" ")}" ${attrList.join(" ")} style="${this.stylelist.join(";")}"`
     }
@@ -1607,9 +1697,18 @@ JSPG.SceneHandler = new (function () {
         JSPG.Logging.SCENE_HANDLER.level
     )
     
-    this.goTo = function (SceneName) {
+    this.goTo = function (sceneName) {
+        if (!sceneName) {
+            this.log.err('{goTo}', 'Transition to invalid (empty) scene name is requested!')
+            return
+        }
+        if (!JSPG.Scenes.hasOwnProperty(sceneName)) {
+            this.log.err('{goTo}', `Transition to non-existsing scene (name: ${sceneName}) is requested!`)
+            return
+        }
+    
         setTimeout(()=>{
-            this.showScene(SceneName, JSPG.Scenes[SceneName])
+            this.showScene(sceneName, JSPG.Scenes[sceneName])
         }, JSPG.Constants.TIMEOUTS.GOTO)
     };
     
@@ -1808,42 +1907,62 @@ JSPG.ActionHandler = new (function () {
         this.hideSceneActions()
         const action = this.getActionById(actionId)
     
-        const drawTimeout = this.showActionDescription(action)
-        this.executeAction(action, drawTimeout)
+        const execTimeout = this.executeAction(action)
+        const drawTimeout = this.showActionDescription(action, execTimeout)
+        this.executePostAction(action, drawTimeout)
     }
     
-    this.showActionDescription = function (action) {
-        if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return
+    this.executeAction = function (action) {
+        const timeout = JSPG.Constants.TIMEOUTS.ACTION.BEFORE_EXECUTE
+        if (!action.exec) return 0
+    
+        setTimeout(() => {
+            // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
+            const execResult = action.exec(action)
+            if (execResult != undefined && !execResult) {
+                action.available = false
+                this.log.debug('{executeAction}', 'Skip action\'s GoTo')
+                return
+            }
+        }, timeout);
+    
+        return (timeout + JSPG.Constants.TIMEOUTS.ACTION.AFTER_EXECUTE)
+    }
+    
+    this.showActionDescription = function (action, offsetTimeout) {
+        if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
+    
         const contentfullBlobs = action.parseDescriptions()
         const frames = contentfullBlobs.length
-        if (frames == 0) return 0
+        if (frames == 0) return offsetTimeout
     
-        const baseTimeout = JSPG.Constants.TIMEOUTS.ACTION.SHOW_ANSWER
-        let timeout = baseTimeout
+        let timeout = offsetTimeout + JSPG.Constants.TIMEOUTS.ACTION.SHOW_ANSWER
         for (let frame = 0; frame < frames; ++frame) {
             timeout += JSPG.Constants.TIMEOUTS.SCENE.STEP * frame
     
             JSPG.SceneHandler.drawBlob(contentfullBlobs[frame], timeout, frame == 0)
         }
     
-        return timeout
+        return (timeout + JSPG.Constants.TIMEOUTS.ACTION.AFTER_ANSWER)
     }
     
-    this.executeAction = function (action, drawTimeout) {
+    this.executePostAction = function (action, offsetTimeout) {
+        if (!action.goto || action.goto == '') return
+    
         setTimeout(() => {
-            // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
-            const execResult = JSPG.execCode(action.exec)
-            if (
-                (execResult != undefined && !execResult)
-                || action.goto === ''
-            ) {
-                this.log.debug('{OnActionExecute}', 'Skip action\'s GoTo')
-                return
+            if (!action.available) {
+                this.log.info('{executePostAction}', 'Action is unavailable. Skip GoTo.')
+                return 0
             }
     
-            this.log.debug('{OnActionExecute}', `GoTo: ${action.goto}`);
-            JSPG.SceneHandler.goTo(action.goto)
-        }, JSPG.Constants.TIMEOUTS.ACTION.EXECUTE + drawTimeout);
+            let targetScene = action.goto
+            if (typeof action.goto != typeof '') {
+                this.log.debug('{executePostAction}', 'Post-action function to be invoked')
+                targetScene = action.goto(action)
+            }
+            this.log.debug('{executePostAction}', `GoTo for action: ${targetScene}`)
+            JSPG.SceneHandler.goTo(targetScene)
+        }, offsetTimeout)
     }
     
     this.hideSceneActions = function () {
@@ -1869,6 +1988,11 @@ JSPG.ElementsHandler = new (function () {
     
     this.RegisterElement = function (element) {
         const key = element.tag ? element.tag : `${element.html_tag}-${element.id}`
+        this.log.debug(`Registering element ${element.toString()}`)
+        if (this.elements.get(key)) {
+            this.log.error(`There is an element with tag ${key} already! Given element won't be added: ${element.toString()}`)
+            return
+        }
         this.elements.set(key, element)
     }
     
@@ -2385,6 +2509,13 @@ JSPG.Helper = new (function () {
         JSPG.ElementsHandler.RegisterElement(element)
         return element.Get()
     }
+    this.Video = function(src, autoplay=true, loop=true, muted=false, tag='', style=null, attrs=null) {
+        const element = new JSPG.Entities.Element(tag).AsVideo(src, autoplay, loop, muted)
+        element.attrs.modify('style', style)
+        element.attrs.modify('attrs', attrs, JSPG.Constants.OPERATIONS.APPEND)
+        JSPG.ElementsHandler.RegisterElement(element)
+        return element.Get()
+    }
     this.Label = function(text, tag='', style=null, attrs=null) {
         const element = new JSPG.Entities.Element(tag).AsLabel(text)
         element.attrs.modify('style', style)
@@ -2409,6 +2540,8 @@ JSPG.Helper = new (function () {
     
         return element.Get()
     }
+    
+    
     
     this.Find = {
         ByTag: function(tag) {

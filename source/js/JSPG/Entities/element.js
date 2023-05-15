@@ -26,6 +26,7 @@ this.AsLabel = function (text) {
     this.html_tag = JSPG.Constants.HTML.TAGS.LABEL
     this.html_template = JSPG.Constants.HTML.TEMPLATES.FULL
     this.content = text
+
     this.finalize()
     return this
 }
@@ -34,6 +35,21 @@ this.AsImage = function (src) {
     this.html_tag = JSPG.Constants.HTML.TAGS.IMAGE
     this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
     this.attrs.modify('src', src)
+
+    this.finalize()
+    return this
+}
+
+this.AsVideo = function (src, autoplay=true, loop=true, muted=false, controls=false) {
+    this.html_tag = JSPG.Constants.HTML.TAGS.VIDEO
+    this.html_template = JSPG.Constants.HTML.TEMPLATES.SHORT
+    this.attrs.modify({
+        src: src,
+        autoplay: autoplay ? '+' : null,
+        loop: loop ? '+' : null,
+        muted: muted ? '+' : null,
+        controls: controls ? '+' : null
+    })
     this.finalize()
     return this
 }
@@ -58,6 +74,19 @@ this.AsInput = function (defaultValue, placeholderText) {
     return this
 }
 
+this.AsOption = function (label, value, selected=false) {
+    this.html_tag = JSPG.Constants.HTML.TAGS.OPTION
+    this.html_template = JSPG.Constants.HTML.TEMPLATES.FULL
+    this.content = label
+    this.attrs.modify({
+        value: value,
+        selected: selected ? 'true' : null
+    })
+
+    this.finalize()
+    return this
+}
+
 this.AsCustom = function (html_tag, isFullForm=true, content='') {
     this.html_tag = html_tag
     this.html_template = isFullForm
@@ -65,6 +94,8 @@ this.AsCustom = function (html_tag, isFullForm=true, content='') {
                          : JSPG.Constants.HTML.TEMPLATES.SHORT
     this.content = content
     this.finalize()
+
+    return this
 }
 // Public functions
 this.Get = function () {
@@ -90,13 +121,24 @@ this.Enable = function () {
 
     element.disabled = false
     this.eventHandler.apply(element, this)
+
+    if (this.html_tag === JSPG.Constants.HTML.TAGS.VIDEO && this.attrs.get('autoplay')) {
+        //this.element.load()
+        this.element.play()
+    }
 }
 
 this.Disable = function () {
     // Removes eventhandler from HTML node in document
     this.eventHandler.clear(this.element)
 
-    if (this.element) this.element.disabled = true
+    if (this.element) {
+        this.element.disabled = true
+
+        if (this.html_tag === JSPG.Constants.HTML.TAGS.VIDEO) {
+            this.element.pause()
+        }
+    }
     this.log.info('{Disable}', `Element [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
 }
 
@@ -120,11 +162,17 @@ this.findInDOM = function () {
     return this.element
 }
 
+this.toString = function () {
+    return `Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/`
+}
+
 this.finalize = function () {
     delete this['AsLabel']
     delete this['AsImage']
+    delete this['AsVideo']
     delete this['AsClick']
     delete this['AsInput']
+    delete this['AsOption']
     delete this['AsCustom']
     delete this['finalize']
 }

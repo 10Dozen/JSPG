@@ -89,7 +89,12 @@ this._composeList = function (listname, lineValue) {
 this.compose = function () {
     const attrList = []
     for (const k in this.attrs) {
-        attrList.push(`${k}="${this.attrs[k]}"`)
+        const val = this.attrs[k]
+        if (val == '+') {
+            attrList.push(k)
+        } else {
+            attrList.push(`${k}="${this.attrs[k]}"`)
+        }
     }
     return `class="${this.classlist.join(" ")}" ${attrList.join(" ")} style="${this.stylelist.join(";")}"`
 }

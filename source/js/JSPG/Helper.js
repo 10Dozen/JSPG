@@ -17,6 +17,13 @@ this.Img = function(src, tag='', style=null, attrs=null) {
     JSPG.ElementsHandler.RegisterElement(element)
     return element.Get()
 }
+this.Video = function(src, autoplay=true, loop=true, muted=false, tag='', style=null, attrs=null) {
+    const element = new JSPG.Entities.Element(tag).AsVideo(src, autoplay, loop, muted)
+    element.attrs.modify('style', style)
+    element.attrs.modify('attrs', attrs, JSPG.Constants.OPERATIONS.APPEND)
+    JSPG.ElementsHandler.RegisterElement(element)
+    return element.Get()
+}
 this.Label = function(text, tag='', style=null, attrs=null) {
     const element = new JSPG.Entities.Element(tag).AsLabel(text)
     element.attrs.modify('style', style)
@@ -41,6 +48,8 @@ this.Checkbox = function (label, isChecked=false, align='left', tag='', style=nu
 
     return element.Get()
 }
+
+
 
 this.Find = {
     ByTag: function(tag) {

@@ -3,8 +3,8 @@
 this.id = JSPG.uid()
 this.name = ""
 this.icon = null
-this.desc = ""
-this.exec = ""
+this.desc = []
+this.exec = null
 this.goto = ""
 this.type = JSPG.Constants.BLOB_TYPES.SCENE_RIGHT
 this.portrait = ""
@@ -38,7 +38,7 @@ this.fromConfig = function (actionConfig) {
         return false
     }
 
-    if (this.desc === '') {
+    if (this.desc.length == 0) {
         this.desc = [this.name]
     }
 

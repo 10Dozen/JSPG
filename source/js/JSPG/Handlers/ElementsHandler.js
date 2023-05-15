@@ -8,6 +8,11 @@ this.log = new Logger(
 
 this.RegisterElement = function (element) {
     const key = element.tag ? element.tag : `${element.html_tag}-${element.id}`
+    this.log.debug(`Registering element ${element.toString()}`)
+    if (this.elements.get(key)) {
+        this.log.error(`There is an element with tag ${key} already! Given element won't be added: ${element.toString()}`)
+        return
+    }
     this.elements.set(key, element)
 }
 

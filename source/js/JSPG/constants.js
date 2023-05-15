@@ -16,8 +16,10 @@ INLINE_EXECUTE_TOKEN: '>>>',
 TIMEOUTS: {
     ACTION: {
         SHOW_OPTIONS: 500,
+        BEFORE_EXECUTE: 200,
+        AFTER_EXECUTE: 200,
         SHOW_ANSWER: 200,
-        EXECUTE: 200
+        AFTER_ANSWER: 500,
     },
     SCENE: {
         SHOW: 200,
@@ -79,17 +81,6 @@ SCHEMAS: {
         DISABLE_ON_LIMIT: 'disableOnLimit',
     },
 },
-ELEMENTS: {
-    IMAGE: "image",
-    LABEL: "label",
-    CLICK: "click",
-    INPUT: "input",
-    CHECKBOX: "checkbox",
-    SELECT: "select",
-    OPTIONS: "options",
-    SLIDER: "slider",
-    METER: "meter",
-},
 SCREENS: {
     TYPES: {
         SIMPLE_MENU: 'simpleMenu',
@@ -104,11 +95,17 @@ HTML: {
     },
     TAGS: {
         IMAGE: "img",
+        VIDEO: "video",
         LABEL: "label",
         CLICK: "button",
         INPUT: "input",
         SELECT: "select",
         METER: "meter",
+        OPTION: "option",
+        GROUP: "group",
+        ORDERED_LIST: "ol",
+        LIST: "ul",
+        LIST_ENTRY: "li"
     },
     MENU: {
         ICON_CLS: 'menu-button-icon'

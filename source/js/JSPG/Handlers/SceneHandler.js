@@ -15,9 +15,18 @@ this.log = new Logger(
     JSPG.Logging.SCENE_HANDLER.level
 )
 
-this.goTo = function (SceneName) {
+this.goTo = function (sceneName) {
+    if (!sceneName) {
+        this.log.err('{goTo}', 'Transition to invalid (empty) scene name is requested!')
+        return
+    }
+    if (!JSPG.Scenes.hasOwnProperty(sceneName)) {
+        this.log.err('{goTo}', `Transition to non-existsing scene (name: ${sceneName}) is requested!`)
+        return
+    }
+
     setTimeout(()=>{
-        this.showScene(SceneName, JSPG.Scenes[SceneName])
+        this.showScene(sceneName, JSPG.Scenes[sceneName])
     }, JSPG.Constants.TIMEOUTS.GOTO)
 };
 

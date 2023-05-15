@@ -16,6 +16,12 @@ this.RegisterElement = function (element) {
     this.elements.set(key, element)
 }
 
+this.RegisterElements = function(...elements) {
+    for (let idx = 0; idx < elements.length; ++idx) {
+        this.RegisterElement(elements[idx])
+    }
+}
+
 this.UnregisterElement = function (elementOrTag) {
     let key = ''
     if (typeof elementOrTag == typeof '') {
@@ -58,23 +64,23 @@ this.clearElementsList = function () {
 
 this.runElementsEventHandler = function (element, eventName, handler, event) {
     const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
-    const handlerTag = handler.get(EHSTRUCT.TAG)
-    const callback = handler.get(EHSTRUCT.CALLBACK)
-    const use_limit = handler.get(EHSTRUCT.USE_LIMIT)
-    const disableOnLimit = handler.get(EHSTRUCT.DISABLE_ON_LIMIT)
+    const handlerTag = handler[EHSTRUCT.TAG]
+    const callback = handler[EHSTRUCT.CALLBACK]
+    const use_limit = handler[EHSTRUCT.USE_LIMIT]
+    const disableOnLimit = handler[EHSTRUCT.DISABLE_ON_LIMIT]
 
     this.log.info('{RunEventHandler}',
-        `Running event handler for event [${eventName}/${handlerTag}] for element [${element.html_tag}/uid=${element.id} tag=${element.tag}]`)
+        `Running event handler for event [${eventName}/${handlerTag}] for element ${element.toString()}`)
     callback(element, event)
 
     if (use_limit == -1) return
 
     const new_limit = use_limit - 1
-    handler.set(EHSTRUCT.USE_LIMIT, new_limit)
+    handler[EHSTRUCT.USE_LIMIT] = new_limit
     if (new_limit > 0) return
 
     this.log.info('{RunEventHandler}',
-        `Event handler reached its limit for [${eventName}/${handlerTag}] for element [${element.html_tag}/uid=${element.id} tag=${element.tag}]`)
+        `Event handler reached its limit for [${eventName}/${handlerTag}] for element ${element.toString()}`)
 
     element.RemoveEventHandler(eventName, handlerTag)
     if (disableOnLimit) element.Disable()

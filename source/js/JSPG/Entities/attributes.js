@@ -2,6 +2,10 @@
 this.classlist = []
 this.stylelist = []
 this.attrs = {}
+this.log = new Logger(
+    JSPG.Logging.ENTITIES.ATTRIBUTES.id,
+    JSPG.Logging.ENTITIES.ATTRIBUTES.level,
+)
 
 this.modify = function () {
     /*  Use cases:
@@ -28,7 +32,7 @@ this.modify = function () {
     }
 
     for (let key in attrObj) {
-        //console.log(`${key} = ${attrObj[key]}`)
+        this.log.info('{modify}', `${key} = ${attrObj[key]}`)
         const value = attrObj[key]
         key = key.toLowerCase()
         const listname = key == 'class'
@@ -37,7 +41,7 @@ this.modify = function () {
 
         // Attribures deletion case
         if (value == null || value === '') {
-            //console.log('Deletion route')
+            this.log.info('{modify}', 'Deletion of key')
             if (!override) continue
             if (listname != null) {
                 this[listname].purge()
@@ -50,7 +54,7 @@ this.modify = function () {
 
         // Attribute force add case
         if (override) {
-            //console.log('Force add/override route')
+            this.log.info('{modify}', 'Force add/override of key')
             if (listname != null) {
                 this[listname].purge()
                 this._composeList(listname, value)
@@ -62,7 +66,7 @@ this.modify = function () {
         }
 
         // Append or create key-value if none
-        //console.log('Add/append route')
+        this.log.info('{modify}', 'Add/append key')
         if (listname != null) {
             this._composeList(listname, value)
             continue

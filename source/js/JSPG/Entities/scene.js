@@ -32,6 +32,7 @@ this.fromConfig = function (sceneConfig) {
     }
 }
 
+/*
 this.parseDescriptions = function () {
     const contentfullBlobs = []
     for (let i = 0; i < this.desc.length; ++i) {
@@ -42,6 +43,7 @@ this.parseDescriptions = function () {
 
     return contentfullBlobs
 }
+*/
 
 this.setActions = function (action_list) {
     this.clearActions()

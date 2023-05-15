@@ -71,7 +71,7 @@ this.showScene = function (name, sceneConfig)  {
 
     // Skip blob rendering if there is none
     // scene.compileDescLines()
-    const contentfullBlobs = scene.parseDescriptions()
+    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
     const framesAmount = contentfullBlobs.length
     if (framesAmount == 0) {
         this.log.debug('{showScene}', `[id:${sceneId}] There is no description blobs. Stop rendering.`)

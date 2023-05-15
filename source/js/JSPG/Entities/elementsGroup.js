@@ -173,7 +173,7 @@ this.findInDOM = function () {
 }
 
 this.toString = function () {
-    return `Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.size} items`
+    return `[Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.length} items]`
 }
 
 this.finalize = function () {

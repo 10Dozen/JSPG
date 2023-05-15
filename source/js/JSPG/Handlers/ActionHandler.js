@@ -23,7 +23,6 @@ this.onHotkeySelection = function (e) {
     ) return
 
     const idx = e.keyCode - 49
-    console.log(`Action ${idx} selected!`)
     JSPG.ActionHandler.onActionSelected(JSPG.ActionHandler.actions[idx].id)
 }
 
@@ -98,7 +97,7 @@ this.executeAction = function (action) {
 this.showActionDescription = function (action, offsetTimeout) {
     if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
 
-    const contentfullBlobs = action.parseDescriptions()
+    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)// action.parseDescriptions()
     const frames = contentfullBlobs.length
     if (frames == 0) return offsetTimeout
 

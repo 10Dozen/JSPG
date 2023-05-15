@@ -2,33 +2,39 @@
 
 /* In format:
     eventName1: Map(
-       ...handler(Map(callback, use_limit, mark_disabled))
-        __tagged: Map(tag, ...handler),
+        tag1: HandlerObject(tag, ...handler),
+        ...
     ),
-    eventNae2: ...
+    eventNae2: Map(...)
 */
 this.listeners = new Map()
+this.log = new Logger(
+    JSPG.Logging.ENTITIES.EVENT_HANDLER.id,
+    JSPG.Logging.ENTITIES.EVENT_HANDLER.level
+)
 
 this.add = function (eventName, callback, tag=null, use_limit=-1, mark_disabled=false) {
     const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
     eventName = eventName.toLowerCase()
-    
+
     if (eventName.split('.').length == 1) {
         eventName = `${eventName}.user_defined`
     }
-    
+
     const handlersMap = this.listeners.has(eventName)
                         ? this.listeners.get(eventName)
                         : new Map()
 
     if (!tag) tag = JSPG.uid()
-    const handler = new Map().set(EHSTRUCT.TAG, tag)
-                             .set(EHSTRUCT.CALLBACK, callback)
-                             .set(EHSTRUCT.USE_LIMIT, use_limit)
-                             .set(EHSTRUCT.DISABLE_ON_LIMIT, mark_disabled)
 
-    console.log(`{eventHandler} Add for ${eventName}`)
-    console.log(handler)
+    const handler = {}
+    handler[EHSTRUCT.TAG] = tag
+    handler[EHSTRUCT.CALLBACK] = callback
+    handler[EHSTRUCT.USE_LIMIT] = use_limit
+    handler[EHSTRUCT.DISABLE_ON_LIMIT] = mark_disabled
+
+    this.log.info('{add}', `Add for ${eventName}`)
+    this.log.info('{add}', handler)
 
     handlersMap.set(tag, handler)
     this.listeners.set(eventName, handlersMap)
@@ -57,7 +63,7 @@ this.remove = function (DOMElement, eventName, tag=null) {
     const handler = handlersMap.get(tag)
     DOMElement.removeEventListener(
         eventName,
-        handler.get(JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK)
+        handler[JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK]
     )
     handlersMap.delete(tag)
 }

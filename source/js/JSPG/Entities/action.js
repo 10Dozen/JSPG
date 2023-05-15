@@ -60,6 +60,7 @@ this.fromConfig = function (actionConfig) {
     return this.available
 }
 
+/*
 this.parseDescriptions = function () {
     const contentfullBlobs = []
     for (let i = 0; i < this.desc.length; ++i) {
@@ -70,3 +71,4 @@ this.parseDescriptions = function () {
 
     return contentfullBlobs
 }
+*/

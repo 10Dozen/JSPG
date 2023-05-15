@@ -1,4 +1,4 @@
-// Version: 0.13.0.160
+// Version: 0.13.0.174
 // Build by ezbld tool =)
 
 // === Expansion functions ==
@@ -351,6 +351,7 @@ JSPG.Logging = {
     ELEMENTS_HANDLER: {id: 'ElementsHandler', level: JSPG.Constants.LOG_LEVELS.DEBUG},
     MENU_HANDLER: {id: 'MenuHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
     PERSISTENCE: {id: 'Persistence', level: JSPG.Constants.LOG_LEVELS.INFO},
+    BLOB_BUILDER: {id: 'BlobBuilder', level: JSPG.Constants.LOG_LEVELS.DEBUG},
     ENTITIES: {
         SCENE: {id: 'Scene-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
         ACTION: {id: 'Action-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
@@ -360,6 +361,8 @@ JSPG.Logging = {
         LABELED_ELEMENT: {id: 'LabeledElement-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
         ELEMENTS_GROUP: {id: 'ElementGroup-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
         SCREEN: {id: 'Screen-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        EVENT_HANDLER: {id: 'EventHandler', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ATTRIBUTES: {id: 'Attributes', level: JSPG.Constants.LOG_LEVELS.WARNING},
     }
 }
 
@@ -493,6 +496,7 @@ JSPG.Entities.Scene = function (id, name) {
         }
     }
     
+    /*
     this.parseDescriptions = function () {
         const contentfullBlobs = []
         for (let i = 0; i < this.desc.length; ++i) {
@@ -503,6 +507,7 @@ JSPG.Entities.Scene = function (id, name) {
     
         return contentfullBlobs
     }
+    */
     
     this.setActions = function (action_list) {
         this.clearActions()
@@ -601,6 +606,7 @@ JSPG.Entities.Action = function () {
         return this.available
     }
     
+    /*
     this.parseDescriptions = function () {
         const contentfullBlobs = []
         for (let i = 0; i < this.desc.length; ++i) {
@@ -611,110 +617,13 @@ JSPG.Entities.Action = function () {
     
         return contentfullBlobs
     }
+    */
 }
 
-JSPG.Entities.Blob = function (typeDefault, portraitDefault, content) {
+JSPG.Entities.Blob = function (content, portrait_html, style) {
     
     this.id = JSPG.uid()
-    this.type = typeDefault
-    this.portrait = portraitDefault
-    this.rawContent = content
-    this.style = typeDefault == undefined ? JSPG.Constants.BLOB_STYLES.SCENE_LEFT : JSPG.Maps.BLOB_STYLE_BY_TYPE[typeDefault]
-    this.content = ''
-    this.html = ''
-    this.log = new Logger(
-        JSPG.Logging.ENTITIES.BLOB.id.replace('$id', this.id),
-        JSPG.Logging.ENTITIES.BLOB.level
-    )
-    
-    this.parseContent = function() {
-        // Returns false if content is empty after parsing
-        this.log.info('{parseContent}', `Raw content: ${this.rawContent}`)
-        let content = this.rawContent
-    
-        // Check for interpolation single or multistring
-        if (this.rawContent.startsWith("`") && this.rawContent.endsWith("`")) {
-            this.log.debug('{parseContent}', `Line is expression to evaluate`)
-            content = eval(this.rawContent).trim()
-        }
-        if (this.rawContent.startsWith(JSPG.Constants.INLINE_EXECUTE_TOKEN)) {
-            this.log.debug('{parseContent}', `Line is multiline expression to evaluate`)
-            let line = this.rawContent.substr(JSPG.Constants.INLINE_EXECUTE_TOKEN.length)
-            content = eval('`{line}`'.format('line', line)).trim()
-        }
-    
-        if (this.rawContent === '') {
-            this.log.debug('{parseContent}', `Line is empty. Skip.`)
-            return
-        }
-    
-        this.content = content
-        this.log.debug('{parseContent}', `Non empty line {${this.content}}`)
-    
-        const tokens = content.split(JSPG.Constants.INLINE_TOKEN_SEPARATOR)
-        this.log.debug('{parseContent}', `Checking for tokens. Tokenized to ${tokens.length} elements`)
-        if (tokens.length == 1
-            || !tokens[1] == JSPG.Constants.INLINE_TOKEN_SEPARATOR
-        ) {
-            this.log.debug('{parseContent}', `No tokens found.`)
-            return
-        }
-    
-        const typeToken = tokens[0].toUpperCase()
-        const inlineType = JSPG.Maps.BLOB_TYPE_BY_TOKEN[typeToken]
-        this.log.debug('{parseContent}', `Prefix token: ${typeToken} of type ${inlineType}`)
-    
-        if (inlineType == undefined) {
-            this.log.debug('{parseContent}', `Prefix token is unknown. Return untouched content`)
-            return
-        }
-    
-        this.type = inlineType
-        this.style = JSPG.Maps.BLOB_STYLE_BY_TYPE[inlineType]
-        this.content = tokens.slice(1, tokens.length).join('')
-        this.log.debug('{parseContent}', `Content: ${this.content} (style: ${this.style}, type: ${this.type})`)
-    
-        // For dialog there may be extra token with image
-        if (tokens.length < 3
-            || (
-                typeToken != JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_LEFT
-                && typeToken != JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_RIGHT
-            )
-        ) {
-            this.log.debug('{parseContent}', `Is not dialog or missing portrait token...`)
-            return
-        }
-    
-        this.portrait = tokens[1]
-        this.content = tokens.slice(2, tokens.length).join('')
-    
-        this.log.debug('{parseContent}', `Is dialog token with portrait: ${this.portrait}`)
-        this.log.debug('{parseContent}', `Content: ${this.content}`)
-    }
-    
-    {
-        this.parseContent()
-        this.log.debug('{formatHTML}', 'Blob after parsing:')
-        this.log.debug('{formatHTML}', `  uid:      ${this.id}`)
-        this.log.debug('{formatHTML}', `  Content:  ${this.content}`)
-        this.log.debug('{formatHTML}', `  Type:     ${this.type}`)
-        this.log.debug('{formatHTML}', `  Style:    ${this.style}`)
-        this.log.debug('{formatHTML}', `  Portrait: ${this.portrait}`)
-    
-        if (this.content === '' || this.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return
-    
-        let portrait_html = ''
-        if (this.portrait != ''
-            && (
-                this.type == JSPG.Constants.BLOB_TYPES.DIALOG_LEFT
-                || this.type == JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT
-            )
-        ) {
-            portrait_html = `<img src="${this.portrait}"/>`;
-        }
-    
-        this.html = `<div class="scene-description ${this.style}" uid="${this.id}">${portrait_html}${this.content}</div>`
-    }
+    this.html = `<div class="scene-description ${style}" uid="${this.id}">${portrait_html}${content}</div>`
 }
 
 JSPG.Entities.Icon = function (iconCfg) {
@@ -938,7 +847,7 @@ JSPG.Entities.Element = function (tag) {
     }
     
     this.toString = function () {
-        return `Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/`
+        return `[Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/]`
     }
     
     this.finalize = function () {
@@ -1034,7 +943,7 @@ JSPG.Entities.LabeledElement = function (tag=null, label='', align='left') {
         if (labelUpdateCallback) {
             this.labelUpdateCallback = labelUpdateCallback
             this.AddEventHandler(
-                'input',
+                'input.inbuilt',
                 (element, event) => labelUpdateCallback(element, event.target.value),
                 callbackTag
             )
@@ -1148,7 +1057,7 @@ JSPG.Entities.LabeledElement = function (tag=null, label='', align='left') {
     }
     
     this.toString = function () {
-        return `Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/`
+        return `[Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/]`
     }
     
     this.finalize = function () {
@@ -1335,7 +1244,7 @@ JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>')
     }
     
     this.toString = function () {
-        return `Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.size} items`
+        return `[Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.length} items]`
     }
     
     this.finalize = function () {
@@ -1350,6 +1259,10 @@ JSPG.Entities.Attributes = function (...params) {
     this.classlist = []
     this.stylelist = []
     this.attrs = {}
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.ATTRIBUTES.id,
+        JSPG.Logging.ENTITIES.ATTRIBUTES.level,
+    )
     
     this.modify = function () {
         /*  Use cases:
@@ -1376,7 +1289,7 @@ JSPG.Entities.Attributes = function (...params) {
         }
     
         for (let key in attrObj) {
-            //console.log(`${key} = ${attrObj[key]}`)
+            this.log.info('{modify}', `${key} = ${attrObj[key]}`)
             const value = attrObj[key]
             key = key.toLowerCase()
             const listname = key == 'class'
@@ -1385,7 +1298,7 @@ JSPG.Entities.Attributes = function (...params) {
     
             // Attribures deletion case
             if (value == null || value === '') {
-                //console.log('Deletion route')
+                this.log.info('{modify}', 'Deletion of key')
                 if (!override) continue
                 if (listname != null) {
                     this[listname].purge()
@@ -1398,7 +1311,7 @@ JSPG.Entities.Attributes = function (...params) {
     
             // Attribute force add case
             if (override) {
-                //console.log('Force add/override route')
+                this.log.info('{modify}', 'Force add/override of key')
                 if (listname != null) {
                     this[listname].purge()
                     this._composeList(listname, value)
@@ -1410,7 +1323,7 @@ JSPG.Entities.Attributes = function (...params) {
             }
     
             // Append or create key-value if none
-            //console.log('Add/append route')
+            this.log.info('{modify}', 'Add/append key')
             if (listname != null) {
                 this._composeList(listname, value)
                 continue
@@ -1456,33 +1369,39 @@ JSPG.Entities.EventHandler = function () {
     
     /* In format:
         eventName1: Map(
-           ...handler(Map(callback, use_limit, mark_disabled))
-            __tagged: Map(tag, ...handler),
+            tag1: HandlerObject(tag, ...handler),
+            ...
         ),
-        eventNae2: ...
+        eventNae2: Map(...)
     */
     this.listeners = new Map()
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.EVENT_HANDLER.id,
+        JSPG.Logging.ENTITIES.EVENT_HANDLER.level
+    )
     
     this.add = function (eventName, callback, tag=null, use_limit=-1, mark_disabled=false) {
         const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
         eventName = eventName.toLowerCase()
-        
+    
         if (eventName.split('.').length == 1) {
             eventName = `${eventName}.user_defined`
         }
-        
+    
         const handlersMap = this.listeners.has(eventName)
                             ? this.listeners.get(eventName)
                             : new Map()
     
         if (!tag) tag = JSPG.uid()
-        const handler = new Map().set(EHSTRUCT.TAG, tag)
-                                 .set(EHSTRUCT.CALLBACK, callback)
-                                 .set(EHSTRUCT.USE_LIMIT, use_limit)
-                                 .set(EHSTRUCT.DISABLE_ON_LIMIT, mark_disabled)
     
-        console.log(`{eventHandler} Add for ${eventName}`)
-        console.log(handler)
+        const handler = {}
+        handler[EHSTRUCT.TAG] = tag
+        handler[EHSTRUCT.CALLBACK] = callback
+        handler[EHSTRUCT.USE_LIMIT] = use_limit
+        handler[EHSTRUCT.DISABLE_ON_LIMIT] = mark_disabled
+    
+        this.log.info('{add}', `Add for ${eventName}`)
+        this.log.info('{add}', handler)
     
         handlersMap.set(tag, handler)
         this.listeners.set(eventName, handlersMap)
@@ -1511,7 +1430,7 @@ JSPG.Entities.EventHandler = function () {
         const handler = handlersMap.get(tag)
         DOMElement.removeEventListener(
             eventName,
-            handler.get(JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK)
+            handler[JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK]
         )
         handlersMap.delete(tag)
     }
@@ -1542,6 +1461,133 @@ JSPG.Entities.EventHandler = function () {
         $(DOMElement).off()
     }
 }
+
+JSPG.BlobBuilder = new (function () {
+    
+    this.log = new Logger(
+        JSPG.Logging.BLOB_BUILDER.id,
+        JSPG.Logging.BLOB_BUILDER.level
+    )
+    
+    this.createBlobsFrom = function (entity) {
+        const contentfullBlobs = []
+        for (let i = 0; i < entity.desc.length; ++i) {
+            const blob = this._createBlob(entity.type, entity.portrait, entity.desc[i])
+            if (!blob) continue
+    
+            contentfullBlobs.push(blob)
+        }
+    
+        return contentfullBlobs
+    }
+    
+    this._createBlob = function (typeDefault, portraitDefault, content) {
+        const parsed = this._parseContent(content)
+        this.log.debug(parsed)
+    
+        const type = parsed.hasOwnProperty('type')
+                     ? parsed.type
+                     : typeDefault
+        if (!parsed || type == JSPG.Constants.BLOB_TYPES.HIDDEN) return null
+    
+        const style = typeDefault
+                      ? JSPG.Maps.BLOB_STYLE_BY_TYPE[type]
+                      : JSPG.Constants.BLOB_STYLES.SCENE_LEFT
+    
+        const portrait = parsed.hasOwnProperty('portrait')
+                         ? parsed.portrait
+                         : portraitDefault
+    
+        const portrait_html = portrait
+                              && (
+                                  type === JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT
+                                  || type === JSPG.Constants.BLOB_TYPES.DIALOG_LEFT
+                              )
+                              ? `<img src="${portrait}" />`
+                              : ''
+    
+       return new JSPG.Entities.Blob(parsed.content, portrait_html, style)
+    }
+    
+    this._parseContent = function (rawContent) {
+        /* Returns object of format:
+           {
+              content: (string),            - parsed content
+              type: (optional, string),     - type parsed out from inline token
+              portrait: (optional, string)  - portrait parsed out from inline token
+           }
+         */
+        this.log.info('{parseContent}', `Raw content: ${rawContent}`)
+    
+        if (rawContent === '') {
+            this.log.debug('{parseContent}', `Line is empty. Skip.`)
+            return null
+         }
+    
+        let content = rawContent
+        // Check for interpolation single or multistring
+        if (rawContent.startsWith("`") && rawContent.endsWith("`")) {
+            this.log.debug('{parseContent}', `Line is expression to evaluate`)
+            content = eval(rawContent).trim()
+        } else if (rawContent.startsWith(JSPG.Constants.INLINE_EXECUTE_TOKEN)) {
+            this.log.debug('{parseContent}', `Line is multiline expression to evaluate`)
+            const line = rawContent.substr(JSPG.Constants.INLINE_EXECUTE_TOKEN.length)
+            content = eval('`{line}`'.format('line', line)).trim()
+        }
+    
+        if (content === '') {
+            this.log.debug('{parseContent}', `Parsed line is empty. Skip from render.`)
+            return null
+        }
+        this.log.debug('{parseContent}', `Non empty line {${content}}`)
+    
+        const parsed = {
+            content: content
+        }
+    
+        // Check for inline tokens
+        const tokens = content.split(JSPG.Constants.INLINE_TOKEN_SEPARATOR)
+        this.log.debug('{parseContent}', `Checking for tokens. Tokenized to ${tokens.length} element(s)`)
+        if (
+            tokens.length == 1
+            || !tokens[1] == JSPG.Constants.INLINE_TOKEN_SEPARATOR
+        ) {
+            this.log.debug('{parseContent}', `No tokens found.`)
+            return parsed
+        }
+    
+        const typeToken = tokens[0].toUpperCase()
+        const inlineType = JSPG.Maps.BLOB_TYPE_BY_TOKEN[typeToken]
+        this.log.debug('{parseContent}', `Prefix token: ${typeToken} of type ${inlineType}`)
+    
+        if (inlineType == undefined) {
+            this.log.debug('{parseContent}', `Prefix token is unknown. Return untouched content`)
+            return parsed
+        }
+    
+        parsed.type = inlineType
+        parsed.content = tokens.slice(1, tokens.length).join('')
+        this.log.debug('{parseContent}', `Content: ${parsed.content.length} chars, type: ${parsed.type}`)
+    
+        // For dialog there may be extra token with image
+        if (tokens.length < 3
+            || (
+                typeToken != JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_LEFT
+                && typeToken != JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_RIGHT
+            )
+        ) {
+            this.log.debug('{parseContent}', `Is not dialog or missing portrait token...`)
+            return parsed
+        }
+    
+        parsed.portrait = tokens[1]
+        parsed.content = tokens.slice(2, tokens.length).join('')
+    
+        this.log.debug('{parseContent}', `Is dialog token with portrait: ${parsed.portrait}`)
+        this.log.debug('{parseContent}', `Content: ${parsed.content.length} chars`)
+        return parsed
+    }
+})()
 
 // Screen Template objects
 JSPG.ScreenTemplates.simpleMenu = function () {
@@ -1753,7 +1799,7 @@ JSPG.SceneHandler = new (function () {
     
         // Skip blob rendering if there is none
         // scene.compileDescLines()
-        const contentfullBlobs = scene.parseDescriptions()
+        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
         const framesAmount = contentfullBlobs.length
         if (framesAmount == 0) {
             this.log.debug('{showScene}', `[id:${sceneId}] There is no description blobs. Stop rendering.`)
@@ -1857,7 +1903,6 @@ JSPG.ActionHandler = new (function () {
         ) return
     
         const idx = e.keyCode - 49
-        console.log(`Action ${idx} selected!`)
         JSPG.ActionHandler.onActionSelected(JSPG.ActionHandler.actions[idx].id)
     }
     
@@ -1932,7 +1977,7 @@ JSPG.ActionHandler = new (function () {
     this.showActionDescription = function (action, offsetTimeout) {
         if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
     
-        const contentfullBlobs = action.parseDescriptions()
+        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)// action.parseDescriptions()
         const frames = contentfullBlobs.length
         if (frames == 0) return offsetTimeout
     
@@ -1996,6 +2041,12 @@ JSPG.ElementsHandler = new (function () {
         this.elements.set(key, element)
     }
     
+    this.RegisterElements = function(...elements) {
+        for (let idx = 0; idx < elements.length; ++idx) {
+            this.RegisterElement(elements[idx])
+        }
+    }
+    
     this.UnregisterElement = function (elementOrTag) {
         let key = ''
         if (typeof elementOrTag == typeof '') {
@@ -2038,23 +2089,23 @@ JSPG.ElementsHandler = new (function () {
     
     this.runElementsEventHandler = function (element, eventName, handler, event) {
         const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
-        const handlerTag = handler.get(EHSTRUCT.TAG)
-        const callback = handler.get(EHSTRUCT.CALLBACK)
-        const use_limit = handler.get(EHSTRUCT.USE_LIMIT)
-        const disableOnLimit = handler.get(EHSTRUCT.DISABLE_ON_LIMIT)
+        const handlerTag = handler[EHSTRUCT.TAG]
+        const callback = handler[EHSTRUCT.CALLBACK]
+        const use_limit = handler[EHSTRUCT.USE_LIMIT]
+        const disableOnLimit = handler[EHSTRUCT.DISABLE_ON_LIMIT]
     
         this.log.info('{RunEventHandler}',
-            `Running event handler for event [${eventName}/${handlerTag}] for element [${element.html_tag}/uid=${element.id} tag=${element.tag}]`)
+            `Running event handler for event [${eventName}/${handlerTag}] for element ${element.toString()}`)
         callback(element, event)
     
         if (use_limit == -1) return
     
         const new_limit = use_limit - 1
-        handler.set(EHSTRUCT.USE_LIMIT, new_limit)
+        handler[EHSTRUCT.USE_LIMIT] = new_limit
         if (new_limit > 0) return
     
         this.log.info('{RunEventHandler}',
-            `Event handler reached its limit for [${eventName}/${handlerTag}] for element [${element.html_tag}/uid=${element.id} tag=${element.tag}]`)
+            `Event handler reached its limit for [${eventName}/${handlerTag}] for element ${element.toString()}`)
     
         element.RemoveEventHandler(eventName, handlerTag)
         if (disableOnLimit) element.Disable()

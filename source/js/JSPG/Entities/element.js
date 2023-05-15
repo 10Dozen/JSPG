@@ -163,7 +163,7 @@ this.findInDOM = function () {
 }
 
 this.toString = function () {
-    return `Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/`
+    return `[Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}/]`
 }
 
 this.finalize = function () {

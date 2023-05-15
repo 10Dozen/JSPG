@@ -79,7 +79,7 @@ this.AsSlider = function (min=0, max=10, value=5, step=1, name='',
     if (labelUpdateCallback) {
         this.labelUpdateCallback = labelUpdateCallback
         this.AddEventHandler(
-            'input',
+            'input.inbuilt',
             (element, event) => labelUpdateCallback(element, event.target.value),
             callbackTag
         )
@@ -193,7 +193,7 @@ this.findInDOM = function () {
 }
 
 this.toString = function () {
-    return `Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/`
+    return `[Labeled Element <${this.html_tag}>/tag=${this.tag}, id=${this.id}, label=${this.labelContent}/]`
 }
 
 this.finalize = function () {

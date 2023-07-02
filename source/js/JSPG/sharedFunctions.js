@@ -5,6 +5,17 @@ JSPG['execCode'] = function (code, ...params) {
     return
 }
 
+JSPG['parseParamValue'] = function (paramValue) {
+    // Checks param value data type and in case of function
+    // executes and return result to context
+    if (typeof paramValue === 'function') {
+        return paramValue()
+    }
+
+    // Otherwise consider as a string
+    return paramValue
+}
+
 JSPG['uid'] = function () {
     const uid = [
         JSPG.GetCurrentScene().id,

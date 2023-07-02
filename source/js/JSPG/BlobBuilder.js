@@ -30,9 +30,9 @@ this._createBlob = function (typeDefault, portraitDefault, content) {
                   ? JSPG.Maps.BLOB_STYLE_BY_TYPE[type]
                   : JSPG.Constants.BLOB_STYLES.SCENE_LEFT
 
-    const portrait = parsed.hasOwnProperty('portrait')
+    const portrait = JSPG.parseParamValue(parsed.hasOwnProperty('portrait')
                      ? parsed.portrait
-                     : portraitDefault
+                     : portraitDefault)
 
     const portrait_html = portrait
                           && (

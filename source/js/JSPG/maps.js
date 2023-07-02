@@ -1,4 +1,4 @@
-//@wrap:object:JSPG.Maps:
+//@wrap:object:JSPG.Maps
 BLOB_STYLE_BY_TYPE: {},
 BLOB_TYPE_BY_TOKEN: {},
 SCREEN_TEMPLATE_BY_TOKEN: {},

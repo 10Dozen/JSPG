@@ -1,0 +1,26 @@
+/* ****************
+   Header
+**************** */
+#header {
+    background-color: #252525;
+    color: white;
+    width: 100%;
+}
+
+#header-title {
+    font-size: 24px;
+    padding: 2px 0px 0px 40px;
+}
+
+#header-title span {
+    background-color: #c52334;
+    padding: 0px 4px;
+    border-radius: 0px 8px 8px 8px;
+    font-weight: bold;
+}
+
+#header-status {
+    font-size: 18px;
+    background-color: #5a5a5a;
+    padding: 6px 0px 3px 40px;
+}

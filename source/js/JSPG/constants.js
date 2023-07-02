@@ -3,6 +3,7 @@
 UID_SEQ: ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'],
 INLINE_TOKEN_SEPARATOR: '|',
 INLINE_TOKENS_TYPES: {
+    SCENE_CENTER: '^',
     SCENE_LEFT: '<',
     SCENE_RIGHT: '>',
     DIALOG_LEFT: '<#',
@@ -28,6 +29,7 @@ TIMEOUTS: {
     GOTO: 50
 },
 BLOB_STYLES: {
+    SCENE_CENTER: "scene-center",
     SCENE_LEFT: "scene-even",
     SCENE_RIGHT: "scene-odd",
     DIALOG_LEFT: "scene-even portrait portrait-left",
@@ -37,6 +39,7 @@ BLOB_STYLES: {
     CONTAINER: "container"
 },
 BLOB_TYPES: {
+    SCENE_CENTER: "scene_center",
     SCENE_LEFT: "scene",
     SCENE_RIGHT: "scene_right",
     TITLE: "title",

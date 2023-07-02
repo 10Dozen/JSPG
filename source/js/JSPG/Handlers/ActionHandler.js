@@ -16,6 +16,8 @@ this.log = new Logger(
 
 this.onHotkeySelection = function (e) {
     if (!JSPG.Settings.allowHotkeyActionSelection) return
+
+    // Track keys 0...9
     if (e.keyCode < 49
         || e.keyCode > (49 + JSPG.ActionHandler.actions.length - 1)
         || $("#overlay").width() > 0
@@ -82,10 +84,10 @@ this.executeAction = function (action) {
     if (!action.exec) return 0
 
     setTimeout(() => {
-        // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
+        // If action exec code returns False - GoTo will be ignored (e.g. action code invokes goTo)
         const execResult = action.exec(action)
         if (execResult != undefined && !execResult) {
-            action.available = false
+            action.condition = false
             this.log.debug('{executeAction}', 'Skip action\'s GoTo')
             return
         }
@@ -97,7 +99,7 @@ this.executeAction = function (action) {
 this.showActionDescription = function (action, offsetTimeout) {
     if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
 
-    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)// action.parseDescriptions()
+    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)
     const frames = contentfullBlobs.length
     if (frames == 0) return offsetTimeout
 
@@ -112,19 +114,17 @@ this.showActionDescription = function (action, offsetTimeout) {
 }
 
 this.executePostAction = function (action, offsetTimeout) {
-    if (!action.goto || action.goto == '') return
+    if (!action.goto) return
 
     setTimeout(() => {
-        if (!action.available) {
+        if (!action.condition) {
             this.log.info('{executePostAction}', 'Action is unavailable. Skip GoTo.')
             return 0
         }
 
-        let targetScene = action.goto
-        if (typeof action.goto != typeof '') {
-            this.log.debug('{executePostAction}', 'Post-action function to be invoked')
-            targetScene = action.goto(action)
-        }
+        this.log.debug('{executePostAction}', 'GoTo to be defined.')
+        const targetScene = JSPG.parseParamValue(action.goto)
+
         this.log.debug('{executePostAction}', `GoTo for action: ${targetScene}`)
         JSPG.SceneHandler.goTo(targetScene)
     }, offsetTimeout)
@@ -136,6 +136,7 @@ this.hideSceneActions = function () {
     $(this.SELECTORS.BUTTONS).remove()
 };
 
+// On constuct
 {
     if (JSPG.Settings.allowHotkeyActionSelection) {
         document.addEventListener('keyup', this.onHotkeySelection)

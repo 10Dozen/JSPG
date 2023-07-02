@@ -68,7 +68,6 @@ this.showScene = function (name, sceneConfig)  {
         return
     }
 
-
     // Skip blob rendering if there is none
     // scene.compileDescLines()
     const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
@@ -127,9 +126,9 @@ this.execPostScene = function () {
         JSPG.execCode(this.currentScene.post_exec)
     }
 
-    if (this.currentScene.goto === '') return
+    if (this.currentScene.goto == null) return
     this.log.debug('{PostScene}', `[id:${this.currentSceneId}] GoTo navigation to ${this.currentScene.goto}`);
-    this.goTo(this.currentScene.goto)
+    this.goTo(JSPG.parseParamValue(this.currentScene.goto))
 }
 
 this.showSystemMessage = function (msg) {

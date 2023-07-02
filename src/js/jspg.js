@@ -1,5 +1,5 @@
-// Version: 0.13.0.174
-// Build by ezbld tool =)
+// Version: 0.13.0.201
+// Build date: 2023-07-02 15:44:18.106257
 
 // === Expansion functions ==
 Array.prototype.purge = function (func, thisArg) {
@@ -182,10 +182,10 @@ const JSPG = {
 }
 
 JSPG.Constants = {
-    
     UID_SEQ: ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'],
     INLINE_TOKEN_SEPARATOR: '|',
     INLINE_TOKENS_TYPES: {
+        SCENE_CENTER: '^',
         SCENE_LEFT: '<',
         SCENE_RIGHT: '>',
         DIALOG_LEFT: '<#',
@@ -211,6 +211,7 @@ JSPG.Constants = {
         GOTO: 50
     },
     BLOB_STYLES: {
+        SCENE_CENTER: "scene-center",
         SCENE_LEFT: "scene-even",
         SCENE_RIGHT: "scene-odd",
         DIALOG_LEFT: "scene-even portrait portrait-left",
@@ -220,6 +221,7 @@ JSPG.Constants = {
         CONTAINER: "container"
     },
     BLOB_TYPES: {
+        SCENE_CENTER: "scene_center",
         SCENE_LEFT: "scene",
         SCENE_RIGHT: "scene_right",
         TITLE: "title",
@@ -321,28 +323,28 @@ JSPG.Maps = {
 }
 
 {
-    
     // Blob Type to Style mapping
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.SCENE_LEFT] = JSPG.Constants.BLOB_STYLES.SCENE_LEFT;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.SCENE_RIGHT] = JSPG.Constants.BLOB_STYLES.SCENE_RIGHT;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.TITLE] = JSPG.Constants.BLOB_STYLES.TITLE;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.SUBTITLE] = JSPG.Constants.BLOB_STYLES.SUBTITLE;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.DIALOG_LEFT] = JSPG.Constants.BLOB_STYLES.DIALOG_LEFT;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT] = JSPG.Constants.BLOB_STYLES.DIALOG_RIGHT;
-    JSPG.Maps.BLOB_STYLE_BY_TYPE[JSPG.Constants.BLOB_TYPES.CONTAINER] = JSPG.Constants.BLOB_STYLES.CONTAINER;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .SCENE_CENTER] =  JSPG.Constants.BLOB_STYLES.SCENE_CENTER;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .SCENE_LEFT] =  JSPG.Constants.BLOB_STYLES.SCENE_LEFT;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .SCENE_RIGHT] =  JSPG.Constants.BLOB_STYLES.SCENE_RIGHT;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .TITLE] =  JSPG.Constants.BLOB_STYLES.TITLE;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .SUBTITLE] =  JSPG.Constants.BLOB_STYLES.SUBTITLE;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .DIALOG_LEFT] =  JSPG.Constants.BLOB_STYLES.DIALOG_LEFT;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .DIALOG_RIGHT] =  JSPG.Constants.BLOB_STYLES.DIALOG_RIGHT;
+     JSPG.Maps.BLOB_STYLE_BY_TYPE [ JSPG.Constants.BLOB_TYPES .CONTAINER] =  JSPG.Constants.BLOB_STYLES.CONTAINER;
 }
 
 {
-    
     // Inline Token to Blob type mapping
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.SCENE_LEFT] = JSPG.Constants.BLOB_TYPES.SCENE_LEFT;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.SCENE_RIGHT] = JSPG.Constants.BLOB_TYPES.SCENE_RIGHT;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.TITLE] = JSPG.Constants.BLOB_TYPES.TITLE;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.SUBTITLE] = JSPG.Constants.BLOB_TYPES.SUBTITLE;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_LEFT] = JSPG.Constants.BLOB_TYPES.DIALOG_LEFT;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.DIALOG_RIGHT] = JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.CONTAINER] = JSPG.Constants.BLOB_TYPES.CONTAINER;
-    JSPG.Maps.BLOB_TYPE_BY_TOKEN[JSPG.Constants.INLINE_TOKENS_TYPES.HIDDEN] = JSPG.Constants.BLOB_TYPES.HIDDEN;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .SCENE_CENTER] =  JSPG.Constants.BLOB_TYPES.SCENE_CENTER;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .SCENE_LEFT] =  JSPG.Constants.BLOB_TYPES.SCENE_LEFT;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .SCENE_RIGHT] =  JSPG.Constants.BLOB_TYPES.SCENE_RIGHT;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .TITLE] =  JSPG.Constants.BLOB_TYPES.TITLE;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .SUBTITLE] =  JSPG.Constants.BLOB_TYPES.SUBTITLE;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .DIALOG_LEFT] =  JSPG.Constants.BLOB_TYPES.DIALOG_LEFT;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .DIALOG_RIGHT] =  JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .CONTAINER] =  JSPG.Constants.BLOB_TYPES.CONTAINER;
+     JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .HIDDEN] =  JSPG.Constants.BLOB_TYPES.HIDDEN;
 }
 
 JSPG.Logging = {
@@ -371,6 +373,17 @@ JSPG['execCode'] = function (code, ...params) {
     if (typeof(code) != typeof("")) return code(...params)
     if (code != "") return eval(code)
     return
+}
+
+JSPG['parseParamValue'] = function (paramValue) {
+    // Checks param value data type and in case of function
+    // executes and return result to context
+    if (typeof paramValue === 'function') {
+        return paramValue()
+    }
+
+    // Otherwise consider as a string
+    return paramValue
 }
 
 JSPG['uid'] = function () {
@@ -463,16 +476,15 @@ JSPG['GetCurrentScene'] = function () {
 
 // Entities objects
 JSPG.Entities.Scene = function (id, name) {
-    
     this.id = id
     this.name = name
     this.desc = []
-    this.type = JSPG.Constants.BLOB_TYPES.SCENE_LEFT
+    this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER
     this.actions = []
     this.portrait = ''
     this.pre_exec = null
     this.post_exec = null
-    this.goto = ''
+    this.goto = null
     this.log = new Logger(
         JSPG.Logging.ENTITIES.SCENE.id.replace('$id', this.id),
         JSPG.Logging.ENTITIES.SCENE.level
@@ -482,10 +494,13 @@ JSPG.Entities.Scene = function (id, name) {
         this.log.info('{fromConfig}',
             `Generating new scene with type ${JSPG.getByNormalizedKey(sceneConfig, "type", this.type)}`)
     
-        propCallbacks = {}
-        propCallbacks[JSPG.Constants.SCHEMAS.SCENE.DESC] = desc => Array.isArray(desc) ? desc : [desc]
-        propCallbacks[JSPG.Constants.SCHEMAS.SCENE.ACTIONS] = actions => this.setActions(actions)
-        propCallbacks[JSPG.Constants.SCHEMAS.SCENE.TYPE] = type => type.toLowerCase()
+        // Note:
+        // GOTO should be evaluated right before execution, because EXEC code may modify it
+        propCallbacks = {
+            [JSPG.Constants.SCHEMAS.SCENE.DESC]:     desc => Array.isArray(desc) ? desc : [desc],
+            [JSPG.Constants.SCHEMAS.SCENE.ACTIONS]:  actions => this.setActions(actions),
+            [JSPG.Constants.SCHEMAS.SCENE.TYPE]:     type => JSPG.parseParamValue(type).toLowerCase()
+        }
     
         JSPG.normalizeAndCopyToObject(sceneConfig, this,
                                       Object.values(JSPG.Constants.SCHEMAS.SCENE),
@@ -495,19 +510,6 @@ JSPG.Entities.Scene = function (id, name) {
             this.log.err('{fromConfig}', `Unknown scene type ${this.type}!`)
         }
     }
-    
-    /*
-    this.parseDescriptions = function () {
-        const contentfullBlobs = []
-        for (let i = 0; i < this.desc.length; ++i) {
-            const blob = new JSPG.Entities.Blob(this.type, this.portrait, this.desc[i])
-            if (blob.html === '') continue
-            contentfullBlobs.push(blob)
-        }
-    
-        return contentfullBlobs
-    }
-    */
     
     this.setActions = function (action_list) {
         this.clearActions()
@@ -545,17 +547,16 @@ JSPG.Entities.Scene = function (id, name) {
 }
 
 JSPG.Entities.Action = function () {
-    
     this.id = JSPG.uid()
     this.name = ""
     this.icon = null
     this.desc = []
     this.exec = null
-    this.goto = ""
+    this.goto = null
     this.type = JSPG.Constants.BLOB_TYPES.SCENE_RIGHT
     this.portrait = ""
     this.tag = ""
-    this.available = true
+    this.condition = true
     this.log = new Logger(
         JSPG.Logging.ENTITIES.ACTION.id.replace('$id', this.id),
         JSPG.Logging.ENTITIES.ACTION.level
@@ -565,16 +566,18 @@ JSPG.Entities.Action = function () {
         this.log.info('{fromConfig}',
             `Generating new action with type ${JSPG.getByNormalizedKey(actionConfig, 'type', this.type)}`)
     
-        propsCallbacks = {}
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.NAME] = name => {
-            if (name.startsWith('`') && name.endsWith('`')) return eval(name)
-            return name
+        // Note:
+        // GOTO should be evaluated right before execution, because EXEC code may modify it
+        propsCallbacks = {
+            [JSPG.Constants.SCHEMAS.ACTION.NAME]: name => {
+                if (name.startsWith('`') && name.endsWith('`')) return eval(name)
+                return JSPG.parseParamValue(name)
+            },
+            [JSPG.Constants.SCHEMAS.ACTION.TYPE]:      type => JSPG.parseParamValue(type).toLowerCase(),
+            [JSPG.Constants.SCHEMAS.ACTION.DESC]:      desc => Array.isArray(desc) ? desc : [desc],
+            [JSPG.Constants.SCHEMAS.ACTION.ICON]:      iconCfg => new JSPG.Entities.Icon(iconCfg).asActionIcon(),
+            [JSPG.Constants.SCHEMAS.ACTION.CONDITION]: condition => JSPG.parseParamValue(condition)
         }
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.TYPE] = type => type.toLowerCase()
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.PORTRAIT] = img => `<img src='${img}'/>`
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.DESC] = desc => Array.isArray(desc) ? desc : [desc]
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.ICON] = iconCfg => new JSPG.Entities.Icon(iconCfg).asActionIcon()
-        propsCallbacks[JSPG.Constants.SCHEMAS.ACTION.CONDITION] = condition => condition()
         JSPG.normalizeAndCopyToObject(actionConfig, this,
                                       Object.values(JSPG.Constants.SCHEMAS.ACTION),
                                       propsCallbacks)
@@ -601,33 +604,18 @@ JSPG.Entities.Action = function () {
         this.log.debug('{fromConfig}', `   portrait:  ${this.portrait}`)
         this.log.debug('{fromConfig}', `   type:      ${this.type}`)
         this.log.debug('{fromConfig}', `   goto:      ${this.goto}`)
-        this.log.debug('{fromConfig}', `   condition: ${this.available}`)
+        this.log.debug('{fromConfig}', `   condition: ${this.condition}`)
     
-        return this.available
+        return this.condition
     }
-    
-    /*
-    this.parseDescriptions = function () {
-        const contentfullBlobs = []
-        for (let i = 0; i < this.desc.length; ++i) {
-            const blob = new JSPG.Entities.Blob(this.type, this.portrait, this.desc[i])
-            if (blob.content === '') return
-            contentfullBlobs.push(blob)
-        }
-    
-        return contentfullBlobs
-    }
-    */
 }
 
 JSPG.Entities.Blob = function (content, portrait_html, style) {
-    
     this.id = JSPG.uid()
     this.html = `<div class="scene-description ${style}" uid="${this.id}">${portrait_html}${content}</div>`
 }
 
 JSPG.Entities.Icon = function (iconCfg) {
-    
     this.text = null
     this.img = null
     this.class = null
@@ -781,6 +769,7 @@ JSPG.Entities.Element = function (tag) {
     
         return this
     }
+    
     // Public functions
     this.Get = function () {
         // Returns HTML code of the element
@@ -1071,7 +1060,6 @@ JSPG.Entities.LabeledElement = function (tag=null, label='', align='left') {
 }
 
 JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>') {
-    
     this.id = JSPG.uid()
     this.tag = tag
     this.align = align
@@ -1366,7 +1354,6 @@ JSPG.Entities.Attributes = function (...params) {
 }
 
 JSPG.Entities.EventHandler = function () {
-    
     /* In format:
         eventName1: Map(
             tag1: HandlerObject(tag, ...handler),
@@ -1463,7 +1450,6 @@ JSPG.Entities.EventHandler = function () {
 }
 
 JSPG.BlobBuilder = new (function () {
-    
     this.log = new Logger(
         JSPG.Logging.BLOB_BUILDER.id,
         JSPG.Logging.BLOB_BUILDER.level
@@ -1494,9 +1480,9 @@ JSPG.BlobBuilder = new (function () {
                       ? JSPG.Maps.BLOB_STYLE_BY_TYPE[type]
                       : JSPG.Constants.BLOB_STYLES.SCENE_LEFT
     
-        const portrait = parsed.hasOwnProperty('portrait')
+        const portrait = JSPG.parseParamValue(parsed.hasOwnProperty('portrait')
                          ? parsed.portrait
-                         : portraitDefault
+                         : portraitDefault)
     
         const portrait_html = portrait
                               && (
@@ -1591,7 +1577,6 @@ JSPG.BlobBuilder = new (function () {
 
 // Screen Template objects
 JSPG.ScreenTemplates.simpleMenu = function () {
-    
     this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU
     this.title = ''
     this.content = []
@@ -1677,7 +1662,6 @@ JSPG.ScreenTemplates.simpleMenu = function () {
 }
 
 JSPG.ScreenTemplates.simpleText = function () {
-    
     this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT
     this.title = ''
     this.content = []
@@ -1719,15 +1703,13 @@ JSPG.ScreenTemplates.simpleText = function () {
 }
 
 {
-    
     // Screen config type to template mapping
-    JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN[JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU] = JSPG.ScreenTemplates.simpleMenu;
-    JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN[JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT] = JSPG.ScreenTemplates.simpleText;
+     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_MENU] =  JSPG.ScreenTemplates.simpleMenu;
+     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_TEXT] =  JSPG.ScreenTemplates.simpleText;
 }
 
 // Handler components
 JSPG.SceneHandler = new (function () {
-    
     this.currentSceneId = -1
     this.currentScene = {}
     this.SELECTORS = {
@@ -1796,7 +1778,6 @@ JSPG.SceneHandler = new (function () {
             return
         }
     
-    
         // Skip blob rendering if there is none
         // scene.compileDescLines()
         const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
@@ -1855,9 +1836,9 @@ JSPG.SceneHandler = new (function () {
             JSPG.execCode(this.currentScene.post_exec)
         }
     
-        if (this.currentScene.goto === '') return
+        if (this.currentScene.goto == null) return
         this.log.debug('{PostScene}', `[id:${this.currentSceneId}] GoTo navigation to ${this.currentScene.goto}`);
-        this.goTo(this.currentScene.goto)
+        this.goTo(JSPG.parseParamValue(this.currentScene.goto))
     }
     
     this.showSystemMessage = function (msg) {
@@ -1896,6 +1877,8 @@ JSPG.ActionHandler = new (function () {
     
     this.onHotkeySelection = function (e) {
         if (!JSPG.Settings.allowHotkeyActionSelection) return
+    
+        // Track keys 0...9
         if (e.keyCode < 49
             || e.keyCode > (49 + JSPG.ActionHandler.actions.length - 1)
             || $("#overlay").width() > 0
@@ -1962,10 +1945,10 @@ JSPG.ActionHandler = new (function () {
         if (!action.exec) return 0
     
         setTimeout(() => {
-            // If action exec code return False - GoTo will be ignored (e.g. action code invokes goTo)
+            // If action exec code returns False - GoTo will be ignored (e.g. action code invokes goTo)
             const execResult = action.exec(action)
             if (execResult != undefined && !execResult) {
-                action.available = false
+                action.condition = false
                 this.log.debug('{executeAction}', 'Skip action\'s GoTo')
                 return
             }
@@ -1977,7 +1960,7 @@ JSPG.ActionHandler = new (function () {
     this.showActionDescription = function (action, offsetTimeout) {
         if (action.type == JSPG.Constants.BLOB_TYPES.HIDDEN) return offsetTimeout
     
-        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)// action.parseDescriptions()
+        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(action)
         const frames = contentfullBlobs.length
         if (frames == 0) return offsetTimeout
     
@@ -1992,19 +1975,17 @@ JSPG.ActionHandler = new (function () {
     }
     
     this.executePostAction = function (action, offsetTimeout) {
-        if (!action.goto || action.goto == '') return
+        if (!action.goto) return
     
         setTimeout(() => {
-            if (!action.available) {
+            if (!action.condition) {
                 this.log.info('{executePostAction}', 'Action is unavailable. Skip GoTo.')
                 return 0
             }
     
-            let targetScene = action.goto
-            if (typeof action.goto != typeof '') {
-                this.log.debug('{executePostAction}', 'Post-action function to be invoked')
-                targetScene = action.goto(action)
-            }
+            this.log.debug('{executePostAction}', 'GoTo to be defined.')
+            const targetScene = JSPG.parseParamValue(action.goto)
+    
             this.log.debug('{executePostAction}', `GoTo for action: ${targetScene}`)
             JSPG.SceneHandler.goTo(targetScene)
         }, offsetTimeout)
@@ -2016,6 +1997,7 @@ JSPG.ActionHandler = new (function () {
         $(this.SELECTORS.BUTTONS).remove()
     };
     
+    // On constuct
     {
         if (JSPG.Settings.allowHotkeyActionSelection) {
             document.addEventListener('keyup', this.onHotkeySelection)
@@ -2113,7 +2095,6 @@ JSPG.ElementsHandler = new (function () {
 })()
 
 JSPG.MenuHandler = new (function () {
-    
     this.items = []
     this.currentScreen = null
     this.SELECTORS = {
@@ -2343,7 +2324,6 @@ JSPG.MenuHandler = new (function () {
 })()
 
 JSPG.Persistence = new (function () {
-    
     this.subscribers = []
     this.customSaveObject = null
     this.log = new Logger(
@@ -2542,6 +2522,7 @@ JSPG.Persistence = new (function () {
 })()
 
 JSPG.Helper = new (function () {
+    // Simple elements
     this.Click = function(text, callback, tag='', use_limit=1, style=null, attrs=null) {
         const element = new JSPG.Entities.Element(tag).AsClick(text)
         element.attrs.modify('class', "inline-button")
@@ -2582,17 +2563,58 @@ JSPG.Helper = new (function () {
         return element.Get()
     }
     
-    this.Checkbox = function (label, isChecked=false, align='left', tag='', style=null, attrs=null) {
+    // Labeled elements
+    this.Checkbox = function (label, isChecked=false, align='left', tag='', style=null, klass=null, attrs=null) {
         const element = new JSPG.Entities.LabeledElement(label, tag, align)
                                          .AsCheckbox(isChecked)
-        element.attrs.modify('style', style)
-        element.attrs.modify('attrs', attrs, JSPG.Constants.OPERATIONS.APPEND)
-        JSPG.ElementsHandler.RegisterElement(element)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
+    
+        return element.Get()
+    }
+    this.Slider = function (min, max, value, step, updateCallback, align, tag, style=null, klass=null, attrs=null) {
+        const element = new JSPG.Entities.LabeledElement(tag, '', align)
+                            .AsSlider(min, max, value, step, updateCallback)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
+    
+        return element.Get()
+    }
+    this.Meter = function (min, max, value, align, tag, style=null, klass=null, attrs=null) {
+        const element = new JSPG.Entities.LabeledElement(tag, '', align)
+                            .AsMeter(min, max, value, step, updateCallback)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
     
         return element.Get()
     }
     
+    // Grouped elements
+    this.Radio = function (options, selectedIdx, values, align, joinWith, tag, style=null, klass=null, attrs=null) {
+        const element = new JSPG.Entities.ElementsGroup(tag, align, joinWith)
+                            .AsRadiobuttons(options, selectedIdx, values)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
     
+        return element.Get()
+    }
+    this.Options = function (options, selectedIdx, values, align, joinWith, tag, style=null, klass=null, attrs=null) {
+        const element = new JSPG.Entities.ElementsGroup(tag, align, joinWith)
+                            .AsOptions(options, selectedIdx, values)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
+    
+        return element.Get()
+    }
+    this.List = function (list, ordered, tag, style=null, klass=null, attrs=null) {
+        const element = new JSPG.Entities.ElementsGroup(tag)
+                            .AsList(list, ordered)
+        this._applyAttributesAndRegister(element, style, klass, attrs)
+    
+        return element.Get()
+    }
+    
+    this._applyAttributesAndRegister = function (elemnt, style, klass, attrs) {
+        element.attrs.modify('class', klass)
+        element.attrs.modify('style', style)
+        element.attrs.modify('attrs', attrs, JSPG.Constants.OPERATIONS.APPEND)
+        JSPG.ElementsHandler.RegisterElement(element)
+    }
     
     this.Find = {
         ByTag: function(tag) {
@@ -2660,7 +2682,6 @@ JSPG.Helper = new (function () {
         }
     }
 })()
-
 
 // === Before start ===
 const $h = JSPG.Helper

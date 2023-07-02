@@ -97,6 +97,7 @@ this.AsCustom = function (html_tag, isFullForm=true, content='') {
 
     return this
 }
+
 // Public functions
 this.Get = function () {
     // Returns HTML code of the element

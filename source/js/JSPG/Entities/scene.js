@@ -3,12 +3,12 @@
 this.id = id
 this.name = name
 this.desc = []
-this.type = JSPG.Constants.BLOB_TYPES.SCENE_LEFT
+this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER
 this.actions = []
 this.portrait = ''
 this.pre_exec = null
 this.post_exec = null
-this.goto = ''
+this.goto = null
 this.log = new Logger(
     JSPG.Logging.ENTITIES.SCENE.id.replace('$id', this.id),
     JSPG.Logging.ENTITIES.SCENE.level
@@ -18,10 +18,13 @@ this.fromConfig = function (sceneConfig) {
     this.log.info('{fromConfig}',
         `Generating new scene with type ${JSPG.getByNormalizedKey(sceneConfig, "type", this.type)}`)
 
-    propCallbacks = {}
-    propCallbacks[JSPG.Constants.SCHEMAS.SCENE.DESC] = desc => Array.isArray(desc) ? desc : [desc]
-    propCallbacks[JSPG.Constants.SCHEMAS.SCENE.ACTIONS] = actions => this.setActions(actions)
-    propCallbacks[JSPG.Constants.SCHEMAS.SCENE.TYPE] = type => type.toLowerCase()
+    // Note:
+    // GOTO should be evaluated right before execution, because EXEC code may modify it
+    propCallbacks = {
+        [JSPG.Constants.SCHEMAS.SCENE.DESC]:     desc => Array.isArray(desc) ? desc : [desc],
+        [JSPG.Constants.SCHEMAS.SCENE.ACTIONS]:  actions => this.setActions(actions),
+        [JSPG.Constants.SCHEMAS.SCENE.TYPE]:     type => JSPG.parseParamValue(type).toLowerCase()
+    }
 
     JSPG.normalizeAndCopyToObject(sceneConfig, this,
                                   Object.values(JSPG.Constants.SCHEMAS.SCENE),
@@ -31,19 +34,6 @@ this.fromConfig = function (sceneConfig) {
         this.log.err('{fromConfig}', `Unknown scene type ${this.type}!`)
     }
 }
-
-/*
-this.parseDescriptions = function () {
-    const contentfullBlobs = []
-    for (let i = 0; i < this.desc.length; ++i) {
-        const blob = new JSPG.Entities.Blob(this.type, this.portrait, this.desc[i])
-        if (blob.html === '') continue
-        contentfullBlobs.push(blob)
-    }
-
-    return contentfullBlobs
-}
-*/
 
 this.setActions = function (action_list) {
     this.clearActions()

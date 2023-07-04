@@ -1,6 +1,7 @@
 //@wrap:function:JSPG.Entities.Scene:id, name
 
 this.id = id
+this.debugName = 'scene'
 this.name = name
 this.desc = []
 this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER

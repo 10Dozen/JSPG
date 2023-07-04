@@ -1,6 +1,7 @@
 //@wrap:function:JSPG.Entities.Action:
 
 this.id = JSPG.uid()
+this.debugName = 'action'
 this.name = ""
 this.icon = null
 this.desc = []

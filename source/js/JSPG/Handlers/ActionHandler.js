@@ -1,5 +1,6 @@
 //@wrap:closure:JSPG.ActionHandler:
 this.actions = []
+this.selectedActions = null
 this.SELECTORS = {
     CONTAINER: '#actions',
     BUTTONS: '.action-btn',
@@ -54,9 +55,27 @@ this.showSceneActions = function (actions) {
                            ? new JSPG.Entities.Icon({text: idx+1, class: 'action-btn-icon-hotkey'}).asActionIcon().get()
                            : ''
 
+        let debugInfo = ''
+        if (this.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+            const debugContent = []
+            if (action.tag) debugContent.push(`<b>#${action.tag}</b>`)
+            debugContent.push(`${action.type}, <i title="${action.desc}">${action.desc.length} description line(s)</i>`)
+            if (action.exec) debugContent.push(`<i title="${action.exec}">➥ exec</i>`)
+            if (action.goto) {
+                if (typeof action.goto === typeof '') {
+                    debugContent.push(`<i>goto ▸ ${action.goto}`)
+                } else {
+                    debugContent.push(`<i title="target=${action.goto}">➥ goto`)
+                }
+            }
+
+            debugInfo = `<span class='action-debug-info'><i>${debugContent.join('<br>')}</i></span>`
+        }
+
         const html = action.icon == null
-                     ? `${hotkeyIcon}${action.name}`
-                     : `${hotkeyIcon}${action.icon.get()}${action.name}`
+                     ? `${hotkeyIcon}${action.name}${debugInfo}`
+                     : `${hotkeyIcon}${action.icon.get()}${action.name}${debugInfo}`
+
         $btn.html(html)
         $btn.off()
         $btn.on("click", () => this.onActionSelected(action.id))
@@ -73,6 +92,7 @@ this.onActionSelected = function (actionId) {
     JSPG.ElementsHandler.disableElements()
     this.hideSceneActions()
     const action = this.getActionById(actionId)
+    this.selectedActions = action
 
     const execTimeout = this.executeAction(action)
     const drawTimeout = this.showActionDescription(action, execTimeout)

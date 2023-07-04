@@ -1,5 +1,5 @@
-// Version: 0.13.0.201
-// Build date: 2023-07-02 15:44:18.106257
+// Version: 0.13.0.228
+// Build date: 2023-07-04 12:56:41.241821
 
 // === Expansion functions ==
 Array.prototype.purge = function (func, thisArg) {
@@ -477,6 +477,7 @@ JSPG['GetCurrentScene'] = function () {
 // Entities objects
 JSPG.Entities.Scene = function (id, name) {
     this.id = id
+    this.debugName = 'scene'
     this.name = name
     this.desc = []
     this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER
@@ -548,6 +549,7 @@ JSPG.Entities.Scene = function (id, name) {
 
 JSPG.Entities.Action = function () {
     this.id = JSPG.uid()
+    this.debugName = 'action'
     this.name = ""
     this.icon = null
     this.desc = []
@@ -610,9 +612,10 @@ JSPG.Entities.Action = function () {
     }
 }
 
-JSPG.Entities.Blob = function (content, portrait_html, style) {
+JSPG.Entities.Blob = function (content, portrait_html, style, debugInfo='') {
     this.id = JSPG.uid()
-    this.html = `<div class="scene-description ${style}" uid="${this.id}">${portrait_html}${content}</div>`
+    this.debugInfo = `<span class="scene-debug-info"><i>${debugInfo.join('<br>')}</i></span>`
+    this.html = `<div class="scene-description ${style}" uid="${this.id}">${this.debugInfo}${portrait_html}${content}</div>`
 }
 
 JSPG.Entities.Icon = function (iconCfg) {
@@ -1456,9 +1459,36 @@ JSPG.BlobBuilder = new (function () {
     )
     
     this.createBlobsFrom = function (entity) {
+        let debugContent = null
+        if (JSPG.SceneHandler.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+            debugContent = [`<b>${entity.name}</b> (${entity.debugName}, ${entity.type})`]
+            if (entity.debugName == 'scene') {
+                if (entity.actions.length > 0) debugContent.push(`${entity.actions.length} action(s)`)
+                if (entity.pre_exec) debugContent.push(`<i title="${entity.pre_exec}">➥ pre_exec`)
+                if (entity.post_exec) debugContent.push(`<i title="${entity.post_exec}">➥ post_exec</i>`)
+            } else {
+                if (entity.tag) debugContent.push(`#${entity.tag}`)
+                if (entity.exec) debugContent.push(`<i title="${entity.exec}">➥ exec</i>`)
+            }
+    
+            if (entity.goto) {
+                debugContent.push(
+                    typeof entity.goto === typeof ''
+                    ? `<i>goto ▸ ${entity.goto}`
+                    : `<i title="target=${entity.goto}">➥ goto`
+                )
+            }
+    
+        }
+    
         const contentfullBlobs = []
         for (let i = 0; i < entity.desc.length; ++i) {
-            const blob = this._createBlob(entity.type, entity.portrait, entity.desc[i])
+            const blob = this._createBlob(
+                entity.type,
+                entity.portrait,
+                entity.desc[i],
+                debugContent, i
+            )
             if (!blob) continue
     
             contentfullBlobs.push(blob)
@@ -1467,9 +1497,8 @@ JSPG.BlobBuilder = new (function () {
         return contentfullBlobs
     }
     
-    this._createBlob = function (typeDefault, portraitDefault, content) {
+    this._createBlob = function (typeDefault, portraitDefault, content, debugContent, index) {
         const parsed = this._parseContent(content)
-        this.log.debug(parsed)
     
         const type = parsed.hasOwnProperty('type')
                      ? parsed.type
@@ -1492,7 +1521,15 @@ JSPG.BlobBuilder = new (function () {
                               ? `<img src="${portrait}" />`
                               : ''
     
-       return new JSPG.Entities.Blob(parsed.content, portrait_html, style)
+       let debugInfo = null
+       if (debugContent) {
+           debugInfo = [
+               ...debugContent,
+               `Blob Idx=${index}, type=${type}${portrait ? ', portrait=' + portrait : ''}`
+           ]
+       }
+    
+       return new JSPG.Entities.Blob(parsed.content, portrait_html, style, debugInfo)
     }
     
     this._parseContent = function (rawContent) {
@@ -1718,7 +1755,7 @@ JSPG.SceneHandler = new (function () {
         BLOB: 'span[scene-id={scene_id}] .scene-description[uid={uid}]'
     }
     this.HTML = {
-        SCENE: '<span scene-id={scene_id}></span>',
+        SCENE: '<span scene-id={scene_id}></span>'
     }
     this.log = new Logger(
         JSPG.Logging.SCENE_HANDLER.id,
@@ -1727,11 +1764,17 @@ JSPG.SceneHandler = new (function () {
     
     this.goTo = function (sceneName) {
         if (!sceneName) {
-            this.log.err('{goTo}', 'Transition to invalid (empty) scene name is requested!')
+            this.log.err('{goTo}', ```Transition to invalid (empty) scene name is
+                requested from scene ${this.currentScene.name}
+                (action: ${JSPG.ActionHandler.selectedActions.name}
+                with #${JSPG.ActionHandler.selectedActions.tag} tag)!```)
             return
         }
         if (!JSPG.Scenes.hasOwnProperty(sceneName)) {
-            this.log.err('{goTo}', `Transition to non-existsing scene (name: ${sceneName}) is requested!`)
+            this.log.err('{goTo}', ```Transition to non-existsing scene (${sceneName})
+                is requested from scene ${this.currentScene.name}
+                (action: ${JSPG.ActionHandler.selectedActions.name}
+                with #${JSPG.ActionHandler.selectedActions.tag} tag)!```)
             return
         }
     
@@ -1778,10 +1821,10 @@ JSPG.SceneHandler = new (function () {
             return
         }
     
-        // Skip blob rendering if there is none
-        // scene.compileDescLines()
-        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
+        const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)
         const framesAmount = contentfullBlobs.length
+    
+        // Skip blob rendering if there is none
         if (framesAmount == 0) {
             this.log.debug('{showScene}', `[id:${sceneId}] There is no description blobs. Stop rendering.`)
     
@@ -1861,6 +1904,7 @@ JSPG.SceneHandler = new (function () {
 
 JSPG.ActionHandler = new (function () {
     this.actions = []
+    this.selectedActions = null
     this.SELECTORS = {
         CONTAINER: '#actions',
         BUTTONS: '.action-btn',
@@ -1915,9 +1959,27 @@ JSPG.ActionHandler = new (function () {
                                ? new JSPG.Entities.Icon({text: idx+1, class: 'action-btn-icon-hotkey'}).asActionIcon().get()
                                : ''
     
+            let debugInfo = ''
+            if (this.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+                const debugContent = []
+                if (action.tag) debugContent.push(`<b>#${action.tag}</b>`)
+                debugContent.push(`${action.type}, <i title="${action.desc}">${action.desc.length} description line(s)</i>`)
+                if (action.exec) debugContent.push(`<i title="${action.exec}">➥ exec</i>`)
+                if (action.goto) {
+                    if (typeof action.goto === typeof '') {
+                        debugContent.push(`<i>goto ▸ ${action.goto}`)
+                    } else {
+                        debugContent.push(`<i title="target=${action.goto}">➥ goto`)
+                    }
+                }
+    
+                debugInfo = `<span class='action-debug-info'><i>${debugContent.join('<br>')}</i></span>`
+            }
+    
             const html = action.icon == null
-                         ? `${hotkeyIcon}${action.name}`
-                         : `${hotkeyIcon}${action.icon.get()}${action.name}`
+                         ? `${hotkeyIcon}${action.name}${debugInfo}`
+                         : `${hotkeyIcon}${action.icon.get()}${action.name}${debugInfo}`
+    
             $btn.html(html)
             $btn.off()
             $btn.on("click", () => this.onActionSelected(action.id))
@@ -1934,6 +1996,7 @@ JSPG.ActionHandler = new (function () {
         JSPG.ElementsHandler.disableElements()
         this.hideSceneActions()
         const action = this.getActionById(actionId)
+        this.selectedActions = action
     
         const execTimeout = this.executeAction(action)
         const drawTimeout = this.showActionDescription(action, execTimeout)

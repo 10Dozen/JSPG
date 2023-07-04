@@ -8,7 +8,7 @@ this.SELECTORS = {
     BLOB: 'span[scene-id={scene_id}] .scene-description[uid={uid}]'
 }
 this.HTML = {
-    SCENE: '<span scene-id={scene_id}></span>',
+    SCENE: '<span scene-id={scene_id}></span>'
 }
 this.log = new Logger(
     JSPG.Logging.SCENE_HANDLER.id,
@@ -17,11 +17,17 @@ this.log = new Logger(
 
 this.goTo = function (sceneName) {
     if (!sceneName) {
-        this.log.err('{goTo}', 'Transition to invalid (empty) scene name is requested!')
+        this.log.err('{goTo}', ```Transition to invalid (empty) scene name is
+            requested from scene ${this.currentScene.name}
+            (action: ${JSPG.ActionHandler.selectedActions.name}
+            with #${JSPG.ActionHandler.selectedActions.tag} tag)!```)
         return
     }
     if (!JSPG.Scenes.hasOwnProperty(sceneName)) {
-        this.log.err('{goTo}', `Transition to non-existsing scene (name: ${sceneName}) is requested!`)
+        this.log.err('{goTo}', ```Transition to non-existsing scene (${sceneName})
+            is requested from scene ${this.currentScene.name}
+            (action: ${JSPG.ActionHandler.selectedActions.name}
+            with #${JSPG.ActionHandler.selectedActions.tag} tag)!```)
         return
     }
 
@@ -68,10 +74,10 @@ this.showScene = function (name, sceneConfig)  {
         return
     }
 
-    // Skip blob rendering if there is none
-    // scene.compileDescLines()
-    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)   //scene.parseDescriptions()
+    const contentfullBlobs = JSPG.BlobBuilder.createBlobsFrom(scene)
     const framesAmount = contentfullBlobs.length
+
+    // Skip blob rendering if there is none
     if (framesAmount == 0) {
         this.log.debug('{showScene}', `[id:${sceneId}] There is no description blobs. Stop rendering.`)
 

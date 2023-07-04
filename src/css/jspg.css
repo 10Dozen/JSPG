@@ -1,5 +1,5 @@
-/* Version: 0.13.0.201
-// Build date: 2023-07-02 15:44:18.171598 */
+/* Version: 0.13.0.228
+// Build date: 2023-07-04 12:56:41.332820 */
 
 body {
     margin: 0px;
@@ -275,6 +275,18 @@ body {
     cursor: cursor;
 }
 
+.action-debug-info {
+    display: none;
+    width: 100%;
+    text-align: right;
+    color: #6db2a9;
+    font-size: 16px;
+}
+
+.action-btn:hover > .action-debug-info {
+    display: inline-block;
+}
+
 /*** Blob styles ****/
 .scene-description {
     border: 1px solid #999;
@@ -367,5 +379,18 @@ body {
 
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+
+.scene-debug-info {
+    display: none;
+    width: 100%;
+    text-align: right;
+    color: #6db2a9;
+    font-size: 16px;
+}
+
+.scene-description:hover > .scene-debug-info {
+    display: inline-block;
 }
 

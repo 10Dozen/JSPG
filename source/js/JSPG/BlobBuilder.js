@@ -6,9 +6,36 @@ this.log = new Logger(
 )
 
 this.createBlobsFrom = function (entity) {
+    let debugContent = null
+    if (JSPG.SceneHandler.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+        debugContent = [`<b>${entity.name}</b> (${entity.debugName}, ${entity.type})`]
+        if (entity.debugName == 'scene') {
+            if (entity.actions.length > 0) debugContent.push(`${entity.actions.length} action(s)`)
+            if (entity.pre_exec) debugContent.push(`<i title="${entity.pre_exec}">➥ pre_exec`)
+            if (entity.post_exec) debugContent.push(`<i title="${entity.post_exec}">➥ post_exec</i>`)
+        } else {
+            if (entity.tag) debugContent.push(`#${entity.tag}`)
+            if (entity.exec) debugContent.push(`<i title="${entity.exec}">➥ exec</i>`)
+        }
+
+        if (entity.goto) {
+            debugContent.push(
+                typeof entity.goto === typeof ''
+                ? `<i>goto ▸ ${entity.goto}`
+                : `<i title="target=${entity.goto}">➥ goto`
+            )
+        }
+
+    }
+
     const contentfullBlobs = []
     for (let i = 0; i < entity.desc.length; ++i) {
-        const blob = this._createBlob(entity.type, entity.portrait, entity.desc[i])
+        const blob = this._createBlob(
+            entity.type,
+            entity.portrait,
+            entity.desc[i],
+            debugContent, i
+        )
         if (!blob) continue
 
         contentfullBlobs.push(blob)
@@ -17,9 +44,8 @@ this.createBlobsFrom = function (entity) {
     return contentfullBlobs
 }
 
-this._createBlob = function (typeDefault, portraitDefault, content) {
+this._createBlob = function (typeDefault, portraitDefault, content, debugContent, index) {
     const parsed = this._parseContent(content)
-    this.log.debug(parsed)
 
     const type = parsed.hasOwnProperty('type')
                  ? parsed.type
@@ -42,7 +68,15 @@ this._createBlob = function (typeDefault, portraitDefault, content) {
                           ? `<img src="${portrait}" />`
                           : ''
 
-   return new JSPG.Entities.Blob(parsed.content, portrait_html, style)
+   let debugInfo = null
+   if (debugContent) {
+       debugInfo = [
+           ...debugContent,
+           `Blob Idx=${index}, type=${type}${portrait ? ', portrait=' + portrait : ''}`
+       ]
+   }
+
+   return new JSPG.Entities.Blob(parsed.content, portrait_html, style, debugInfo)
 }
 
 this._parseContent = function (rawContent) {

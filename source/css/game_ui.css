@@ -1,0 +1,99 @@
+/***** Main game lane ******* */
+#game-form {
+    max-width: 512px;
+    font-size: 18px;
+}
+
+#actions {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.5s;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    border: 1px solid #333;
+    background-color: #eee;
+
+    padding: 5px;
+    margin-bottom: 5px;
+
+    color: #333;
+}
+
+.action-btn:hover {
+    border: 1px solid #333;
+    background-color: #F5E99F;
+    color: #333;
+    cursor: pointer;
+}
+
+.action-btn i {
+    padding-right: 10px;
+}
+
+.action-btn-icon-hotkey {
+    font-size: 14px;
+}
+
+@media only screen and (hover: none) and (pointer: coarse) {
+    .action-btn-icon-hotkey {
+        display: none;
+    }
+}
+
+.action-btn-icon img {
+    max-width: 64px;
+    max-height: 64px;
+}
+
+.img128 img {
+    max-width: 128px!important;
+    max-height: 128px!important;
+}
+
+.img256 img {
+    max-width: 256px!important;
+    max-height: 256px!important;
+}
+
+.actions {
+    min-height: 32px;
+}
+
+.inline-button {
+    font-size: 18px;
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    color: #d98a8a;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.inline-button:hover {
+    color: #D33;
+    text-decoration: none;
+}
+
+.inline-button:disabled {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    color: #aaa;
+    text-decoration: none;
+    cursor: cursor;
+}
+
+.action-debug-info {
+    display: none;
+    width: 100%;
+    text-align: right;
+    color: #6db2a9;
+    font-size: 16px;
+}
+
+.action-btn:hover > .action-debug-info {
+    display: inline-block;
+}

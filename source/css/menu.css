@@ -1,0 +1,82 @@
+/* ****************
+   Menu
+***************** */
+#menu button {
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #c52334;
+
+    position: fixed;
+    transition: 0.3s;
+    width: 200px;
+    height: 58px;
+
+    padding: 5px;
+    font-size: 20px;
+    color: #ddd;
+    border-width: 0px;
+    border-radius: 6px 0px 0px 6px;
+}
+
+#menu .menu-button {
+    right: -166px;
+}
+
+#menu .menu-button:hover {
+    right: 0px;
+}
+
+@media only screen and (hover: none) and (pointer: coarse) {
+    #menu .menu-button {
+        right: 0px;
+    }
+}
+
+#menu button:disabled {
+    background-color: rgba(194, 49, 66, 0.3);
+}
+
+.menu-button-idx-0 {
+    top: 54px;
+}
+
+.menu-button-idx-1 {
+    top: calc(54px + (58px + 8px) * 1);
+}
+
+.menu-button-idx-2 {
+    top: calc(54px + (58px + 8px) * 2);
+}
+
+.menu-button-idx-3 {
+    top: calc(54px + (58px + 8px) * 3);
+}
+
+.menu-button-idx-4 {
+    top: calc(54px + (58px + 8px) * 4);
+}
+
+.menu-button-idx-5 {
+    top: calc(54px + (58px + 8px) * 5);
+}
+
+.menu-button-idx-6 {
+    top: calc(54px + (58px + 8px) * 6);
+}
+
+.menu-button-idx-7 {
+    top: calc(54px + (58px + 8px) * 7);
+}
+
+.menu-button-idx-8 {
+    top: calc(54px + (58px + 8px) * 8);
+}
+
+.menu-button-icon {
+    position: absolute;
+    left: 3%;
+}
+.menu-button-icon img {
+    max-width: 24px;
+    max-height: 24px;
+}

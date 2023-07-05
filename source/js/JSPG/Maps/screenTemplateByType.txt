@@ -1,0 +1,5 @@
+//@map: JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN : JSPG.Constants.SCREENS.TYPES : JSPG.ScreenTemplates
+
+// Screen config type to template mapping
+SIMPLE_MENU = simpleMenu
+SIMPLE_TEXT = simpleText

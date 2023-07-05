@@ -1,0 +1,11 @@
+//@map: JSPG.Maps.BLOB_STYLE_BY_TYPE : JSPG.Constants.BLOB_TYPES : JSPG.Constants.BLOB_STYLES
+
+// Blob Type to Style mapping
+SCENE_CENTER = *
+SCENE_LEFT = *
+SCENE_RIGHT = *
+TITLE = *
+SUBTITLE = *
+DIALOG_LEFT = *
+DIALOG_RIGHT = *
+CONTAINER = *

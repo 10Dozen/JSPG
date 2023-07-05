@@ -104,7 +104,9 @@ SceneName: {
  | `attrs` | object | (optional) Key-values pair of custom HTML attributes to apply to icon |
 
 Icon will generate `<i>` node with class 'action-btn-icon'. There are few differencies in icon creation depening on way icon was defined:
+
 | Definition | Element | Notes |
+| --- | ---- | ------------|
 | `{img: 'icon.png'}` | `<i><img/></i>` |  Given `class`, `attrs` and `style` will be aplied to `<img>` element. |
 | `{text: '1'}` | `<i>1</i>` | Given `class`, `attrs` and `style` will be aplied to `<i>` element. Text will be nested directly inside `<i>` element. |
 | `{class: 'fa fa-icon'}` | `<i></i>` | Given `attrs` and `style` will be aplied to `<i>` element. |

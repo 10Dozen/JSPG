@@ -1,5 +1,5 @@
-// Version: 0.13.0.228
-// Build date: 2023-07-04 12:56:41.241821
+// Version: 0.13.0.241
+// Build date: 2023-07-06 12:38:46.979205
 
 // === Expansion functions ==
 Array.prototype.purge = function (func, thisArg) {
@@ -167,8 +167,18 @@ const JSPG = {
         JSPGVersion: '0.13.0'
     },
     Settings: {
+        initScene: 'Init',
+        menu: {
+            addMainMenuButton: true,
+            mainMenuContent: {
+                saveLoad: true,
+                about: true
+            },
+        },
+
         allowHotkeyActionSelection: true,
         showHotkeyActionDefaultIcons: true,
+
         onVersionMismatch: (savedVersion)=>{},  // function to run on load game when version mismatched
         onBeforeGameSaved: (customSaveObject) => {},
         onAfterGameLoaded: (loadedSaveObject, customSaveObject) => {}
@@ -178,7 +188,8 @@ const JSPG = {
     Entities: {},
     ScreenTemplates: {},
     Scenes: [],
-    Screens: [],
+    Screens: {},
+    Debug: {},
 }
 
 JSPG.Constants = {
@@ -316,6 +327,35 @@ JSPG.Constants = {
     }
 }
 
+JSPG.Debug = {
+    enable_scene_debug_info: false,
+    enable_action_debug_info: true,
+    enable_debug_menu: {
+        jump_to_scene: false,
+    }
+}
+
+JSPG.Logging = {
+    SCENE_HANDLER: {id: 'SceneHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
+    ACTION_HANDLER: {id: 'ActionHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
+    ELEMENTS_HANDLER: {id: 'ElementsHandler', level: JSPG.Constants.LOG_LEVELS.DEBUG},
+    MENU_HANDLER: {id: 'MenuHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
+    PERSISTENCE: {id: 'Persistence', level: JSPG.Constants.LOG_LEVELS.INFO},
+    BLOB_BUILDER: {id: 'BlobBuilder', level: JSPG.Constants.LOG_LEVELS.DEBUG},
+    ENTITIES: {
+        SCENE: {id: 'Scene-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ACTION: {id: 'Action-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        BLOB: {id: 'Blob-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ICON: {id: 'Icon-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ELEMENT: {id: 'Element-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
+        LABELED_ELEMENT: {id: 'LabeledElement-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
+        ELEMENTS_GROUP: {id: 'ElementGroup-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
+        SCREEN: {id: 'Screen-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        EVENT_HANDLER: {id: 'EventHandler', level: JSPG.Constants.LOG_LEVELS.WARNING},
+        ATTRIBUTES: {id: 'Attributes', level: JSPG.Constants.LOG_LEVELS.WARNING},
+    }
+}
+
 JSPG.Maps = {
     BLOB_STYLE_BY_TYPE: {},
     BLOB_TYPE_BY_TOKEN: {},
@@ -345,27 +385,6 @@ JSPG.Maps = {
      JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .DIALOG_RIGHT] =  JSPG.Constants.BLOB_TYPES.DIALOG_RIGHT;
      JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .CONTAINER] =  JSPG.Constants.BLOB_TYPES.CONTAINER;
      JSPG.Maps.BLOB_TYPE_BY_TOKEN [ JSPG.Constants.INLINE_TOKENS_TYPES .HIDDEN] =  JSPG.Constants.BLOB_TYPES.HIDDEN;
-}
-
-JSPG.Logging = {
-    SCENE_HANDLER: {id: 'SceneHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
-    ACTION_HANDLER: {id: 'ActionHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
-    ELEMENTS_HANDLER: {id: 'ElementsHandler', level: JSPG.Constants.LOG_LEVELS.DEBUG},
-    MENU_HANDLER: {id: 'MenuHandler', level: JSPG.Constants.LOG_LEVELS.INFO},
-    PERSISTENCE: {id: 'Persistence', level: JSPG.Constants.LOG_LEVELS.INFO},
-    BLOB_BUILDER: {id: 'BlobBuilder', level: JSPG.Constants.LOG_LEVELS.DEBUG},
-    ENTITIES: {
-        SCENE: {id: 'Scene-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ACTION: {id: 'Action-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        BLOB: {id: 'Blob-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ICON: {id: 'Icon-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ELEMENT: {id: 'Element-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
-        LABELED_ELEMENT: {id: 'LabeledElement-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
-        ELEMENTS_GROUP: {id: 'ElementGroup-$id', level: JSPG.Constants.LOG_LEVELS.INFO},
-        SCREEN: {id: 'Screen-$id', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        EVENT_HANDLER: {id: 'EventHandler', level: JSPG.Constants.LOG_LEVELS.WARNING},
-        ATTRIBUTES: {id: 'Attributes', level: JSPG.Constants.LOG_LEVELS.WARNING},
-    }
 }
 
 // === Shared Functions ===
@@ -441,9 +460,9 @@ JSPG['scrollTo'] = function (uid) {
 }
 
 // === Public Functions ===
-JSPG['PlayScenario'] = function (scenes, screens, init_scene='Init') {
+JSPG['PlayScenario'] = function (scenes, screens) {
     this.Scenes = scenes
-    this.Screens = screens
+    this.Screens = {...this.Screens, ...screens}
     if (scenes.hasOwnProperty('Meta')) {
         this.normalizeAndCopyToObject(
             scenes.Meta,
@@ -461,9 +480,8 @@ JSPG['PlayScenario'] = function (scenes, screens, init_scene='Init') {
     }
 
     $("game-title").html(`${this.Meta.name}, <small>v.${this.Meta.version} by ${this.Meta.author}</small>`)
-    JSPG.MenuHandler.addSystemScreens()
 
-    return this.GoTo(init_scene)
+    return this.GoTo(this.Settings.initScene)
 }
 
 JSPG['GoTo'] = function (name) {
@@ -474,79 +492,140 @@ JSPG['GetCurrentScene'] = function () {
     return JSPG.SceneHandler.currentScene
 }
 
-// Entities objects
-JSPG.Entities.Scene = function (id, name) {
-    this.id = id
-    this.debugName = 'scene'
-    this.name = name
-    this.desc = []
-    this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER
-    this.actions = []
-    this.portrait = ''
-    this.pre_exec = null
-    this.post_exec = null
-    this.goto = null
+// Screens Template objects
+JSPG.ScreenTemplates.simpleMenu = function () {
+    this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU
+    this.title = ''
+    this.content = []
+    this.onClickHandlers = []
+    this.HEADER_CLASS = 'simple-menu-header'
+    this.CONTENT_CLASS = 'simple-menu-content'
+    this.FIELDS = {
+        TITLE: 'title',
+        CONTENT: 'content',
+        PRE_EXEC: 'pre_exec'
+    }
+    this.FIELDS_CONTENT = {
+        TITLE: 'title',
+        NAVIGATETO: 'navigateto',
+        ONCLICK: 'onclick',
+    }
     this.log = new Logger(
-        JSPG.Logging.ENTITIES.SCENE.id.replace('$id', this.id),
-        JSPG.Logging.ENTITIES.SCENE.level
+        JSPG.Logging.ENTITIES.SCREEN.id.replace('$id', this.type),
+        JSPG.Logging.ENTITIES.SCREEN.level
     )
     
-    this.fromConfig = function (sceneConfig) {
-        this.log.info('{fromConfig}',
-            `Generating new scene with type ${JSPG.getByNormalizedKey(sceneConfig, "type", this.type)}`)
-    
-        // Note:
-        // GOTO should be evaluated right before execution, because EXEC code may modify it
-        propCallbacks = {
-            [JSPG.Constants.SCHEMAS.SCENE.DESC]:     desc => Array.isArray(desc) ? desc : [desc],
-            [JSPG.Constants.SCHEMAS.SCENE.ACTIONS]:  actions => this.setActions(actions),
-            [JSPG.Constants.SCHEMAS.SCENE.TYPE]:     type => JSPG.parseParamValue(type).toLowerCase()
+    this.fromConfig = function (config) {
+        propCallbacks = {}
+        propCallbacks[this.FIELDS.CONTENT] = list => {
+            const normalizedList = []
+            list.forEach(el => {
+                let normalizedElement = {}
+                JSPG.normalizeAndCopyToObject(el,
+                    normalizedElement,
+                    Object.values(this.FIELDS_CONTENT))
+                normalizedList.push(normalizedElement)
+            })
+            return normalizedList
         }
     
-        JSPG.normalizeAndCopyToObject(sceneConfig, this,
-                                      Object.values(JSPG.Constants.SCHEMAS.SCENE),
+        JSPG.normalizeAndCopyToObject(config, this,
+                                      Object.values(this.FIELDS),
                                       propCallbacks)
     
-        if (!Object.values(JSPG.Constants.BLOB_TYPES).includes(this.type)) {
-            this.log.err('{fromConfig}', `Unknown scene type ${this.type}!`)
+        if (!this.hasOwnProperty(this.FIELDS.PRE_EXEC)) return this
+    
+        // Pre_exec may change fields read from config
+        // and changed fields may need again normalization
+        this.pre_exec(this)
+        JSPG.normalizeAndCopyToObject(this, null, Object.values(this.FIELDS), propCallbacks)
+    
+        return this
+    }
+    
+    this.Get = function () {
+        const html = []
+        this.onClickHandlers.length = 0
+        if (this.title != '') {
+            html.push(`<div class='${this.HEADER_CLASS}'>${this.title}</div>`)
         }
-    }
     
-    this.setActions = function (action_list) {
-        this.clearActions()
-        for (let i = 0; i < action_list.length; ++i) {
-            this.addAction(action_list[i])
+        html.push(`<div class='${this.CONTENT_CLASS}'>`)
+        for (let idx = 0; idx < this.content.length; ++idx) {
+            const content = this.content[idx]
+            this.log.debug('{Get}', `Content idx: ${idx}`)
+    
+            const onClickCode = []
+            if (typeof content.onclick != 'undefined') {
+                this.onClickHandlers[idx] = content.onclick
+                onClickCode.push(`JSPG.MenuHandler.onScreenElementClick(${idx})`)
+    
+                this.log.debug('{Get}', 'OnClick code defined - setting on click handler')
+            }
+            if (typeof content.navigateto != 'undefined') {
+                onClickCode.push(` JSPG.MenuHandler.ShowScreen(\"${content.navigateto}\") `)
+                this.log.debug('{Get}', 'NavigateTo defined - adding destination')
+            }
+            this.log.debug('{Get}', 'On click code: ', onClickCode)
+    
+            this.onClickHandlers.push(content.onClick)
+            html.push(`<a href='javascript:void(0)' onclick='${onClickCode.join(';')}'>${content.title}</a>`)
         }
-    }
+        html.push(`</div>`)
+        html.push(`<a href="javascript:void(0)" class="closebtn" onclick="JSPG.MenuHandler.HideScreen()">&times;</a>`)
     
-    this.addAction = function (action_cfg, idx=this.actions.length) {
-        const action = new JSPG.Entities.Action()
-        if (action.fromConfig(action_cfg)) {
-            this.actions.splice(idx, 0, action)
-        }
-    }
-    
-    this.getActionByTag = function (tag) {
-        const actionIdx = this.actions.findIndex(action => action.tag == tag)
-        if (actionIdx < 0) return
-        return this.actions[actionIdx]
-    }
-    
-    this.clearActions = function () {
-        this.actions.purge()
-    }
-    
-    this.deleteActionAt = function (idx, size=1) {
-        this.actions.splice(idx, size)
-    }
-    
-    this.deleteActionByTag = function (tag) {
-        const actionIdx = this.actions.findIndex(action => action.tag == tag)
-        if (actionIdx < 0) return
-        this.deleteActionAt(actionIdx)
+        return html.join('')
     }
 }
 
+JSPG.ScreenTemplates.simpleText = function () {
+    this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT
+    this.title = ''
+    this.content = []
+    this.HEADER_CLASS = 'simple-menu-header'
+    this.CONTENT_CLASS = 'simple-menu-content'
+    this.FIELDS = {
+        TITLE: 'title',
+        CONTENT: 'content',
+        PRE_EXEC: 'pre_exec'
+    }
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.SCREEN.id.replace('$id', this.type),
+        JSPG.Logging.ENTITIES.SCREEN.level
+    )
+    
+    this.fromConfig = function (config) {
+        JSPG.normalizeAndCopyToObject(config, this, Object.values(this.FIELDS))
+        if (!this.hasOwnProperty(this.FIELDS.PRE_EXEC)) return this
+    
+        this.pre_exec(this)
+        JSPG.normalizeAndCopyToObject(this, null, Object.values(this.FIELDS))
+    }
+    
+    this.Get = function () {
+        const html = []
+        if (this.title != '') {
+            html.push(`<div class='${this.HEADER_CLASS}'>${this.title}</div>`)
+        }
+    
+        html.push(`<div class='${this.CONTENT_CLASS}'>`)
+        for (let idx = 0; idx < this.content.length; ++idx) {
+            html.push(`<p>${this.content[idx]}</p>`)
+        }
+        html.push(`</div>`)
+        html.push(`<a href="javascript:void(0)" class="closebtn" onclick="JSPG.MenuHandler.HideScreen()">&times;</a>`)
+    
+        return html.join('')
+    }
+}
+
+{
+    // Screen config type to template mapping
+     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_MENU] =  JSPG.ScreenTemplates.simpleMenu;
+     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_TEXT] =  JSPG.ScreenTemplates.simpleText;
+}
+
+// Entities objects
 JSPG.Entities.Action = function () {
     this.id = JSPG.uid()
     this.debugName = 'action'
@@ -612,65 +691,122 @@ JSPG.Entities.Action = function () {
     }
 }
 
-JSPG.Entities.Blob = function (content, portrait_html, style, debugInfo='') {
-    this.id = JSPG.uid()
-    this.debugInfo = `<span class="scene-debug-info"><i>${debugInfo.join('<br>')}</i></span>`
-    this.html = `<div class="scene-description ${style}" uid="${this.id}">${this.debugInfo}${portrait_html}${content}</div>`
-}
-
-JSPG.Entities.Icon = function (iconCfg) {
-    this.text = null
-    this.img = null
-    this.class = null
-    this.style = null
-    this.attrs = null
-    this.iClass = ''
-    /* this.log = new Logger(
-        JSPG.Logging.ENTITIES.ICON.id.replace('$id', this.id),
-        JSPG.Logging.ENTITIES.ICON.level
-    )*/
+JSPG.Entities.Attributes = function (...params) {
+    this.classlist = []
+    this.stylelist = []
+    this.attrs = {}
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.ATTRIBUTES.id,
+        JSPG.Logging.ENTITIES.ATTRIBUTES.level,
+    )
     
-    this.fromConfig = function (iconCfg) {
-        if (iconCfg == null) return
-        JSPG.normalizeAndCopyToObject(iconCfg, this,
-                                      Object.values(JSPG.Constants.SCHEMAS.ICON))
-        this.attrs = new JSPG.Entities.Attributes(this.attrs)
-        this.attrs.modify('class', this.class, JSPG.Constants.OPERATIONS.APPEND)
-        this.attrs.modify('style', this.style, JSPG.Constants.OPERATIONS.APPEND)
-        return this
-    }
+    this.modify = function () {
+        /*  Use cases:
+            attrs.modify('class', 'my-class', false)
+            attrs.modify('src', 'myimg.jpg')
+            attrs.modify({src: myimg.jpg, class: 'myclass'}, false)
+        */
+        if (arguments.length == 0) return
     
-    this.asMenuItemIcon = function () {
-        this.iClass = JSPG.Constants.HTML.MENU.ICON_CLS
-        return this
-    }
+        let attrObj = null
+        let override = true
     
-    this.asActionIcon = function () {
-        this.iClass = JSPG.Constants.HTML.ACTION.ICON_CLS
-        return this
-    }
-    
-    this.get = function() {
-        const text = this.text == null ? '' : this.text
-    
-        // Text or class based icon (e.g. font-awesome)
-        if (this.img == null) {
-            this.attrs.modify('class', this.iClass, JSPG.Constants.OPERATIONS.APPEND)
-            return `<i ${this.attrs.compose()}>${text}</i>`
+        if (typeof arguments[0] == typeof "") {
+            attrObj = {}
+            attrObj[arguments[0]] = arguments[1]
+            override = arguments[2] != undefined
+                       ? arguments[2] == JSPG.Constants.OPERATIONS.OVERRIDE
+                       : override
+        } else {
+            attrObj = arguments[0]
+            override = arguments[1] != undefined
+                       ? arguments[1] ==JSPG.Constants.OPERATIONS.OVERRIDE
+                       : override
         }
     
-        // Image based icon
-        this.attrs.modify({
-            src: this.img,
-            alt: text
-        })
-        return `<i class="${this.iClass}"><img ${this.attrs.compose()}/></i>`
+        for (let key in attrObj) {
+            this.log.info('{modify}', `${key} = ${attrObj[key]}`)
+            const value = attrObj[key]
+            key = key.toLowerCase()
+            const listname = key == 'class'
+                             ? 'classlist'
+                             : (key == 'style' ? 'stylelist' : null)
+    
+            // Attribures deletion case
+            if (value == null || value === '') {
+                this.log.info('{modify}', 'Deletion of key')
+                if (!override) continue
+                if (listname != null) {
+                    this[listname].purge()
+                    continue
+                }
+    
+                delete this.attrs[key]
+                continue
+            }
+    
+            // Attribute force add case
+            if (override) {
+                this.log.info('{modify}', 'Force add/override of key')
+                if (listname != null) {
+                    this[listname].purge()
+                    this._composeList(listname, value)
+                    continue
+                }
+    
+                this.attrs[key] = value
+                continue
+            }
+    
+            // Append or create key-value if none
+            this.log.info('{modify}', 'Add/append key')
+            if (listname != null) {
+                this._composeList(listname, value)
+                continue
+            }
+            this.attrs[key] = this.attrs.hasOwnProperty(key)
+                              ? `${this.attrs[key]} ${value}`
+                              : value
+        }
     }
     
-    // On create:
-    {
-        this.fromConfig(iconCfg)
+    this.get = function(key) {
+        key = key.toLowerCase()
+        return (key == 'class') ? this.classlist.join(' ') : this.attrs[key]
     }
+    
+    this._composeList = function (listname, lineValue) {
+        const delimeter = listname == 'classlist' ? ' ' : ';'
+        const values = lineValue.split(delimeter)
+        for (let i = 0; i < values.length; ++i) {
+            this[listname].push(values[i])
+        }
+    }
+    
+    this.compose = function () {
+        const attrList = []
+        for (const k in this.attrs) {
+            const val = this.attrs[k]
+            if (val == '+') {
+                attrList.push(k)
+            } else {
+                attrList.push(`${k}="${this.attrs[k]}"`)
+            }
+        }
+        return `class="${this.classlist.join(" ")}" ${attrList.join(" ")} style="${this.stylelist.join(";")}"`
+    }
+    
+    {
+        this.modify(params[0])
+    }
+}
+
+JSPG.Entities.Blob = function (content, portrait_html, style, debugInfo) {
+    this.id = JSPG.uid()
+    this.debugInfo = debugInfo
+                     ? `<span class="scene-debug-info"><i>${debugInfo.join('<br>')}</i></span>`
+                     : ''
+    this.html = `<div class="scene-description ${style}" uid="${this.id}">${this.debugInfo}${portrait_html}${content}</div>`
 }
 
 JSPG.Entities.Element = function (tag) {
@@ -851,6 +987,341 @@ JSPG.Entities.Element = function (tag) {
         delete this['AsOption']
         delete this['AsCustom']
         delete this['finalize']
+    }
+}
+
+JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>') {
+    this.id = JSPG.uid()
+    this.tag = tag
+    this.align = align
+    this.joinWith = joinWith
+    this.value = null
+    
+    this.html_tag = JSPG.Constants.HTML.TAGS.GROUP
+    
+    this.attrs = new JSPG.Entities.Attributes({uid: this.id, tag: this.tag})
+    this.eventHandler = new JSPG.Entities.EventHandler()
+    
+    this.nestedElements = []
+    
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.ELEMENTS_GROUP.id.replace('$id', this.id),
+        JSPG.Logging.ENTITIES.ELEMENTS_GROUP.level
+    )
+    
+    // Constructor functions
+    this.AsRadiobuttons = function (options, defaultIdx=0, values=null) {
+        // Configure element to Radiobutton set
+        const name = `radiobuttons-set-${this.id}`
+        for (let idx = 0; idx < options.length; ++idx) {
+            const tag = `${this.tag}-nested-${idx}`
+            const label = options[idx]
+            const value = values ? values[idx] : null
+    
+            const el = new JSPG.Entities
+                           .LabeledElement(tag, label, this.align)
+                           .AsRadio(/*isChecked*/ defaultIdx == idx, value, name)
+    
+            this.nestedElements.push(el)
+        }
+    
+        this.Value = () => {
+            for (const nel of this.nestedElements.values()) {
+                if (nel.element.checked) return nel.Value()
+            }
+        }
+    
+        this.finalize()
+        return this
+    }
+    
+    this.AsOptions = function (options, defaultIdx=0, values=null) {
+        this.html_tag = JSPG.Constants.HTML.TAGS.SELECT
+        for (let idx = 0; idx < options.length; ++idx) {
+            const tag = `${this.tag}-nested-${idx}`
+            const label = options[idx]
+            const value = values ? values[idx] : null
+            const isSelected = defaultIdx == idx
+    
+            const el = new JSPG.Entities.Element(tag)
+                           .AsOption(label, value, isSelected)
+    
+            this.nestedElements.push(el)
+        }
+    
+        this.Value = () => {
+            for (const nel of this.nestedElements.values()) {
+                if (nel.element.selected) return nel.Value()
+            }
+        }
+    
+        this.finalize()
+        return this
+    }
+    
+    this.AsList = function (options, ordered=false) {
+        this.html_tag = ordered
+                        ? JSPG.Constants.HTML.TAGS.ORDERED_LIST
+                        : JSPG.Constants.HTML.TAGS.LIST
+        for (let idx = 0; idx < options.length; ++idx) {
+            const el = new JSPG.Entities.Element()
+                           .AsCustom(JSPG.Constants.HTML.TAGS.LIST_ENTRY, true, options[idx])
+            this.nestedElements.push(el)
+        }
+        this.joinWith = ''
+    
+        this.finalize()
+        return this
+    }
+    
+    // Public
+    this.Get = function () {
+        // Compose element and its childs to HTML code
+        const content = []
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            content.push(this.nestedElements[idx].Get())
+        }
+        const html = `<${this.html_tag} ${this.attrs.compose()}>${content.join(this.joinWith)}</${this.html_tag}>`
+    
+        return html
+    }
+    
+    this.Value = function () {
+        // Returns value of elements group. Is overwritten in As... functions
+        return null
+    }
+    
+    this.Enable = function () {
+        // Enables element and it's childs
+        const element = this.findInDOM()
+        if (!element) return
+    
+        element.disabled = false
+        this.eventHandler.apply(element, this)
+    
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].Enable()
+        }
+    }
+    
+    this.Disable = function () {
+        // Disables element and it's childs, and removes all attached event listeners
+        this.eventHandler.clear(this.element)
+    
+        if (!this.element) return
+    
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].Disable()
+        }
+        this.element.disabled = true
+        this.log.info('{Disable}', `Element group [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
+    }
+    
+    this.AddEventHandler = function (eventName, callback, tag, useLimit, disableOnLimit) {
+        // Adds event listener directly to element, but not childs
+        this.eventHandler.add(...arguments)
+    }
+    
+    this.RemoveEventHandler = function (eventName, tag) {
+        // Removes event listener directly from element, but not childs
+        this.eventHandler.remove(this.element, eventName, tag)
+    }
+    
+    this.AddEventHandlerToNested = function (eventName, callback, tag, useLimit, disableOnLimit) {
+        // Adds event listener to all childs, but not element itself
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].AddEventHandler(...arguments)
+        }
+    }
+    
+    this.RemoveEventHandlerFromNested = function (eventName, tag) {
+        // Removes event listener from all childs, but not element itself
+        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
+            this.nestedElements[idx].RemoveEventHandler(eventName, tag)
+        }
+    }
+    
+    this.Nested = function (index) {
+        // Returns nested element by given tag or index
+        if (index > this.nestedElements.size || index < 0) {
+            this.log.error('{Nested}', 'Given nested index ${tag} is out of range (${this.nestedElements.size})!')
+            return null
+        }
+    
+        return this.nestedElements[index]
+    }
+    
+    
+    // Private
+    this.findInDOM = function () {
+        if (!this.element) {
+            const $node = $(`${this.html_tag}[uid=${this.id}]`)
+            if ($node.length > 0) this.element = $node[0]
+        }
+    
+        return this.element
+    }
+    
+    this.toString = function () {
+        return `[Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.length} items]`
+    }
+    
+    this.finalize = function () {
+        delete this['AsRadiobuttons']
+        delete this['AsOptions']
+        delete this['AsList']
+        delete this['finalize']
+    }
+}
+
+JSPG.Entities.EventHandler = function () {
+    /* In format:
+        eventName1: Map(
+            tag1: HandlerObject(tag, ...handler),
+            ...
+        ),
+        eventNae2: Map(...)
+    */
+    this.listeners = new Map()
+    this.log = new Logger(
+        JSPG.Logging.ENTITIES.EVENT_HANDLER.id,
+        JSPG.Logging.ENTITIES.EVENT_HANDLER.level
+    )
+    
+    this.add = function (eventName, callback, tag=null, use_limit=-1, mark_disabled=false) {
+        const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
+        eventName = eventName.toLowerCase()
+    
+        if (eventName.split('.').length == 1) {
+            eventName = `${eventName}.user_defined`
+        }
+    
+        const handlersMap = this.listeners.has(eventName)
+                            ? this.listeners.get(eventName)
+                            : new Map()
+    
+        if (!tag) tag = JSPG.uid()
+    
+        const handler = {}
+        handler[EHSTRUCT.TAG] = tag
+        handler[EHSTRUCT.CALLBACK] = callback
+        handler[EHSTRUCT.USE_LIMIT] = use_limit
+        handler[EHSTRUCT.DISABLE_ON_LIMIT] = mark_disabled
+    
+        this.log.info('{add}', `Add for ${eventName}`)
+        this.log.info('{add}', handler)
+    
+        handlersMap.set(tag, handler)
+        this.listeners.set(eventName, handlersMap)
+    }
+    
+    this.remove = function (DOMElement, eventName, tag=null) {
+        // Looks for Event listeners in element's event handler list
+        // and removes it from both list and html node
+        eventName = eventName.toLowerCase()
+        if (eventName.split('.').length == 1) {
+            eventName = `${eventName}.user_defined`
+        }
+        if (!this.listeners.has(eventName)) return
+    
+        // If no tag given - remove all listeners for event name
+        if (!tag) {
+            this.listeners.delete(eventName)
+            if (DOMElement) $(DOMElement).off(eventName)
+            return
+        }
+    
+        // Otherwise - search and remove tagged listener
+        const handlersMap = this.listeners.get(eventName)
+        if (!handlersMap.has(tag)) return null
+    
+        const handler = handlersMap.get(tag)
+        DOMElement.removeEventListener(
+            eventName,
+            handler[JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK]
+        )
+        handlersMap.delete(tag)
+    }
+    
+    this.apply = function (DOMElement, elementRef) {
+        // Applies eventListeners to DOM element
+        $(DOMElement).off()
+    
+        for (const listener of this.listeners) {
+            const eventName = listener[0]
+            const handlersMap = listener[1]
+    
+            for (const handler of handlersMap.values()) {
+                $(DOMElement).on(eventName, event => {
+                    JSPG.ElementsHandler.runElementsEventHandler(
+                        elementRef,
+                        eventName,
+                        handler,
+                        event
+                    )
+                })
+            }
+        }
+    }
+    
+    this.clear = function (DOMElement) {
+        this.listeners.clear()
+        $(DOMElement).off()
+    }
+}
+
+JSPG.Entities.Icon = function (iconCfg) {
+    this.text = null
+    this.img = null
+    this.class = null
+    this.style = null
+    this.attrs = null
+    this.iClass = ''
+    /* this.log = new Logger(
+        JSPG.Logging.ENTITIES.ICON.id.replace('$id', this.id),
+        JSPG.Logging.ENTITIES.ICON.level
+    )*/
+    
+    this.fromConfig = function (iconCfg) {
+        if (iconCfg == null) return
+        JSPG.normalizeAndCopyToObject(iconCfg, this,
+                                      Object.values(JSPG.Constants.SCHEMAS.ICON))
+        this.attrs = new JSPG.Entities.Attributes(this.attrs)
+        this.attrs.modify('class', this.class, JSPG.Constants.OPERATIONS.APPEND)
+        this.attrs.modify('style', this.style, JSPG.Constants.OPERATIONS.APPEND)
+        return this
+    }
+    
+    this.asMenuItemIcon = function () {
+        this.iClass = JSPG.Constants.HTML.MENU.ICON_CLS
+        return this
+    }
+    
+    this.asActionIcon = function () {
+        this.iClass = JSPG.Constants.HTML.ACTION.ICON_CLS
+        return this
+    }
+    
+    this.get = function() {
+        const text = this.text == null ? '' : this.text
+    
+        // Text or class based icon (e.g. font-awesome)
+        if (this.img == null) {
+            this.attrs.modify('class', this.iClass, JSPG.Constants.OPERATIONS.APPEND)
+            return `<i ${this.attrs.compose()}>${text}</i>`
+        }
+    
+        // Image based icon
+        this.attrs.modify({
+            src: this.img,
+            alt: text
+        })
+        return `<i class="${this.iClass}"><img ${this.attrs.compose()}/></i>`
+    }
+    
+    // On create:
+    {
+        this.fromConfig(iconCfg)
     }
 }
 
@@ -1062,393 +1533,75 @@ JSPG.Entities.LabeledElement = function (tag=null, label='', align='left') {
     }
 }
 
-JSPG.Entities.ElementsGroup = function (tag=null, align='left', joinWith='<br>') {
-    this.id = JSPG.uid()
-    this.tag = tag
-    this.align = align
-    this.joinWith = joinWith
-    this.value = null
-    
-    this.html_tag = JSPG.Constants.HTML.TAGS.GROUP
-    
-    this.attrs = new JSPG.Entities.Attributes({uid: this.id, tag: this.tag})
-    this.eventHandler = new JSPG.Entities.EventHandler()
-    
-    this.nestedElements = []
-    
+JSPG.Entities.Scene = function (id, name) {
+    this.id = id
+    this.debugName = 'scene'
+    this.name = name
+    this.desc = []
+    this.type = JSPG.Constants.BLOB_TYPES.SCENE_CENTER
+    this.actions = []
+    this.portrait = ''
+    this.pre_exec = null
+    this.post_exec = null
+    this.goto = null
     this.log = new Logger(
-        JSPG.Logging.ENTITIES.ELEMENTS_GROUP.id.replace('$id', this.id),
-        JSPG.Logging.ENTITIES.ELEMENTS_GROUP.level
+        JSPG.Logging.ENTITIES.SCENE.id.replace('$id', this.id),
+        JSPG.Logging.ENTITIES.SCENE.level
     )
     
-    // Constructor functions
-    this.AsRadiobuttons = function (options, defaultIdx=0, values=null) {
-        // Configure element to Radiobutton set
-        const name = `radiobuttons-set-${this.id}`
-        for (let idx = 0; idx < options.length; ++idx) {
-            const tag = `${this.tag}-nested-${idx}`
-            const label = options[idx]
-            const value = values ? values[idx] : null
+    this.fromConfig = function (sceneConfig) {
+        this.log.info('{fromConfig}',
+            `Generating new scene with type ${JSPG.getByNormalizedKey(sceneConfig, "type", this.type)}`)
     
-            const el = new JSPG.Entities
-                           .LabeledElement(tag, label, this.align)
-                           .AsRadio(/*isChecked*/ defaultIdx == idx, value, name)
-    
-            this.nestedElements.push(el)
+        // Note:
+        // GOTO should be evaluated right before execution, because EXEC code may modify it
+        propCallbacks = {
+            [JSPG.Constants.SCHEMAS.SCENE.DESC]:     desc => Array.isArray(desc) ? desc : [desc],
+            [JSPG.Constants.SCHEMAS.SCENE.ACTIONS]:  actions => this.setActions(actions),
+            [JSPG.Constants.SCHEMAS.SCENE.TYPE]:     type => JSPG.parseParamValue(type).toLowerCase()
         }
     
-        this.Value = () => {
-            for (const nel of this.nestedElements.values()) {
-                if (nel.element.checked) return nel.Value()
-            }
-        }
+        JSPG.normalizeAndCopyToObject(sceneConfig, this,
+                                      Object.values(JSPG.Constants.SCHEMAS.SCENE),
+                                      propCallbacks)
     
-        this.finalize()
-        return this
-    }
-    
-    this.AsOptions = function (options, defaultIdx=0, values=null) {
-        this.html_tag = JSPG.Constants.HTML.TAGS.SELECT
-        for (let idx = 0; idx < options.length; ++idx) {
-            const tag = `${this.tag}-nested-${idx}`
-            const label = options[idx]
-            const value = values ? values[idx] : null
-            const isSelected = defaultIdx == idx
-    
-            const el = new JSPG.Entities.Element(tag)
-                           .AsOption(label, value, isSelected)
-    
-            this.nestedElements.push(el)
-        }
-    
-        this.Value = () => {
-            for (const nel of this.nestedElements.values()) {
-                if (nel.element.selected) return nel.Value()
-            }
-        }
-    
-        this.finalize()
-        return this
-    }
-    
-    this.AsList = function (options, ordered=false) {
-        this.html_tag = ordered
-                        ? JSPG.Constants.HTML.TAGS.ORDERED_LIST
-                        : JSPG.Constants.HTML.TAGS.LIST
-        for (let idx = 0; idx < options.length; ++idx) {
-            const el = new JSPG.Entities.Element()
-                           .AsCustom(JSPG.Constants.HTML.TAGS.LIST_ENTRY, true, options[idx])
-            this.nestedElements.push(el)
-        }
-        this.joinWith = ''
-    
-        this.finalize()
-        return this
-    }
-    
-    // Public
-    this.Get = function () {
-        // Compose element and its childs to HTML code
-        const content = []
-        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
-            content.push(this.nestedElements[idx].Get())
-        }
-        const html = `<${this.html_tag} ${this.attrs.compose()}>${content.join(this.joinWith)}</${this.html_tag}>`
-    
-        return html
-    }
-    
-    this.Value = function () {
-        // Returns value of elements group. Is overwritten in As... functions
-        return null
-    }
-    
-    this.Enable = function () {
-        // Enables element and it's childs
-        const element = this.findInDOM()
-        if (!element) return
-    
-        element.disabled = false
-        this.eventHandler.apply(element, this)
-    
-        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
-            this.nestedElements[idx].Enable()
+        if (!Object.values(JSPG.Constants.BLOB_TYPES).includes(this.type)) {
+            this.log.err('{fromConfig}', `Unknown scene type ${this.type}!`)
         }
     }
     
-    this.Disable = function () {
-        // Disables element and it's childs, and removes all attached event listeners
-        this.eventHandler.clear(this.element)
-    
-        if (!this.element) return
-    
-        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
-            this.nestedElements[idx].Disable()
-        }
-        this.element.disabled = true
-        this.log.info('{Disable}', `Element group [${this.html_tag}/uid=${this.id} tag=${this.tag}] was disabled`)
-    }
-    
-    this.AddEventHandler = function (eventName, callback, tag, useLimit, disableOnLimit) {
-        // Adds event listener directly to element, but not childs
-        this.eventHandler.add(...arguments)
-    }
-    
-    this.RemoveEventHandler = function (eventName, tag) {
-        // Removes event listener directly from element, but not childs
-        this.eventHandler.remove(this.element, eventName, tag)
-    }
-    
-    this.AddEventHandlerToNested = function (eventName, callback, tag, useLimit, disableOnLimit) {
-        // Adds event listener to all childs, but not element itself
-        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
-            this.nestedElements[idx].AddEventHandler(...arguments)
+    this.setActions = function (action_list) {
+        this.clearActions()
+        for (let i = 0; i < action_list.length; ++i) {
+            this.addAction(action_list[i])
         }
     }
     
-    this.RemoveEventHandlerFromNested = function (eventName, tag) {
-        // Removes event listener from all childs, but not element itself
-        for (let idx = 0; idx < this.nestedElements.length; ++idx) {
-            this.nestedElements[idx].RemoveEventHandler(eventName, tag)
+    this.addAction = function (action_cfg, idx=this.actions.length) {
+        const action = new JSPG.Entities.Action()
+        if (action.fromConfig(action_cfg)) {
+            this.actions.splice(idx, 0, action)
         }
     }
     
-    this.Nested = function (index) {
-        // Returns nested element by given tag or index
-        if (index > this.nestedElements.size || index < 0) {
-            this.log.error('{Nested}', 'Given nested index ${tag} is out of range (${this.nestedElements.size})!')
-            return null
-        }
-    
-        return this.nestedElements[index]
+    this.getActionByTag = function (tag) {
+        const actionIdx = this.actions.findIndex(action => action.tag == tag)
+        if (actionIdx < 0) return
+        return this.actions[actionIdx]
     }
     
-    
-    // Private
-    this.findInDOM = function () {
-        if (!this.element) {
-            const $node = $(`${this.html_tag}[uid=${this.id}]`)
-            if ($node.length > 0) this.element = $node[0]
-        }
-    
-        return this.element
+    this.clearActions = function () {
+        this.actions.purge()
     }
     
-    this.toString = function () {
-        return `[Elements Group <${this.html_tag}>/tag=${this.tag}, id=${this.id}/ of ${this.nestedElements.length} items]`
+    this.deleteActionAt = function (idx, size=1) {
+        this.actions.splice(idx, size)
     }
     
-    this.finalize = function () {
-        delete this['AsRadiobuttons']
-        delete this['AsOptions']
-        delete this['AsList']
-        delete this['finalize']
-    }
-}
-
-JSPG.Entities.Attributes = function (...params) {
-    this.classlist = []
-    this.stylelist = []
-    this.attrs = {}
-    this.log = new Logger(
-        JSPG.Logging.ENTITIES.ATTRIBUTES.id,
-        JSPG.Logging.ENTITIES.ATTRIBUTES.level,
-    )
-    
-    this.modify = function () {
-        /*  Use cases:
-            attrs.modify('class', 'my-class', false)
-            attrs.modify('src', 'myimg.jpg')
-            attrs.modify({src: myimg.jpg, class: 'myclass'}, false)
-        */
-        if (arguments.length == 0) return
-    
-        let attrObj = null
-        let override = true
-    
-        if (typeof arguments[0] == typeof "") {
-            attrObj = {}
-            attrObj[arguments[0]] = arguments[1]
-            override = arguments[2] != undefined
-                       ? arguments[2] == JSPG.Constants.OPERATIONS.OVERRIDE
-                       : override
-        } else {
-            attrObj = arguments[0]
-            override = arguments[1] != undefined
-                       ? arguments[1] ==JSPG.Constants.OPERATIONS.OVERRIDE
-                       : override
-        }
-    
-        for (let key in attrObj) {
-            this.log.info('{modify}', `${key} = ${attrObj[key]}`)
-            const value = attrObj[key]
-            key = key.toLowerCase()
-            const listname = key == 'class'
-                             ? 'classlist'
-                             : (key == 'style' ? 'stylelist' : null)
-    
-            // Attribures deletion case
-            if (value == null || value === '') {
-                this.log.info('{modify}', 'Deletion of key')
-                if (!override) continue
-                if (listname != null) {
-                    this[listname].purge()
-                    continue
-                }
-    
-                delete this.attrs[key]
-                continue
-            }
-    
-            // Attribute force add case
-            if (override) {
-                this.log.info('{modify}', 'Force add/override of key')
-                if (listname != null) {
-                    this[listname].purge()
-                    this._composeList(listname, value)
-                    continue
-                }
-    
-                this.attrs[key] = value
-                continue
-            }
-    
-            // Append or create key-value if none
-            this.log.info('{modify}', 'Add/append key')
-            if (listname != null) {
-                this._composeList(listname, value)
-                continue
-            }
-            this.attrs[key] = this.attrs.hasOwnProperty(key)
-                              ? `${this.attrs[key]} ${value}`
-                              : value
-        }
-    }
-    
-    this.get = function(key) {
-        key = key.toLowerCase()
-        return (key == 'class') ? this.classlist.join(' ') : this.attrs[key]
-    }
-    
-    this._composeList = function (listname, lineValue) {
-        const delimeter = listname == 'classlist' ? ' ' : ';'
-        const values = lineValue.split(delimeter)
-        for (let i = 0; i < values.length; ++i) {
-            this[listname].push(values[i])
-        }
-    }
-    
-    this.compose = function () {
-        const attrList = []
-        for (const k in this.attrs) {
-            const val = this.attrs[k]
-            if (val == '+') {
-                attrList.push(k)
-            } else {
-                attrList.push(`${k}="${this.attrs[k]}"`)
-            }
-        }
-        return `class="${this.classlist.join(" ")}" ${attrList.join(" ")} style="${this.stylelist.join(";")}"`
-    }
-    
-    {
-        this.modify(params[0])
-    }
-}
-
-JSPG.Entities.EventHandler = function () {
-    /* In format:
-        eventName1: Map(
-            tag1: HandlerObject(tag, ...handler),
-            ...
-        ),
-        eventNae2: Map(...)
-    */
-    this.listeners = new Map()
-    this.log = new Logger(
-        JSPG.Logging.ENTITIES.EVENT_HANDLER.id,
-        JSPG.Logging.ENTITIES.EVENT_HANDLER.level
-    )
-    
-    this.add = function (eventName, callback, tag=null, use_limit=-1, mark_disabled=false) {
-        const EHSTRUCT = JSPG.Constants.SCHEMAS.EVENT_HANDLER
-        eventName = eventName.toLowerCase()
-    
-        if (eventName.split('.').length == 1) {
-            eventName = `${eventName}.user_defined`
-        }
-    
-        const handlersMap = this.listeners.has(eventName)
-                            ? this.listeners.get(eventName)
-                            : new Map()
-    
-        if (!tag) tag = JSPG.uid()
-    
-        const handler = {}
-        handler[EHSTRUCT.TAG] = tag
-        handler[EHSTRUCT.CALLBACK] = callback
-        handler[EHSTRUCT.USE_LIMIT] = use_limit
-        handler[EHSTRUCT.DISABLE_ON_LIMIT] = mark_disabled
-    
-        this.log.info('{add}', `Add for ${eventName}`)
-        this.log.info('{add}', handler)
-    
-        handlersMap.set(tag, handler)
-        this.listeners.set(eventName, handlersMap)
-    }
-    
-    this.remove = function (DOMElement, eventName, tag=null) {
-        // Looks for Event listeners in element's event handler list
-        // and removes it from both list and html node
-        eventName = eventName.toLowerCase()
-        if (eventName.split('.').length == 1) {
-            eventName = `${eventName}.user_defined`
-        }
-        if (!this.listeners.has(eventName)) return
-    
-        // If no tag given - remove all listeners for event name
-        if (!tag) {
-            this.listeners.delete(eventName)
-            if (DOMElement) $(DOMElement).off(eventName)
-            return
-        }
-    
-        // Otherwise - search and remove tagged listener
-        const handlersMap = this.listeners.get(eventName)
-        if (!handlersMap.has(tag)) return null
-    
-        const handler = handlersMap.get(tag)
-        DOMElement.removeEventListener(
-            eventName,
-            handler[JSPG.Constants.SCHEMAS.EVENT_HANDLER.CALLBACK]
-        )
-        handlersMap.delete(tag)
-    }
-    
-    this.apply = function (DOMElement, elementRef) {
-        // Applies eventListeners to DOM element
-        $(DOMElement).off()
-    
-        for (const listener of this.listeners) {
-            const eventName = listener[0]
-            const handlersMap = listener[1]
-    
-            for (const handler of handlersMap.values()) {
-                $(DOMElement).on(eventName, event => {
-                    JSPG.ElementsHandler.runElementsEventHandler(
-                        elementRef,
-                        eventName,
-                        handler,
-                        event
-                    )
-                })
-            }
-        }
-    }
-    
-    this.clear = function (DOMElement) {
-        this.listeners.clear()
-        $(DOMElement).off()
+    this.deleteActionByTag = function (tag) {
+        const actionIdx = this.actions.findIndex(action => action.tag == tag)
+        if (actionIdx < 0) return
+        this.deleteActionAt(actionIdx)
     }
 }
 
@@ -1460,7 +1613,7 @@ JSPG.BlobBuilder = new (function () {
     
     this.createBlobsFrom = function (entity) {
         let debugContent = null
-        if (JSPG.SceneHandler.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+        if (JSPG.Debug.enable_scene_debug_info) {
             debugContent = [`<b>${entity.name}</b> (${entity.debugName}, ${entity.type})`]
             if (entity.debugName == 'scene') {
                 if (entity.actions.length > 0) debugContent.push(`${entity.actions.length} action(s)`)
@@ -1478,7 +1631,6 @@ JSPG.BlobBuilder = new (function () {
                     : `<i title="target=${entity.goto}">➥ goto`
                 )
             }
-    
         }
     
         const contentfullBlobs = []
@@ -1509,9 +1661,11 @@ JSPG.BlobBuilder = new (function () {
                       ? JSPG.Maps.BLOB_STYLE_BY_TYPE[type]
                       : JSPG.Constants.BLOB_STYLES.SCENE_LEFT
     
-        const portrait = JSPG.parseParamValue(parsed.hasOwnProperty('portrait')
-                         ? parsed.portrait
-                         : portraitDefault)
+        const portrait = JSPG.parseParamValue(
+                            parsed.hasOwnProperty('portrait')
+                            ? parsed.portrait
+                            : portraitDefault
+                        )
     
         const portrait_html = portrait
                               && (
@@ -1611,139 +1765,6 @@ JSPG.BlobBuilder = new (function () {
         return parsed
     }
 })()
-
-// Screen Template objects
-JSPG.ScreenTemplates.simpleMenu = function () {
-    this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU
-    this.title = ''
-    this.content = []
-    this.onClickHandlers = []
-    this.HEADER_CLASS = 'simple-menu-header'
-    this.CONTENT_CLASS = 'simple-menu-content'
-    this.FIELDS = {
-        TITLE: 'title',
-        CONTENT: 'content',
-        PRE_EXEC: 'pre_exec'
-    }
-    this.FIELDS_CONTENT = {
-        TITLE: 'title',
-        NAVIGATETO: 'navigateto',
-        ONCLICK: 'onclick',
-    }
-    this.log = new Logger(
-        JSPG.Logging.ENTITIES.SCREEN.id.replace('$id', this.type),
-        JSPG.Logging.ENTITIES.SCREEN.level
-    )
-    
-    this.fromConfig = function (config) {
-        propCallbacks = {}
-        propCallbacks[this.FIELDS.CONTENT] = list => {
-            const normalizedList = []
-            list.forEach(el => {
-                let normalizedElement = {}
-                JSPG.normalizeAndCopyToObject(el,
-                    normalizedElement,
-                    Object.values(this.FIELDS_CONTENT))
-                normalizedList.push(normalizedElement)
-            })
-            return normalizedList
-        }
-    
-        JSPG.normalizeAndCopyToObject(config, this,
-                                      Object.values(this.FIELDS),
-                                      propCallbacks)
-    
-        if (!this.hasOwnProperty(this.FIELDS.PRE_EXEC)) return this
-    
-        // Pre_exec may change fields read from config
-        // and changed fields may need again normalization
-        this.pre_exec(this)
-        JSPG.normalizeAndCopyToObject(this, null, Object.values(this.FIELDS), propCallbacks)
-    
-        return this
-    }
-    
-    this.Get = function () {
-        const html = []
-        this.onClickHandlers.length = 0
-        if (this.title != '') {
-            html.push(`<div class='${this.HEADER_CLASS}'>${this.title}</div>`)
-        }
-    
-        html.push(`<div class='${this.CONTENT_CLASS}'>`)
-        for (let idx = 0; idx < this.content.length; ++idx) {
-            const content = this.content[idx]
-            this.log.debug('{Get}', `Content idx: ${idx}`)
-    
-            const onClickCode = []
-            if (typeof content.onclick != 'undefined') {
-                this.onClickHandlers[idx] = content.onclick
-                onClickCode.push(`JSPG.MenuHandler.onScreenElementClick(${idx})`)
-    
-                this.log.debug('{Get}', 'OnClick code defined - setting on click handler')
-            }
-            if (typeof content.navigateto != 'undefined') {
-                onClickCode.push(` JSPG.MenuHandler.ShowScreen(\"${content.navigateto}\") `)
-                this.log.debug('{Get}', 'NavigateTo defined - adding destination')
-            }
-            this.log.debug('{Get}', 'On click code: ', onClickCode)
-    
-            this.onClickHandlers.push(content.onClick)
-            html.push(`<a href='javascript:void(0)' onclick='${onClickCode.join(';')}'>${content.title}</a>`)
-        }
-        html.push(`</div>`)
-        html.push(`<a href="javascript:void(0)" class="closebtn" onclick="JSPG.MenuHandler.HideScreen()">&times;</a>`)
-    
-        return html.join('')
-    }
-}
-
-JSPG.ScreenTemplates.simpleText = function () {
-    this.type = JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT
-    this.title = ''
-    this.content = []
-    this.HEADER_CLASS = 'simple-menu-header'
-    this.CONTENT_CLASS = 'simple-menu-content'
-    this.FIELDS = {
-        TITLE: 'title',
-        CONTENT: 'content',
-        PRE_EXEC: 'pre_exec'
-    }
-    this.log = new Logger(
-        JSPG.Logging.ENTITIES.SCREEN.id.replace('$id', this.type),
-        JSPG.Logging.ENTITIES.SCREEN.level
-    )
-    
-    this.fromConfig = function (config) {
-        JSPG.normalizeAndCopyToObject(config, this, Object.values(this.FIELDS))
-        if (!this.hasOwnProperty(this.FIELDS.PRE_EXEC)) return this
-    
-        this.pre_exec(this)
-        JSPG.normalizeAndCopyToObject(this, null, Object.values(this.FIELDS))
-    }
-    
-    this.Get = function () {
-        const html = []
-        if (this.title != '') {
-            html.push(`<div class='${this.HEADER_CLASS}'>${this.title}</div>`)
-        }
-    
-        html.push(`<div class='${this.CONTENT_CLASS}'>`)
-        for (let idx = 0; idx < this.content.length; ++idx) {
-            html.push(`<p>${this.content[idx]}</p>`)
-        }
-        html.push(`</div>`)
-        html.push(`<a href="javascript:void(0)" class="closebtn" onclick="JSPG.MenuHandler.HideScreen()">&times;</a>`)
-    
-        return html.join('')
-    }
-}
-
-{
-    // Screen config type to template mapping
-     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_MENU] =  JSPG.ScreenTemplates.simpleMenu;
-     JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN [ JSPG.Constants.SCREENS.TYPES .SIMPLE_TEXT] =  JSPG.ScreenTemplates.simpleText;
-}
 
 // Handler components
 JSPG.SceneHandler = new (function () {
@@ -1960,7 +1981,7 @@ JSPG.ActionHandler = new (function () {
                                : ''
     
             let debugInfo = ''
-            if (this.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+            if (JSPG.Debug.enable_action_debug_info) {
                 const debugContent = []
                 if (action.tag) debugContent.push(`<b>#${action.tag}</b>`)
                 debugContent.push(`${action.type}, <i title="${action.desc}">${action.desc.length} description line(s)</i>`)
@@ -2154,235 +2175,6 @@ JSPG.ElementsHandler = new (function () {
     
         element.RemoveEventHandler(eventName, handlerTag)
         if (disableOnLimit) element.Disable()
-    }
-})()
-
-JSPG.MenuHandler = new (function () {
-    this.items = []
-    this.currentScreen = null
-    this.SELECTORS = {
-        CONTAINER: "#menu",
-        OVERLAY: "#overlay",
-        BUTTON_BY_POS: "#menu button[posid={pos}]"
-    }
-    this.HTML = {
-        BUTTON_POS_SUBCLS: 'menu-button-idx-{pos}',
-        BUTTON_CLS: 'menu-button menu-button-idx-{pos}',
-        BUTTON: '<button {attrs}>{icon}{title}</button>'
-    }
-    this.log = new Logger(
-        JSPG.Logging.MENU_HANDLER.id,
-        JSPG.Logging.MENU_HANDLER.level
-    )
-    
-    this.Constants = {
-        CSS_BASE_CLASS: 'menu-button',
-        CSS_IDX_CLASS_PREFIX: 'menu-button-idx-'
-    }
-    
-    this.Button = function (tag, positionIdx, title, icon, onClick, style=null, attrs=null) {
-        this.positionIdx = positionIdx
-        this.tag = tag
-        this.title = title
-        this.icon = icon
-        this.onClick = onClick
-        this.attrs = new JSPG.Entities.Attributes(attrs)
-        
-        this.get = function () {
-            const iconElement = this.icon == null ? '' : this.icon.get()
-            const html = JSPG.MenuHandler.HTML.BUTTON.format({
-                attrs: this.attrs.compose(),
-                icon: iconElement,
-                title: this.title
-            })
-            return html
-        }
-    
-        this.find = function () {
-            return $(JSPG.MenuHandler.SELECTORS.BUTTON_BY_POS.format('pos', this.positionIdx))
-        }
-    
-        this.updatePositionIdx = function (newPositionIdx) {
-            const $element = this.find()
-            $element.attr({posid: newPositionIdx})
-            $element.removeClass(JSPG.MenuHandler.HTML.BUTTON_POS_SUBCLS.format('pos', this.positionIdx))
-            $element.addClass(JSPG.MenuHandler.HTML.BUTTON_POS_SUBCLS.format('pos', this.positionIdx))
-    
-            this.positionIdx = newPositionIdx
-        }
-    
-        this.enable = function () { this.find().attr('disabled', false) }
-        this.disable = function () { this.find().attr('disabled', true) }
-    
-        {
-            this.attrs.modify({
-                class: JSPG.MenuHandler.HTML.BUTTON_CLS.format('pos', positionIdx),
-                tag: tag,
-                style: style,
-                onclick: "JSPG.MenuHandler.OnMenuItemClick(this)",
-                posid: positionIdx,
-            }, JSPG.Constants.OPERATIONS.APPEND)
-        }
-    }
-    
-    // Public-like
-    this.AddMenuItem = function (tag, title, iconData, onclick, style=null, attrs=null) {
-        const icon = iconData == null
-                     ? null
-                     : (new JSPG.Entities.Icon(iconData)).asMenuItemIcon()
-        const item = new this.Button(
-                        tag, positionIdx=this.items.length,
-                        title, icon,
-                        onclick,
-                        style, attrs)
-        this.items.push(item)
-        const html = item.get()
-        $(this.SELECTORS.CONTAINER).append(html)
-    }
-    
-    this.RemoveMenuItem = function (findBy) {
-        // findBy may be integer (position idx) or string (tag name)
-        [idx, item] = this.findMenuItem(findBy)
-        if (item == null) return
-    
-        item.find().remove()
-        this.items.splice(idx, 1)
-        this.updateMenuItems()
-    }
-    
-    this.ClearMenuItems = function () {
-        for (let idx = 0; idx < this.items.length; ++idx) {
-            $btn = this.items[idx].find()
-            $btn.remove()
-        }
-        this.items.purge()
-    }
-    
-    this.DisableMenuItem = function (findBy) {
-        [idx, item] = this.findMenuItem(findBy)
-        if (item == null) return
-    
-        item.disable()
-    }
-    
-    this.EnableMenuItem = function (findBy) {
-        [idx, item] = this.findMenuItem(findBy)
-        if (item == null) return
-    
-        item.enable()
-    }
-    
-    this.GetCurrentScreen = function () {
-        return this.currentScreen;
-    }
-    
-    this.ShowScreen = function (screenName) {
-        const screenConfig = JSPG.Screens[screenName]
-        const typeKey = Object.keys(screenConfig).find(key => key.toLowerCase() == 'type')
-        if (!typeKey) {
-            this.log.err(`ERROR on attempt to create unknown screen`)
-            return
-        }
-    
-        const screenTemplate = JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN[screenConfig[typeKey]]
-        if (!screenTemplate) {
-            this.log.err(`ERROR on attempt to create screen of unknown type [{screenConfig[typeKey]}]`)
-            return
-        }
-        
-        const screen = new screenTemplate()
-        screen.fromConfig(screenConfig)
-    
-        this.currentScreen = screen
-        this.UpdateScreenContent()
-    
-        $(this.SELECTORS.OVERLAY).width("100%")
-    }
-    
-    this.UpdateScreenContent = function (html) {
-        // Replace screen content with given HTML or by screen's Get() method
-        if (html != undefined) {
-            $(this.SELECTORS.OVERLAY).html(html)
-        }
-        if (this.currentScreen == null) return
-        $(this.SELECTORS.OVERLAY).html(this.currentScreen.Get())
-    }
-    
-    this.HideScreen = function () {
-        $(this.SELECTORS.OVERLAY).width("0%")
-        this.currentScreen = null
-        this.UpdateScreenContent(html='')
-    }
-    
-    // Not for public use
-    this.OnMenuItemClick = function (btn) {
-        const posid = btn.getAttribute('posid')
-        this.log.info('{OnMenuItemClick}', `Clicked item ${btn} with posId=${posid}`)
-    
-        return this.items[posid].onClick()
-    }
-    
-    
-    this.AddMainMenuButton = function () {
-        this.AddMenuItem(tag='main-menu-button',
-                         title='Menu',
-                         iconData=null,
-                         onClick=() => { this.ShowScreen('Main') },
-                         null,
-                         {class: 'menu-button-main'})
-    }
-    
-    // Private-like
-    this.updateMenuItems = function () {
-        for (let idx = 0; idx < this.items.length; ++idx) {
-            this.items[idx].updatePositionIdx(idx)
-        }
-    }
-    
-    this.findMenuItem = function (findBy) {
-        // findBy may be integer (position idx) or string (tag name)
-        let idx = (typeof findBy == typeof "")
-                  ? this.items.findIndex(item => item.tag == findBy)
-                  : findBy
-        if (idx < 0 || idx >= this.items.length) return [-1, null]
-    
-        return [idx,  this.items[idx]]
-    }
-    
-    this.onScreenElementClick = function (eventHandlerIdx) {
-        this.log.info('{onScreenElementClick}', `Handler id = ${eventHandlerIdx}`)
-        const handler = this.currentScreen.onClickHandlers[eventHandlerIdx]
-        if (handler == undefined) return
-    
-        this.log.info('{onScreenElementClick}', 'Invoking event handler for click')
-        handler()
-    }
-    
-    this.addSystemScreens = function () {
-        JSPG.Screens.SaveGameScreen = {
-            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
-            title: 'Save Game',
-            pre_exec: JSPG.Persistence.formatSaveMenuScreen.bind(JSPG.Persistence)
-        }
-    
-        JSPG.Screens.LoadGameScreen = {
-            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
-            title: 'Load Game',
-            pre_exec: JSPG.Persistence.formatLoadMenuScreen.bind(JSPG.Persistence)
-        }
-    
-        JSPG.Screens.AboutScreen = {
-            type: JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT,
-            title: 'About',
-            content: [
-                `${JSPG.Meta.name}`,
-                `by ${JSPG.Meta.author}`,
-                `Version ${JSPG.Meta.version}`,
-                `Game UID: ${JSPG.Meta.guid}`,
-                '',
-                `Powered by JSPG version ${JSPG.Meta.JSPGVersion}`
-            ]
-        }
     }
 })()
 
@@ -2584,6 +2376,275 @@ JSPG.Persistence = new (function () {
     }
 })()
 
+// Menu & Screens
+JSPG.MenuHandler = new (function () {
+    this.items = []
+    this.currentScreen = null
+    this.SELECTORS = {
+        CONTAINER: "#menu",
+        OVERLAY: "#overlay",
+        BUTTON_BY_POS: "#menu button[posid={pos}]"
+    }
+    this.HTML = {
+        BUTTON_POS_SUBCLS: 'menu-button-idx-{pos}',
+        BUTTON_CLS: 'menu-button menu-button-idx-{pos}',
+        BUTTON: '<button {attrs}>{icon}{title}</button>'
+    }
+    this.log = new Logger(
+        JSPG.Logging.MENU_HANDLER.id,
+        JSPG.Logging.MENU_HANDLER.level
+    )
+    
+    this.Constants = {
+        CSS_BASE_CLASS: 'menu-button',
+        CSS_IDX_CLASS_PREFIX: 'menu-button-idx-'
+    }
+    
+    this.Button = function (tag, positionIdx, title, icon, onClick, style=null, attrs=null) {
+        this.positionIdx = positionIdx
+        this.tag = tag
+        this.title = title
+        this.icon = icon
+        this.onClick = onClick
+        this.attrs = new JSPG.Entities.Attributes(attrs)
+    
+        this.get = function () {
+            const iconElement = this.icon == null ? '' : this.icon.get()
+            const html = JSPG.MenuHandler.HTML.BUTTON.format({
+                attrs: this.attrs.compose(),
+                icon: iconElement,
+                title: this.title
+            })
+            return html
+        }
+    
+        this.find = function () {
+            return $(JSPG.MenuHandler.SELECTORS.BUTTON_BY_POS.format('pos', this.positionIdx))
+        }
+    
+        this.updatePositionIdx = function (newPositionIdx) {
+            const $element = this.find()
+            $element.attr({posid: newPositionIdx})
+            $element.removeClass(JSPG.MenuHandler.HTML.BUTTON_POS_SUBCLS.format('pos', this.positionIdx))
+            $element.addClass(JSPG.MenuHandler.HTML.BUTTON_POS_SUBCLS.format('pos', this.positionIdx))
+    
+            this.positionIdx = newPositionIdx
+        }
+    
+        this.enable = function () { this.find().attr('disabled', false) }
+        this.disable = function () { this.find().attr('disabled', true) }
+    
+        {
+            this.attrs.modify({
+                class: JSPG.MenuHandler.HTML.BUTTON_CLS.format('pos', positionIdx),
+                tag: tag,
+                style: style,
+                onclick: "JSPG.MenuHandler.OnMenuItemClick(this)",
+                posid: positionIdx,
+            }, JSPG.Constants.OPERATIONS.APPEND)
+        }
+    }
+    
+    // Public-like
+    this.AddMenuItem = function (tag, title, iconData, onclick, style=null, attrs=null) {
+        const icon = iconData == null
+                     ? null
+                     : (new JSPG.Entities.Icon(iconData)).asMenuItemIcon()
+        const item = new this.Button(
+                        tag, positionIdx=this.items.length,
+                        title, icon,
+                        onclick,
+                        style, attrs)
+        this.items.push(item)
+        const html = item.get()
+        $(this.SELECTORS.CONTAINER).append(html)
+    }
+    
+    this.RemoveMenuItem = function (findBy) {
+        // findBy may be integer (position idx) or string (tag name)
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+    
+        item.find().remove()
+        this.items.splice(idx, 1)
+        this.updateMenuItems()
+    }
+    
+    this.ClearMenuItems = function () {
+        for (let idx = 0; idx < this.items.length; ++idx) {
+            $btn = this.items[idx].find()
+            $btn.remove()
+        }
+        this.items.purge()
+    }
+    
+    this.DisableMenuItem = function (findBy) {
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+    
+        item.disable()
+    }
+    
+    this.EnableMenuItem = function (findBy) {
+        [idx, item] = this.findMenuItem(findBy)
+        if (item == null) return
+    
+        item.enable()
+    }
+    
+    this.GetCurrentScreen = function () {
+        return this.currentScreen;
+    }
+    
+    this.ShowScreen = function (screenName) {
+        const screenConfig = JSPG.Screens[screenName]
+        const typeKey = Object.keys(screenConfig).find(key => key.toLowerCase() == 'type')
+        if (!typeKey) {
+            this.log.err(`ERROR on attempt to create unknown screen`)
+            return
+        }
+    
+        const screenTemplate = JSPG.Maps.SCREEN_TEMPLATE_BY_TOKEN[screenConfig[typeKey]]
+        if (!screenTemplate) {
+            this.log.err(`ERROR on attempt to create screen of unknown type [{screenConfig[typeKey]}]`)
+            return
+        }
+    
+        const screen = new screenTemplate()
+        screen.fromConfig(screenConfig)
+    
+        this.currentScreen = screen
+        this.UpdateScreenContent()
+    
+        $(this.SELECTORS.OVERLAY).width("100%")
+    }
+    
+    this.UpdateScreenContent = function (html) {
+        // Replace screen content with given HTML or by screen's Get() method
+        if (html != undefined) {
+            $(this.SELECTORS.OVERLAY).html(html)
+        }
+        if (this.currentScreen == null) return
+        $(this.SELECTORS.OVERLAY).html(this.currentScreen.Get())
+    }
+    
+    this.HideScreen = function () {
+        $(this.SELECTORS.OVERLAY).width("0%")
+        this.currentScreen = null
+        this.UpdateScreenContent(html='')
+    }
+    
+    // Not for public use
+    this.OnMenuItemClick = function (btn) {
+        const posid = btn.getAttribute('posid')
+        this.log.info('{OnMenuItemClick}', `Clicked item ${btn} with posId=${posid}`)
+    
+        return this.items[posid].onClick()
+    }
+    
+    
+    this.AddMainMenuButton = function () {
+        console.log('[[[[Add Main Menu Button]]]]')
+        if (!JSPG.Settings.menu.addMainMenuButton) return;
+        this.AddMenuItem(tag='main-menu-button',
+                         title='Menu',
+                         iconData=null,
+                         onClick=() => { this.ShowScreen('MainMenu') },
+                         null,
+                         {class: 'menu-button-main'})
+    }
+    
+    // Private-like
+    this.updateMenuItems = function () {
+        for (let idx = 0; idx < this.items.length; ++idx) {
+            this.items[idx].updatePositionIdx(idx)
+        }
+    }
+    
+    this.findMenuItem = function (findBy) {
+        // findBy may be integer (position idx) or string (tag name)
+        let idx = (typeof findBy == typeof "")
+                  ? this.items.findIndex(item => item.tag == findBy)
+                  : findBy
+        if (idx < 0 || idx >= this.items.length) return [-1, null]
+    
+        return [idx,  this.items[idx]]
+    }
+    
+    this.onScreenElementClick = function (eventHandlerIdx) {
+        this.log.info('{onScreenElementClick}', `Handler id = ${eventHandlerIdx}`)
+        const handler = this.currentScreen.onClickHandlers[eventHandlerIdx]
+        if (handler == undefined) return
+    
+        this.log.info('{onScreenElementClick}', 'Invoking event handler for click')
+        handler()
+    }
+})()
+
+JSPG.Screens.AboutScreen = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT,
+    title: 'About',
+    content: [
+        `${JSPG.Meta.name}`,
+        `by ${JSPG.Meta.author}`,
+        `Version ${JSPG.Meta.version}`,
+        `Game UID: ${JSPG.Meta.guid}`,
+        '',
+        `Powered by JSPG version ${JSPG.Meta.JSPGVersion}`
+    ]
+}
+
+JSPG.Screens.Debug_JumpToSceneScreen = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+    title: 'Jump To Scene',
+    pre_exec: (screen)=>{
+        for (const name in Scenes) {
+            screen.content.push({
+                title: name,
+                onClick:  () => {
+                    JSPG.SceneHandler.clearOutput(`[DEBUG] Jumped to scene "${name}"`)
+                    JSPG.MenuHandler.HideScreen();
+                    JSPG.GoTo(name);
+                }
+            })
+        }
+    }
+}
+
+JSPG.Screens.LoadGameScreen = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+    title: 'Load Game',
+    pre_exec: JSPG.Persistence.formatLoadMenuScreen.bind(JSPG.Persistence)
+}
+
+JSPG.Screens.MainMenu = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+    title: 'Main Menu',
+    pre_exec: (screen) => {
+        if (JSPG.Settings.menu.mainMenuContent.saveLoad) {
+            screen.content.push({title:'Save', navigateTo: 'SaveGameScreen'});
+            screen.content.push({title:'Load', navigateTo: 'LoadGameScreen'});
+        };
+    
+        if (JSPG.Settings.menu.mainMenuContent.about) {
+            screen.content.push({title:'About', navigateTo: 'AboutScreen'});
+        };
+    
+        if (JSPG.Debug.enable_debug_menu.jump_to_scene) {
+            screen.content.push({
+                title:'[DEBUG] Jump to Scene',
+                navigateTo: 'Debug_JumpToSceneScreen'
+            })
+        }
+    }
+}
+
+JSPG.Screens.SaveGameScreen = {
+    type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
+    title: 'Save Game',
+    pre_exec: JSPG.Persistence.formatSaveMenuScreen.bind(JSPG.Persistence)
+}
+
 JSPG.Helper = new (function () {
     // Simple elements
     this.Click = function(text, callback, tag='', use_limit=1, style=null, attrs=null) {
@@ -2752,7 +2813,7 @@ const Scenes = {}
 const Screens = {}
 
 $( document ).ready(function() {
-    JSPG.PlayScenario(scenes=Scenes, screens=Screens, init_scene='Init')
+    JSPG.PlayScenario(scenes=Scenes, screens=Screens, init_scene=JSPG.Settings.initScene)
     JSPG.MenuHandler.AddMainMenuButton()
 });
 

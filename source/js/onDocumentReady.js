@@ -5,6 +5,6 @@ const Scenes = {}
 const Screens = {}
 
 $( document ).ready(function() {
-    JSPG.PlayScenario(scenes=Scenes, screens=Screens, init_scene='Init')
+    JSPG.PlayScenario(scenes=Scenes, screens=Screens, init_scene=JSPG.Settings.initScene)
     JSPG.MenuHandler.AddMainMenuButton()
 });

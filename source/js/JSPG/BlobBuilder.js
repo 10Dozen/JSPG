@@ -7,7 +7,7 @@ this.log = new Logger(
 
 this.createBlobsFrom = function (entity) {
     let debugContent = null
-    if (JSPG.SceneHandler.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+    if (JSPG.Debug.enable_scene_debug_info) {
         debugContent = [`<b>${entity.name}</b> (${entity.debugName}, ${entity.type})`]
         if (entity.debugName == 'scene') {
             if (entity.actions.length > 0) debugContent.push(`${entity.actions.length} action(s)`)
@@ -25,7 +25,6 @@ this.createBlobsFrom = function (entity) {
                 : `<i title="target=${entity.goto}">➥ goto`
             )
         }
-
     }
 
     const contentfullBlobs = []
@@ -56,9 +55,11 @@ this._createBlob = function (typeDefault, portraitDefault, content, debugContent
                   ? JSPG.Maps.BLOB_STYLE_BY_TYPE[type]
                   : JSPG.Constants.BLOB_STYLES.SCENE_LEFT
 
-    const portrait = JSPG.parseParamValue(parsed.hasOwnProperty('portrait')
-                     ? parsed.portrait
-                     : portraitDefault)
+    const portrait = JSPG.parseParamValue(
+                        parsed.hasOwnProperty('portrait')
+                        ? parsed.portrait
+                        : portraitDefault
+                    )
 
     const portrait_html = portrait
                           && (

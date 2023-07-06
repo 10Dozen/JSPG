@@ -56,7 +56,7 @@ this.showSceneActions = function (actions) {
                            : ''
 
         let debugInfo = ''
-        if (this.log.level > JSPG.Constants.LOG_LEVELS.WARNING) {
+        if (JSPG.Debug.enable_action_debug_info) {
             const debugContent = []
             if (action.tag) debugContent.push(`<b>#${action.tag}</b>`)
             debugContent.push(`${action.type}, <i title="${action.desc}">${action.desc.length} description line(s)</i>`)

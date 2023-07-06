@@ -29,7 +29,7 @@ this.Button = function (tag, positionIdx, title, icon, onClick, style=null, attr
     this.icon = icon
     this.onClick = onClick
     this.attrs = new JSPG.Entities.Attributes(attrs)
-    
+
     this.get = function () {
         const iconElement = this.icon == null ? '' : this.icon.get()
         const html = JSPG.MenuHandler.HTML.BUTTON.format({
@@ -131,7 +131,7 @@ this.ShowScreen = function (screenName) {
         this.log.err(`ERROR on attempt to create screen of unknown type [{screenConfig[typeKey]}]`)
         return
     }
-    
+
     const screen = new screenTemplate()
     screen.fromConfig(screenConfig)
 
@@ -166,10 +166,12 @@ this.OnMenuItemClick = function (btn) {
 
 
 this.AddMainMenuButton = function () {
+    console.log('[[[[Add Main Menu Button]]]]')
+    if (!JSPG.Settings.menu.addMainMenuButton) return;
     this.AddMenuItem(tag='main-menu-button',
                      title='Menu',
                      iconData=null,
-                     onClick=() => { this.ShowScreen('Main') },
+                     onClick=() => { this.ShowScreen('MainMenu') },
                      null,
                      {class: 'menu-button-main'})
 }
@@ -198,31 +200,4 @@ this.onScreenElementClick = function (eventHandlerIdx) {
 
     this.log.info('{onScreenElementClick}', 'Invoking event handler for click')
     handler()
-}
-
-this.addSystemScreens = function () {
-    JSPG.Screens.SaveGameScreen = {
-        type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
-        title: 'Save Game',
-        pre_exec: JSPG.Persistence.formatSaveMenuScreen.bind(JSPG.Persistence)
-    }
-
-    JSPG.Screens.LoadGameScreen = {
-        type: JSPG.Constants.SCREENS.TYPES.SIMPLE_MENU,
-        title: 'Load Game',
-        pre_exec: JSPG.Persistence.formatLoadMenuScreen.bind(JSPG.Persistence)
-    }
-
-    JSPG.Screens.AboutScreen = {
-        type: JSPG.Constants.SCREENS.TYPES.SIMPLE_TEXT,
-        title: 'About',
-        content: [
-            `${JSPG.Meta.name}`,
-            `by ${JSPG.Meta.author}`,
-            `Version ${JSPG.Meta.version}`,
-            `Game UID: ${JSPG.Meta.guid}`,
-            '',
-            `Powered by JSPG version ${JSPG.Meta.JSPGVersion}`
-        ]
-    }
 }

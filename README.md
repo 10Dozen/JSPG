@@ -148,7 +148,7 @@ Object which contains elements data and functions to handle it.
 Next HTML elements is available:
 
 | Type | Element type |  Helper function | Description |
-| --- | ---- | ---- |
+| --- | ---- | ---- |---- |
 | `image` | `<img>` | $h.Img() | Image element |
 | `label` | `<label>` | $h.Label() | Plain text |
 | `click` | `<button>` | $h.Click() | Clickable text |

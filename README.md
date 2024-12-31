@@ -146,7 +146,9 @@ Object which contains elements data and functions to handle it.
 
 #### Type parameter
 Next HTML elements is available:
+
 | Type | Element type |  Helper function | Description |
+| --- | ---- | ---- |
 | `image` | `<img>` | $h.Img() | Image element |
 | `label` | `<label>` | $h.Label() | Plain text |
 | `click` | `<button>` | $h.Click() | Clickable text |
@@ -161,6 +163,7 @@ Human readeable text that will be applied as `tag='...value...'` HTML attribute 
 Depending on element type this parameter should contain either display text, URI for image or default values for input
 
 | Type | Content meaning |
+| --- | ---- |
 | `image` | URI to image |
 | `label` | Text |
 | `click` | Text of clickable |

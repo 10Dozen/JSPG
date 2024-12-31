@@ -179,6 +179,7 @@ Optional, default `null`. Object of key-value pairs of HTML attributes to be app
 #### EventHandlers parameter
 Array that describes event handlers to apply to element.
 Should have following structure:
+```js
 [
     [
         "eventName", // e.g. 'click', 'change'
@@ -189,7 +190,7 @@ Should have following structure:
     ["focus", (e)=>{}],
     ["click", (e)=>{}, 2, true] // limited event
 ]
-
+```
 
 
 #### Functions
@@ -259,12 +260,13 @@ To modify scene's actions use helper functions of $h.Actions group. To find spec
 #### Inline blob type definition
 
 It is possible to directly set type of the specific blob in scene (e.g. to represent dialogue). To do so one need to put specific tokens at the beginning of the line:
-`{type token}{|}{attributes token}{|} Normal text...` => '>|Blob right
+`{type token}{|}{attributes token}{|} Normal text...` => `>|Blob right`
 
 This feature applies for both Scene and Action descriptions. Please note, if action.type is 'hidden' no descriptions will be rendered at all.
 
 ##### Type token
 | Token | Scene type | Desciption |
+| --- | --- | --- |
 | `<` | `scene` | Blob on left side |
 | `>` | `scene_right` | Blob on right side |
 | `<#` | `dialog` | Blob on left side, with portrait. Attibutes token defines image for portrait, if it's missing - scene.portrait will be used. |
@@ -291,6 +293,7 @@ The main game object is `JSPG` (or `window.JSPG`). There are few public function
 ### Components
 `JSPG` is also a container for number of objects that handles various components of games:
 | Component | Description |
+| --- | --- |
 | `JSPG.SceneHandler` | Processing scenes and renders blobs on screen. |
 | `JSPG.ActionHandler` | Renders action buttons and handles selection and execution of action code |
 | `JSPG.ElementsHandler` | Creates and handles events for custom HTML elements that may be added into blobs. |
